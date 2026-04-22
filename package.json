@@ -18,5 +18,9 @@
     "url": "https://github.com/YOUR_USERNAME/adduckivity.git"
   },
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "next-mdx-remote": "^6.0.0"
+  }
 }
