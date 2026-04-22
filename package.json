@@ -1,0 +1,22 @@
+{
+  "name": "adduckivity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Duck OS - Life Architecture for Neurodivergent Creators",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/immersive",
+    "build": "npm run build --workspace=apps/immersive",
+    "dev:landing": "npm run dev --workspace=apps/landing",
+    "dev:immersive": "npm run dev --workspace=apps/immersive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/adduckivity.git"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
