@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import FlywheelScene from '@/components/FlywheelScene'
 
 export default function MomentumPage() {
@@ -19,6 +21,31 @@ export default function MomentumPage() {
 
   return (
     <div className="relative">
+      {/* Navigation Header with Logo */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/70 backdrop-blur-md border-b border-white/10">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Image 
+            src="/logo.png" 
+            alt="Adduckivity Logo"
+            width={35}
+            height={35}
+            className="rounded-lg"
+          />
+          <span className="text-white font-semibold">Adduckivity</span>
+        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/" className="text-gray-300 hover:text-white transition-colors text-sm">
+            Home
+          </Link>
+          <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors text-sm">
+            Blog
+          </a>
+          <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors text-sm">
+            Tools
+          </a>
+        </div>
+      </nav>
+
       {/* 3D Background Scene */}
       <FlywheelScene scrollProgress={scrollProgress} />
 
