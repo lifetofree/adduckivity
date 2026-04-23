@@ -1,15 +1,21 @@
 ---
-title: "Momentum Protocol"
-slug: "momentum"
-date: 2026-04-22
-category: "protocol"
-scene: "momentum-flywheel"
-mood: "energetic"
-excerpt: "Action over motivation. How to build momentum when you don't feel like it."
-tags: ["momentum", "action", "adhd", "protocols", "act-04"]
-featuredImage: "https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1"
-author: "Adduckivity"
-readingTime: "8 min read"
+title: Momentum Protocol
+slug: momentum-protocol
+date: '2026-04-23'
+category: protocol
+scene: momentum-flywheel
+mood: energetic
+excerpt: Action over motivation. How to build momentum when you don't feel like it.
+tags:
+  - momentum
+  - action
+  - adhd
+  - protocols
+  - act-04
+featuredImage: >-
+  https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1
+author: Adduckivity
+readingTime: 3 min read
 ---
 
 # Momentum Protocol: Action Over Motivation

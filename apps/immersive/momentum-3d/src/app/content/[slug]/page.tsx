@@ -1,299 +1,343 @@
-'use client'
-
-import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Hash, ImageIcon, Tag, FileText, Sparkles, Wand2, ChevronDown,
-  Loader2, Copy, Check, Bold, Italic, List, ListOrdered,
-  Link2, Code, Heading1, Heading2, Heading3, Quote, ExternalLink,
-} from 'lucide-react'
-import { suggestTitles, autoExcerpt, buildOutline, seoTips, suggestTags } from '@/lib/gemini'
+import Image from 'next/image'
+import { notFound } from 'next/navigation'
+import { getAllPosts, getPostBySlug } from '@/lib/posts'
 
-export const dynamic = 'force-dynamic'
+const ET = {
+  bg:      '#F5EFE3',
+  surface: '#FAF5EC',
+  muted:   '#EDE5D8',
+  border:  '#D8C9B0',
+  ink:     '#2C1F14',
+  mid:     '#5A4030',
+  sub:     '#7B6248',
+  accent:  '#C07850',
+  accentL: 'rgba(192,120,80,0.12)',
+}
 
-type AiSection = 'titles' | 'excerpt' | 'outline' | 'seo' | 'tags'
+/* Simple markdown → HTML (no external deps) */
+function renderMarkdown(md: string): string {
+  return md
+    // Code blocks (must be before inline code)
+    .replace(/```[\w]*\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    // H1–H3
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    // Bold + italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Blockquote
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    // HR
+    .replace(/^---$/gm, '<hr />')
+    // Ordered list (simple single-level)
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    // Unordered list
+    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    // Paragraphs (blank line separated)
+    .split(/\n{2,}/)
+    .map(block => {
+      const t = block.trim()
+      if (!t) return ''
+      if (/^<(h[1-3]|pre|blockquote|hr|li|ul|ol)/.test(t)) return t
+      if (t.startsWith('<li>')) return `<ul>${t}</ul>`
+      return `<p>${t.replace(/\n/g, '<br />')}</p>`
+    })
+    .join('\n')
+}
 
-export default function EditPostPage() {
-  const { slug } = useParams() as { slug: string }
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+export default function PostPage({ params }: { params: { slug: string } }) {
+  const post = getPostBySlug(params.slug)
+  if (!post) notFound()
 
-  const [loading, setLoading] = useState(true)
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [excerpt, setExcerpt] = useState('')
-  const [tags, setTags] = useState('')
-  const [category, setCategory] = useState('protocol')
-  const [featuredImage, setFeaturedImage] = useState('')
-  const [scene, setScene] = useState('default')
-  const [mood, setMood] = useState('neutral')
-  const [currentSlug, setCurrentSlug] = useState(slug)
+  const allPosts = getAllPosts()
+  const related = allPosts
+    .filter(p => p.slug !== post.slug && (
+      p.category === post.category ||
+      p.tags.some(t => post.tags.includes(t))
+    ))
+    .slice(0, 3)
 
-  const wordCount = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
-  const charCount = content.length
-  const titleLen = title.length
-  const excerptLen = excerpt.length
+  const bodyHtml = renderMarkdown(post.content)
 
-  const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
-  const [aiLoading, setAiLoading] = useState<AiSection | null>(null)
-  const [aiResults, setAiResults] = useState<Record<string, any>>({})
-  const [copied, setCopied] = useState<string | null>(null)
-  const [open, setOpen] = useState<Record<string, boolean>>({ meta: true, titles: true, excerpt: false, outline: false, seo: false, tags: false })
-  const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
-
-  useEffect(() => {
-    fetch(`/api/posts?slug=${slug}`).then(r => r.json()).then(data => {
-      setTitle(data.title); setContent(data.content); setExcerpt(data.excerpt)
-      setTags(data.tags.join(', ')); setCategory(data.category)
-      setFeaturedImage(data.featuredImage || ''); setScene(data.scene || 'default')
-      setMood(data.mood || 'neutral'); setCurrentSlug(slug)
-    }).catch(console.error).finally(() => setLoading(false))
-  }, [slug])
-
-  const insert = useCallback((before: string, after = '', placeholder = '') => {
-    const ta = textareaRef.current
-    if (!ta) return
-    const s = ta.selectionStart, e = ta.selectionEnd
-    const sel = content.slice(s, e) || placeholder
-    setContent(content.slice(0, s) + before + sel + after + content.slice(e))
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(s + before.length, s + before.length + sel.length) }, 0)
-  }, [content])
-
-  const runAI = async (section: AiSection) => {
-    setAiLoading(section)
-    try {
-      switch (section) {
-        case 'titles': { const r = await suggestTitles(content, title); setAiResults(p => ({ ...p, titles: r })); break }
-        case 'excerpt': { const r = await autoExcerpt(title, content); setAiResults(p => ({ ...p, excerpt: r })); break }
-        case 'outline': { const r = await buildOutline(title, content); setAiResults(p => ({ ...p, outline: r })); break }
-        case 'seo': { const r = await seoTips(title, excerpt, content, tags.split(',').map(t => t.trim()).filter(Boolean)); setAiResults(p => ({ ...p, seo: r })); break }
-        case 'tags': { const r = await suggestTags(title, content); setAiResults(p => ({ ...p, tags: r })); break }
-      }
-    } catch { setToast({ type: 'err', msg: 'AI request failed' }) }
-    finally { setAiLoading(null) }
-  }
-
-  const copyText = (text: string, id: string) => {
-    navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(null), 1800)
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault(); setSaving(true); setToast(null)
-    try {
-      const res = await fetch(`/api/posts/${slug}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, excerpt, tags: tags.split(',').map(t => t.trim()).filter(Boolean), category, featuredImage, scene, mood }),
-      })
-      if (!res.ok) throw new Error((await res.json()).error || 'Failed')
-      setToast({ type: 'ok', msg: 'Saved!' })
-    } catch (err: any) { setToast({ type: 'err', msg: err.message }) }
-    finally { setSaving(false) }
-  }
-
-  if (loading) return <div className="h-screen flex items-center justify-center bg-[#FBFBFA] text-gray-400 text-sm">Loading…</div>
+  const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+  })
 
   return (
-    <div className="h-screen flex flex-col bg-[#FBFBFA] text-[#141414] overflow-hidden">
-      <header className="shrink-0 h-12 flex items-center justify-between px-5 border-b border-[#E8E8E6] bg-white z-30">
-        <div className="flex items-center gap-3 text-sm">
-          <Link href="/content" className="text-gray-400 hover:text-gray-700 transition-colors">← Posts</Link>
-          <span className="text-gray-200">/</span>
-          <span className="font-medium truncate max-w-48">{title || 'Edit Post'}</span>
+    <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
+
+      {/* ── Sticky Header ── */}
+      <header
+        className="sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between"
+        style={{
+          backgroundColor: 'rgba(250,245,236,0.92)',
+          borderColor: ET.border,
+          backdropFilter: 'blur(12px)',
+        }}
+      >
+        <div className="flex items-center gap-3 text-sm min-w-0">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity shrink-0">
+            <Image src="/logo.png" alt="Adduckivity" width={26} height={26} className="rounded-md" />
+          </Link>
+          <span style={{ color: ET.border }}>/</span>
+          <Link
+            href="/content"
+            className="transition-opacity hover:opacity-70 shrink-0"
+            style={{ color: ET.sub, fontSize: '0.8125rem' }}
+          >
+            Content
+          </Link>
+          <span style={{ color: ET.border }}>/</span>
+          <span
+            className="truncate font-semibold"
+            style={{ color: ET.ink, fontSize: '0.8125rem' }}
+          >
+            {post.title}
+          </span>
         </div>
-        <div className="flex items-center gap-3 text-xs text-gray-400">
-          {wordCount > 0 && <><span>{wordCount.toLocaleString()} words</span><span>·</span><span>{charCount.toLocaleString()} chars</span></>}
-          <Link href={`/content/preview/${slug}`} target="_blank" className="p-1.5 text-gray-400 hover:text-gray-700 rounded transition-colors"><ExternalLink size={15} /></Link>
-          <button onClick={handleSave} disabled={saving || !title || !content} className="h-8 px-5 rounded-md bg-[#141414] text-white text-xs font-medium hover:bg-[#2a2a2a] disabled:opacity-40 transition-colors">
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-        </div>
+
+        <Link
+          href={`/content/${post.slug}/edit`}
+          className="shrink-0 h-8 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-80"
+          style={{ backgroundColor: ET.muted, color: ET.mid, border: `1px solid ${ET.border}` }}
+        >
+          Edit
+        </Link>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: Metadata */}
-        <aside className="w-64 shrink-0 border-r border-[#E8E8E6] bg-white overflow-y-auto">
-          <SideSection label="Post Metadata" open={open.meta} onToggle={() => toggle('meta')}>
-            <Field label="Slug" icon={<Hash size={13} />}>
-              <input value={currentSlug} onChange={e => setCurrentSlug(e.target.value)} className="mono-input" placeholder="post-slug" />
-            </Field>
-            <Field label="Category" icon={<FileText size={13} />}>
-              <select value={category} onChange={e => setCategory(e.target.value)} className="base-select">
-                <option value="protocol">Protocol</option>
-                <option value="tutorial">Tutorial</option>
-                <option value="case-study">Case Study</option>
-                <option value="system">System</option>
-              </select>
-            </Field>
-            <Field label="Cover Image" icon={<ImageIcon size={13} />}>
-              <input type="url" value={featuredImage} onChange={e => setFeaturedImage(e.target.value)} placeholder="https://..." className="base-input" />
-            </Field>
-            <Field label="Excerpt">
-              <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} placeholder="Brief summary for SEO…" rows={3} className="base-input resize-none text-xs leading-relaxed" />
-              <ProgressBar value={excerptLen} max={160} optimal={[120, 160]} /><span className="text-[10px] text-gray-400 mt-0.5 block">{excerptLen}/160</span>
-            </Field>
-            <Field label="Tags" icon={<Tag size={13} />}>
-              <input value={tags} onChange={e => setTags(e.target.value)} placeholder="adhd, system, protocol" className="mono-input" />
-              <p className="text-[10px] text-gray-400 mt-0.5">Comma separated</p>
-            </Field>
-            <Field label="3D Scene">
-              <select value={scene} onChange={e => setScene(e.target.value)} className="base-select">
-                <option value="default">Default</option>
-                <option value="momentum-flywheel">Momentum Flywheel</option>
-              </select>
-            </Field>
-            <Field label="Mood">
-              <select value={mood} onChange={e => setMood(e.target.value)} className="base-select">
-                <option value="neutral">Neutral</option>
-                <option value="energetic">Energetic</option>
-                <option value="calm">Calm</option>
-                <option value="focused">Focused</option>
-              </select>
-            </Field>
-          </SideSection>
-        </aside>
+      <main className="max-w-3xl mx-auto px-6 py-12">
 
-        {/* Center: Editor */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-10 pt-8 pb-3 border-b border-[#E8E8E6]">
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Post title…" required className="w-full bg-transparent text-[2rem] font-bold leading-tight placeholder-gray-200 focus:outline-none" />
-            <div className="flex items-center justify-between mt-2">
-              <span className={`text-[11px] ${titleLen > 60 ? 'text-red-500' : 'text-gray-400'}`}>{titleLen}/60 characters</span>
-              <ProgressBar value={titleLen} max={60} optimal={[40, 60]} className="w-24" />
+        {/* ── Category pill ── */}
+        <div className="mb-5">
+          <span
+            className="px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide"
+            style={{ backgroundColor: ET.accentL, color: ET.accent }}
+          >
+            {post.category}
+          </span>
+        </div>
+
+        {/* ── Title ── */}
+        <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4" style={{ color: ET.ink }}>
+          {post.title}
+        </h1>
+
+        {/* ── Excerpt ── */}
+        {post.excerpt && (
+          <p className="text-lg leading-relaxed mb-6" style={{ color: ET.sub }}>
+            {post.excerpt}
+          </p>
+        )}
+
+        {/* ── Meta row ── */}
+        <div
+          className="flex flex-wrap items-center gap-4 pb-6 mb-8 border-b"
+          style={{ borderColor: ET.border }}
+        >
+          <span className="font-mono text-xs" style={{ color: ET.sub }}>{formattedDate}</span>
+          <span style={{ color: ET.border }}>·</span>
+          <span className="text-xs" style={{ color: ET.sub }}>{post.readingTime}</span>
+          <span style={{ color: ET.border }}>·</span>
+          <span className="text-xs font-medium" style={{ color: ET.mid }}>{post.author}</span>
+        </div>
+
+        {/* ── 16:9 Cover Image ── */}
+        {post.featuredImage && (
+          <div
+            className="relative w-full overflow-hidden rounded-2xl mb-10"
+            style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}
+          >
+            <Image
+              src={post.featuredImage}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+          </div>
+        )}
+
+        {/* ── Body ── */}
+        <article
+          className="prose-et mb-12"
+          dangerouslySetInnerHTML={{ __html: bodyHtml }}
+        />
+
+        {/* ── Tags ── */}
+        {post.tags.length > 0 && (
+          <div
+            className="flex flex-wrap gap-2 pt-8 border-t"
+            style={{ borderColor: ET.border }}
+          >
+            {post.tags.map(tag => (
+              <span
+                key={tag}
+                className="px-3 py-1 rounded-full text-xs border"
+                style={{ borderColor: ET.border, color: ET.sub, backgroundColor: ET.surface }}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* ── Related Posts ── */}
+      {related.length > 0 && (
+        <section
+          className="border-t py-14"
+          style={{ backgroundColor: ET.surface, borderColor: ET.border }}
+        >
+          <div className="max-w-6xl mx-auto px-6">
+            <h2 className="text-xs font-semibold uppercase tracking-widest mb-8" style={{ color: ET.sub }}>
+              Related Posts
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {related.map(rp => (
+                <Link key={rp.slug} href={`/content/${rp.slug}`} className="group block">
+                  <article
+                    className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-lg"
+                    style={{ backgroundColor: ET.bg, borderColor: ET.border }}
+                  >
+                    <div
+                      className="relative w-full overflow-hidden"
+                      style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}
+                    >
+                      {rp.featuredImage ? (
+                        <Image
+                          src={rp.featuredImage}
+                          alt={rp.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <svg viewBox="0 0 120 68" className="w-16 opacity-20" fill="none">
+                            <rect width="120" height="68" rx="4" fill={ET.border} />
+                            <circle cx="42" cy="28" r="10" fill={ET.sub} />
+                            <path d="M0 52 L30 32 L55 48 L80 30 L120 52 L120 68 L0 68 Z" fill={ET.sub} opacity="0.5" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="absolute top-3 left-3">
+                        <span
+                          className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
+                          style={{ backgroundColor: 'rgba(44,31,20,0.55)', color: '#FAF5EC' }}
+                        >
+                          {rp.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3
+                        className="font-semibold text-sm leading-snug mb-1.5 line-clamp-2 transition-opacity group-hover:opacity-70"
+                        style={{ color: ET.ink }}
+                      >
+                        {rp.title}
+                      </h3>
+                      <div
+                        className="flex items-center justify-between pt-3 border-t"
+                        style={{ borderColor: ET.border }}
+                      >
+                        <span className="font-mono text-[11px]" style={{ color: ET.sub }}>
+                          {new Date(rp.date).toLocaleDateString('en-US', {
+                            month: 'short', day: 'numeric', year: 'numeric',
+                          })}
+                        </span>
+                        <span className="text-[11px]" style={{ color: ET.sub }}>{rp.readingTime}</span>
+                      </div>
+                    </div>
+                    <div
+                      className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ backgroundColor: ET.accent }}
+                    />
+                  </article>
+                </Link>
+              ))}
             </div>
           </div>
-          <div className="px-10 py-2 flex items-center gap-0.5 border-b border-[#E8E8E6] bg-white">
-            <ToolBtn title="Bold" onClick={() => insert('**', '**', 'bold')}><Bold size={15} /></ToolBtn>
-            <ToolBtn title="Italic" onClick={() => insert('*', '*', 'italic')}><Italic size={15} /></ToolBtn>
-            <div className="w-px h-5 bg-gray-200 mx-1.5" />
-            <ToolBtn title="H1" onClick={() => insert('# ', '', '')}><Heading1 size={15} /></ToolBtn>
-            <ToolBtn title="H2" onClick={() => insert('## ', '', '')}><Heading2 size={15} /></ToolBtn>
-            <ToolBtn title="H3" onClick={() => insert('### ', '', '')}><Heading3 size={15} /></ToolBtn>
-            <div className="w-px h-5 bg-gray-200 mx-1.5" />
-            <ToolBtn title="Bullet list" onClick={() => insert('- ', '', '')}><List size={15} /></ToolBtn>
-            <ToolBtn title="Numbered list" onClick={() => insert('1. ', '', '')}><ListOrdered size={15} /></ToolBtn>
-            <ToolBtn title="Blockquote" onClick={() => insert('> ', '', '')}><Quote size={15} /></ToolBtn>
-            <ToolBtn title="Code" onClick={() => insert('`', '`', 'code')}><Code size={15} /></ToolBtn>
-            <ToolBtn title="Link" onClick={() => insert('[', '](url)', '')}><Link2 size={15} /></ToolBtn>
-          </div>
-          <div className="flex-1 overflow-y-auto px-10 py-6">
-            <textarea ref={textareaRef} name="content" value={content} onChange={e => setContent(e.target.value)} placeholder="Start writing…" required className="w-full h-full min-h-[500px] bg-transparent text-base leading-8 placeholder-gray-200 focus:outline-none resize-none" />
-          </div>
-        </main>
+        </section>
+      )}
 
-        {/* Right: AI */}
-        <aside className="w-72 shrink-0 border-l border-[#E8E8E6] bg-white overflow-y-auto">
-          <div className="px-4 py-3 border-b border-[#E8E8E6] flex items-center gap-2">
-            <Sparkles size={14} className="text-violet-500" />
-            <span className="text-xs font-semibold tracking-wide uppercase text-gray-500">AI Assistant</span>
-          </div>
-          <AISection label="Title Suggestions" sectionKey="titles" open={open.titles} onToggle={() => toggle('titles')} loading={aiLoading === 'titles'} onRun={() => runAI('titles')} color="violet">
-            {aiResults.titles?.map((t: string, i: number) => (
-              <div key={i} className="flex items-start gap-2 group py-1">
-                <span className="text-[10px] text-violet-400 font-mono mt-0.5 shrink-0">{i + 1}.</span>
-                <button onClick={() => setTitle(t)} className="flex-1 text-left text-xs text-gray-700 hover:text-violet-700 leading-relaxed transition-colors">{t}</button>
-                <button onClick={() => copyText(t, `t-${i}`)} className="opacity-0 group-hover:opacity-100 shrink-0 mt-0.5 transition-opacity">
-                  {copied === `t-${i}` ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-300" />}
-                </button>
-              </div>
-            ))}
-          </AISection>
-          <AISection label="Auto Excerpt" sectionKey="excerpt" open={open.excerpt} onToggle={() => toggle('excerpt')} loading={aiLoading === 'excerpt'} onRun={() => runAI('excerpt')} color="blue">
-            {aiResults.excerpt && <div className="space-y-2"><p className="text-xs text-gray-600 leading-relaxed">{aiResults.excerpt}</p><button onClick={() => setExcerpt(aiResults.excerpt)} className="text-[11px] px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">Apply</button></div>}
-          </AISection>
-          <AISection label="Outline" sectionKey="outline" open={open.outline} onToggle={() => toggle('outline')} loading={aiLoading === 'outline'} onRun={() => runAI('outline')} color="green">
-            {aiResults.outline && <div className="max-h-52 overflow-y-auto space-y-0.5">{aiResults.outline.map((line: string, i: number) => <p key={i} className="text-xs text-gray-600 font-mono leading-relaxed whitespace-pre">{line}</p>)}</div>}
-          </AISection>
-          <AISection label="SEO Tips" sectionKey="seo" open={open.seo} onToggle={() => toggle('seo')} loading={aiLoading === 'seo'} onRun={() => runAI('seo')} color="amber">
-            {aiResults.seo?.map((tip: string, i: number) => <p key={i} className="text-xs text-gray-600 leading-relaxed py-0.5 border-b border-gray-100 last:border-0">{tip}</p>)}
-          </AISection>
-          <AISection label="Auto Tags" sectionKey="tags" open={open.tags} onToggle={() => toggle('tags')} loading={aiLoading === 'tags'} onRun={() => runAI('tags')} color="pink">
-            {aiResults.tags && <div className="space-y-2"><div className="flex flex-wrap gap-1.5">{aiResults.tags.map((t: string, i: number) => <span key={i} className="px-2 py-0.5 bg-pink-50 text-pink-700 text-[11px] rounded-full border border-pink-200">{t}</span>)}</div><button onClick={() => setTags(aiResults.tags.join(', '))} className="text-[11px] px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700 transition-colors">Apply Tags</button></div>}
-          </AISection>
-        </aside>
-      </div>
+      {/* ── Footer ── */}
+      <footer
+        className="border-t py-10 px-6 text-center"
+        style={{ backgroundColor: ET.bg, borderColor: ET.border }}
+      >
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <Image src="/logo.png" alt="Adduckivity" width={24} height={24} className="rounded-md" />
+          <span className="text-sm font-semibold" style={{ color: ET.ink }}>Adduckivity</span>
+        </div>
+        <p className="text-xs" style={{ color: ET.sub }}>
+          Duck OS — Life Architecture for Neurodivergent Creators
+        </p>
+      </footer>
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className={`fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === 'ok' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-            {toast.msg}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      {/* ── Prose styles ── */}
       <style>{`
-        .base-input { @apply w-full text-xs rounded-md border border-[#E8E8E6] bg-[#FBFBFA] px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#141414] transition-shadow placeholder-gray-300; }
-        .mono-input { @apply w-full text-xs rounded-md border border-[#E8E8E6] bg-[#FBFBFA] px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#141414] transition-shadow placeholder-gray-300 font-mono; }
-        .base-select { @apply w-full text-xs rounded-md border border-[#E8E8E6] bg-[#FBFBFA] px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#141414] transition-shadow; }
+        .prose-et p   { margin: 0 0 1.25rem; line-height: 1.8; color: ${ET.mid}; font-size: 1rem; }
+        .prose-et h1  { font-size: 1.75rem; font-weight: 700; color: ${ET.ink}; margin: 2rem 0 1rem; line-height: 1.3; }
+        .prose-et h2  { font-size: 1.35rem; font-weight: 700; color: ${ET.ink}; margin: 2rem 0 0.75rem; line-height: 1.3; }
+        .prose-et h3  { font-size: 1.1rem;  font-weight: 600; color: ${ET.ink}; margin: 1.5rem 0 0.5rem; }
+        .prose-et ul,
+        .prose-et ol  { padding-left: 1.5rem; margin: 0 0 1.25rem; color: ${ET.mid}; }
+        .prose-et li  { margin-bottom: 0.4rem; line-height: 1.7; }
+        .prose-et blockquote {
+          border-left: 3px solid ${ET.accent};
+          margin: 1.5rem 0;
+          padding: 0.5rem 0 0.5rem 1.25rem;
+          color: ${ET.sub};
+          font-style: italic;
+          background: ${ET.accentL};
+          border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .prose-et code {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.85em;
+          background: ${ET.muted};
+          color: ${ET.accent};
+          padding: 0.15em 0.4em;
+          border-radius: 0.25rem;
+        }
+        .prose-et pre {
+          background: ${ET.ink};
+          color: #FAF5EC;
+          border-radius: 0.75rem;
+          padding: 1.25rem 1.5rem;
+          overflow-x: auto;
+          margin: 1.5rem 0;
+          font-size: 0.875rem;
+          line-height: 1.7;
+        }
+        .prose-et pre code {
+          background: none;
+          color: inherit;
+          padding: 0;
+          font-size: inherit;
+        }
+        .prose-et a {
+          color: ${ET.accent};
+          text-decoration: underline;
+          text-decoration-color: ${ET.accentL};
+          text-underline-offset: 3px;
+        }
+        .prose-et a:hover { text-decoration-color: ${ET.accent}; }
+        .prose-et hr {
+          border: none;
+          border-top: 1px solid ${ET.border};
+          margin: 2.5rem 0;
+        }
+        .prose-et strong { color: ${ET.ink}; font-weight: 600; }
       `}</style>
     </div>
-  )
-}
-
-function SideSection({ label, open, onToggle, children }: { label: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
-  return (
-    <div className="border-b border-[#E8E8E6]">
-      <button onClick={onToggle} className="w-full flex items-center justify-between px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:bg-gray-50 transition-colors">
-        {label}
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown size={14} /></motion.div>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="px-4 pb-4 space-y-3">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-function Field({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500">{icon}{label}</label>
-      {children}
-    </div>
-  )
-}
-
-const colorMap: Record<string, string> = { violet: 'text-violet-600 hover:bg-violet-50', blue: 'text-blue-600 hover:bg-blue-50', green: 'text-green-600 hover:bg-green-50', amber: 'text-amber-600 hover:bg-amber-50', pink: 'text-pink-600 hover:bg-pink-50' }
-
-function AISection({ label, sectionKey, open, onToggle, loading, onRun, color, children }: { label: string; sectionKey: string; open: boolean; onToggle: () => void; loading: boolean; onRun: () => void; color: string; children?: React.ReactNode }) {
-  return (
-    <div className="border-b border-[#E8E8E6]">
-      <div className="flex items-center justify-between px-4 py-2.5">
-        <button onClick={onToggle} className="flex-1 flex items-center gap-2 text-xs font-medium text-gray-700 text-left">
-          <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown size={12} className="text-gray-400" /></motion.div>
-          {label}
-        </button>
-        <button onClick={onRun} disabled={loading} className={`p-1.5 rounded-md transition-colors ${colorMap[color]}`}>{loading ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}</button>
-      </div>
-      <AnimatePresence initial={false}>
-        {open && children && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="px-4 pb-3">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-function ProgressBar({ value, max, optimal, className = '' }: { value: number; max: number; optimal: [number, number]; className?: string }) {
-  const pct = Math.min((value / max) * 100, 100)
-  const over = value > optimal[1], inRange = value >= optimal[0] && value <= optimal[1]
-  const color = over ? '#ef4444' : inRange ? '#22c55e' : '#3b82f6'
-  return (
-    <div className={`h-1 rounded-full bg-gray-100 overflow-hidden ${className}`}>
-      <motion.div className="h-full rounded-full" style={{ backgroundColor: color }} animate={{ width: `${pct}%` }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} />
-    </div>
-  )
-}
-
-function ToolBtn({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" title={title} onClick={onClick} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors">{children}</button>
   )
 }
