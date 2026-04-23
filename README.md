@@ -71,18 +71,37 @@ Each app has its own Cloudflare Pages project:
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 14, React, TypeScript
-- **3D:** Three.js, React Three Fiber, Drei
-- **Styling:** Tailwind CSS
+- **Frontend:** Next.js 16.2 (App Router, Turbopack), React 19, TypeScript 5
+- **3D:** Three.js 0.184, React Three Fiber 9, Drei 10
+- **Styling:** Tailwind CSS 4, Framer Motion 12
+- **Content:** Markdown + gray-matter, built-in CMS with AI assist
+- **AI:** Google Gemini 1.5 Flash (server-side, `/api/ai`)
+- **Images:** Unsplash API (server-side proxy, `/api/unsplash`)
 - **Deployment:** Cloudflare Pages
 - **AI Partner:** UDO (see UDO-SYSTEM.md)
 
 ## 📝 Content Strategy
 
-1. **Immersive 3D articles** - Each protocol gets interactive 3D experience
-2. **Digital products** - Duck OS Starter Kit (free), Complete System (paid)
-3. **Community** - System Architects membership (future)
-4. **Tools** - Duck OS apps and utilities (future)
+1. **Immersive 3D articles** — Each protocol gets an interactive 3D experience
+2. **Digital products** — Duck OS Starter Kit (free), Complete System (paid)
+3. **Community** — System Architects membership (future)
+4. **Tools** — Duck OS apps and utilities (future)
+
+## ✍️ Content System
+
+Posts live as markdown in `apps/immersive/momentum-3d/public/content/`.
+
+| URL | What it does |
+|---|---|
+| `/content` | Table of all posts — stats, status badges, edit links |
+| `/content/new` | New post editor — auto-save, Unsplash/URL cover, AI assist |
+| `/content/[slug]` | Edit existing post — Publish / Unpublish / Save Draft |
+
+**Env vars needed** (in `apps/immersive/momentum-3d/.env.local`):
+```
+GEMINI_API_KEY=...
+UNSPLASH_ACCESS_KEY=...
+```
 
 ## 🦆 UDO - AI Co-Founder
 

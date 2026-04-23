@@ -13,17 +13,54 @@
 ## Current Projects
 
 ### 1. Immersive 3D Content Studio (`apps/immersive`)
-**Status:** 🚧 In Development  
+**Status:** 🚧 Active Development  
 **URL:** immersive.adduckivity.com  
-**Tech:** Next.js + React Three Fiber + Cloudflare Pages
+**Tech:** Next.js 16 + React Three Fiber + Cloudflare Pages
 
 **Content:**
-- Momentum Protocol (ACT-04) - First 3D article ✅
-- Flow State Architecture - Coming soon
-- Digital Declutter (SURV-01) - Coming soon
-- System Awareness - Coming soon
+- Momentum Protocol (ACT-04) — First 3D article ✅
+- Flow State Architecture — Coming soon
+- Digital Declutter (SURV-01) — Coming soon
+- System Awareness — Coming soon
 
 **Monetization:** Email capture → Duck OS Starter Kit → Paid products
+
+#### Content Management System (built-in)
+
+A full headless CMS lives inside the app itself. Posts are markdown files in `public/content/` with gray-matter frontmatter.
+
+**Routes:**
+| Route | Purpose |
+|---|---|
+| `/content` | Posts table: stats row (Total/Published/Drafts), status badges, excerpt, "Edit →" |
+| `/content/new` | New post editor with auto-save, Unsplash cover picker, AI assistant |
+| `/content/[slug]` | Edit page: auto-save (4s), Save Draft, Publish/Unpublish with modals, status badge |
+
+**API routes** (`src/app/api/`):
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/posts` | GET | List all posts or fetch by `?slug=` |
+| `/api/posts/[slug]` | PUT, DELETE | Update or delete a post |
+| `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
+| `/api/ai` | POST | Gemini 1.5 Flash proxy — titles, excerpt, outline, seo, tags |
+| `/api/unsplash` | GET | Unsplash search proxy |
+
+**Shared editor components** (`src/components/editor/`):
+- `theme.ts` — single ET palette source of truth
+- `EditorShared.tsx` — SideSection, Field, AISection, ProgressBar, ToolBtn, Divider, CoverImagePicker, ConfirmModal
+
+**Post frontmatter schema:**
+```yaml
+title, slug, date, category, scene, mood,
+excerpt, tags[], featuredImage, author,
+readingTime, status (draft | published)
+```
+
+**Required env vars:**
+```
+GEMINI_API_KEY=       # Google Gemini 1.5 Flash
+UNSPLASH_ACCESS_KEY=  # Unsplash API
+```
 
 ---
 
@@ -38,14 +75,20 @@
 ## Tech Stack Specifications
 
 ### Frontend
-- **Framework:** Next.js 14 (App Router)
-- **3D:** Three.js, React Three Fiber, Drei
-- **Styling:** Tailwind CSS
-- **Language:** TypeScript
+- **Framework:** Next.js 16.2 (App Router, Turbopack)
+- **3D:** Three.js 0.184, React Three Fiber 9, Drei 10
+- **Styling:** Tailwind CSS 4
+- **Animation:** Framer Motion 12
+- **Language:** TypeScript 5
+
+### Content System
+- **Storage:** Markdown files in `public/content/` (gray-matter frontmatter)
+- **AI:** Google Gemini 1.5 Flash via `@google/generative-ai`
+- **Images:** Unsplash API (server-side proxy)
+- **Status flow:** draft → published → draft (with confirmation modals)
 
 ### Backend  
-- **API:** Cloudflare Workers
-- **Database:** Cloudflare D1 (SQLite)
+- **API:** Next.js API routes (server-side, no client-side secrets)
 - **Deployment:** Cloudflare Pages
 
 ### 3D Component Library (40+ components, phased)
@@ -167,4 +210,4 @@ adduckivity/
 
 **Built by one person with AI systems, not hustle.**
 
-*Last updated: 2025-04-22*
+*Last updated: 2026-04-23*

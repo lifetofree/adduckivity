@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getAllPosts, type Post } from '@/lib/content'
+import { getAllPosts } from '@/lib/content'
 
 const ET = {
   bg:      '#F5EFE3',
@@ -16,11 +16,13 @@ const ET = {
 
 export default function ContentDashboard() {
   const posts = getAllPosts()
+  const published = posts.filter(p => p.status === 'published').length
+  const drafts    = posts.filter(p => p.status === 'draft').length
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
 
-      {/* ── Header ── */}
+      {/* ── Sticky header ── */}
       <header
         className="sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between"
         style={{
@@ -31,28 +33,30 @@ export default function ContentDashboard() {
       >
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-            <Image src="/logo.png" alt="Adduckivity" width={28} height={28} className="rounded-md" />
+            <Image src="/logo.png" alt="Adduckivity" width={26} height={26} className="rounded-md" />
           </Link>
           <span style={{ color: ET.border }}>/</span>
           <span className="text-sm font-semibold" style={{ color: ET.ink }}>Content</span>
         </div>
+
+        <Link
+          href="/content/new"
+          className="h-8 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-80"
+          style={{ backgroundColor: ET.ink, color: ET.surface }}
+        >
+          + New Post
+        </Link>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-5xl mx-auto px-6 py-10">
 
-        {/* Stats row */}
-        <div className="flex items-end justify-between mb-8">
-          <div className="flex items-center gap-8">
-            <div>
-              <p className="text-3xl font-bold" style={{ color: ET.ink }}>{posts.length}</p>
-              <p className="text-xs mt-0.5" style={{ color: ET.sub }}>
-                {posts.length === 1 ? 'post' : 'posts'}
-              </p>
-            </div>
-          </div>
-          <p className="text-xs hidden md:block" style={{ color: ET.sub }}>
-            Sorted by date · newest first
-          </p>
+        {/* ── Stats row ── */}
+        <div className="flex items-center gap-8 mb-10">
+          <Stat value={posts.length}  label={posts.length === 1 ? 'post' : 'posts'} />
+          <div className="w-px h-8"  style={{ backgroundColor: ET.border }} />
+          <Stat value={published}     label="published" color="#16a34a" />
+          <div className="w-px h-8"  style={{ backgroundColor: ET.border }} />
+          <Stat value={drafts}        label={drafts === 1 ? 'draft' : 'drafts'} color={ET.accent} />
         </div>
 
         {/* ── Empty state ── */}
@@ -62,121 +66,131 @@ export default function ContentDashboard() {
             style={{ backgroundColor: ET.surface, borderColor: ET.border }}
           >
             <p className="text-sm mb-4" style={{ color: ET.sub }}>No posts yet.</p>
-            <p className="text-xs" style={{ color: ET.sub }}>
-              Create markdown files in <code className="bg-gray-100 px-1 rounded">public/content/</code>
-            </p>
+            <Link
+              href="/content/new"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80"
+              style={{ backgroundColor: ET.accent, color: ET.surface }}
+            >
+              + Create your first post
+            </Link>
           </div>
         )}
 
-        {/* ── Card grid ── */}
+        {/* ── Table ── */}
         {posts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post: Post) => (
-              <Link key={post.slug} href={`/content/${post.slug}`} className="group block">
-                <article
-                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-lg"
-                  style={{ backgroundColor: ET.surface, borderColor: ET.border }}
-                >
-                  {/* ── 16:9 Cover image ── */}
-                  <div
-                    className="relative w-full overflow-hidden"
-                    style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}
-                  >
-                    {post.featuredImage ? (
-                      <Image
-                        src={post.featuredImage}
-                        alt={post.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
-                    ) : (
-                      /* Placeholder when no cover image */
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <svg viewBox="0 0 120 68" className="w-20 opacity-20" fill="none">
-                          <rect width="120" height="68" rx="4" fill={ET.border} />
-                          <circle cx="42" cy="28" r="10" fill={ET.sub} />
-                          <path d="M0 52 L30 32 L55 48 L80 30 L120 52 L120 68 L0 68 Z" fill={ET.sub} opacity="0.5" />
-                        </svg>
-                      </div>
-                    )}
+          <div
+            className="rounded-2xl border overflow-hidden"
+            style={{ borderColor: ET.border }}
+          >
+            {/* Head */}
+            <div
+              className="grid items-center px-5 py-2.5 border-b text-[11px] font-semibold uppercase tracking-wide"
+              style={{
+                gridTemplateColumns: '1fr 90px 100px 52px',
+                gap: '1rem',
+                backgroundColor: ET.muted,
+                borderColor: ET.border,
+                color: ET.sub,
+              }}
+            >
+              <span>Post</span>
+              <span className="text-right">Category</span>
+              <span className="text-right">Date</span>
+              <span className="text-right">Edit</span>
+            </div>
 
-                    {/* Category pill over image */}
-                    <div className="absolute top-3 left-3">
-                      <span
-                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
-                        style={{ backgroundColor: 'rgba(44,31,20,0.55)', color: '#FAF5EC' }}
-                      >
-                        {post.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ── Card body ── */}
-                  <div className="p-5">
-                    <h2
-                      className="font-semibold text-base leading-snug mb-1.5 line-clamp-2 transition-opacity group-hover:opacity-70"
-                      style={{ color: ET.ink }}
-                    >
-                      {post.title}
-                    </h2>
-
-                    {post.excerpt && (
-                      <p
-                        className="text-xs leading-relaxed line-clamp-2 mb-3"
-                        style={{ color: ET.sub }}
-                      >
-                        {post.excerpt}
-                      </p>
-                    )}
-
-                    {/* Tags */}
-                    {post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {post.tags.slice(0, 3).map((t: string) => (
-                          <span
-                            key={t}
-                            className="px-2 py-0.5 rounded-full text-[10px] border"
-                            style={{ borderColor: ET.border, color: ET.sub }}
-                          >
-                            #{t}
-                          </span>
-                        ))}
-                        {post.tags.length > 3 && (
-                          <span className="text-[10px]" style={{ color: ET.sub }}>
-                            +{post.tags.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Footer meta */}
-                    <div
-                      className="flex items-center justify-between pt-3 border-t"
-                      style={{ borderColor: ET.border }}
-                    >
-                      <span className="font-mono text-[11px]" style={{ color: ET.sub }}>
-                        {new Date(post.date).toLocaleDateString('en-US', {
-                          month: 'short', day: 'numeric', year: 'numeric',
-                        })}
-                      </span>
-                      <span className="text-[11px]" style={{ color: ET.sub }}>
-                        {post.readingTime}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bottom accent line on hover */}
-                  <div
-                    className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ backgroundColor: ET.accent }}
-                  />
-                </article>
-              </Link>
+            {/* Rows */}
+            {posts.map(post => (
+              <Row key={post.slug} post={post} />
             ))}
           </div>
         )}
       </main>
+    </div>
+  )
+}
+
+function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
+  return (
+    <div
+      className="group grid items-start px-5 py-4 border-b last:border-0 transition-colors"
+      style={{
+        gridTemplateColumns: '1fr 90px 100px 52px',
+        gap: '1rem',
+        borderColor: '#D8C9B0',
+        backgroundColor: '#FAF5EC',
+      }}
+    >
+      {/* Title block */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href={`/content/${post.slug}`}
+            className="font-semibold text-sm leading-snug transition-opacity hover:opacity-70 truncate"
+            style={{ color: '#2C1F14' }}
+          >
+            {post.title || <span style={{ color: '#7B6248' }}>Untitled</span>}
+          </Link>
+          {post.status === 'published' ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>
+              Published
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(192,120,80,0.12)', color: '#C07850' }}>
+              Draft
+            </span>
+          )}
+        </div>
+        {post.excerpt && (
+          <p className="text-xs leading-relaxed line-clamp-1 mt-0.5" style={{ color: '#7B6248' }}>
+            {post.excerpt}
+          </p>
+        )}
+        {post.tags.length > 0 && (
+          <div className="flex gap-1 mt-1.5 flex-wrap">
+            {post.tags.slice(0, 4).map(t => (
+              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full border" style={{ borderColor: '#D8C9B0', color: '#7B6248' }}>
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Category */}
+      <div className="flex justify-end pt-0.5">
+        <span
+          className="text-[11px] font-medium px-2.5 py-0.5 rounded-full capitalize"
+          style={{ backgroundColor: 'rgba(192,120,80,0.12)', color: '#C07850' }}
+        >
+          {post.category}
+        </span>
+      </div>
+
+      {/* Date */}
+      <p className="font-mono text-[11px] text-right pt-0.5" style={{ color: '#7B6248' }}>
+        {new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+      </p>
+
+      {/* Edit */}
+      <p className="text-right pt-0.5">
+        <Link
+          href={`/content/${post.slug}`}
+          className="text-xs font-semibold transition-opacity hover:opacity-70"
+          style={{ color: '#C07850' }}
+        >
+          Edit →
+        </Link>
+      </p>
+    </div>
+  )
+}
+
+function Stat({ value, label, color }: { value: number; label: string; color?: string }) {
+  return (
+    <div>
+      <p className="text-3xl font-bold leading-none" style={{ color: color || '#2C1F14' }}>{value}</p>
+      <p className="text-xs mt-1" style={{ color: '#7B6248' }}>{label}</p>
     </div>
   )
 }

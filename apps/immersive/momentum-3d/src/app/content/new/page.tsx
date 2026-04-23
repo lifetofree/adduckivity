@@ -3,19 +3,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, Copy, Check,
   Bold, Italic, List, ListOrdered, Link2, Code,
-  Heading1, Heading2, Heading3, Quote,
-  FileText, Tag,
+  Heading1, Heading2, Heading3, Quote, FileText, Tag,
 } from 'lucide-react'
 import {
   SideSection, Field, AISection, ProgressBar,
   ToolBtn, Divider, CoverImagePicker, ConfirmModal,
 } from '@/components/editor/EditorShared'
 import { ET, inputCss } from '@/components/editor/theme'
+import { toSlug } from '@/lib/posts'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,33 +33,31 @@ async function callAI(action: AiSection, payload: Record<string, unknown>) {
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'unsaved'
 
-export default function EditPostPage() {
-  const { slug } = useParams() as { slug: string }
+export default function NewPostPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const savedAtRef = useRef<number>(0)
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const savedSlugRef = useRef<string>('')
+  const savedAtRef   = useRef<number>(0)
 
-  const [loading, setLoading] = useState(true)
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [excerpt, setExcerpt] = useState('')
-  const [tags, setTags] = useState('')
-  const [category, setCategory] = useState('protocol')
+  const [title, setTitle]               = useState('')
+  const [content, setContent]           = useState('')
+  const [excerpt, setExcerpt]           = useState('')
+  const [tags, setTags]                 = useState('')
+  const [category, setCategory]         = useState('protocol')
   const [featuredImage, setFeaturedImage] = useState('')
-  const [scene, setScene] = useState('default')
-  const [mood, setMood] = useState('neutral')
-  const [status, setStatus] = useState<'draft' | 'published'>('draft')
+  const [scene, setScene]               = useState('default')
+  const [mood, setMood]                 = useState('neutral')
+  const [slug, setSlug]                 = useState('')
 
-  const wordCount = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
-  const titleLen  = title.length
+  const wordCount  = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
+  const titleLen   = title.length
   const excerptLen = excerpt.length
 
-  const [saveStatus, setSaveStatus]   = useState<SaveStatus>('idle')
-  const [savedAgo, setSavedAgo]       = useState('')
-  const [toast, setToast]             = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
-  const [publishModal, setPublishModal]     = useState(false)
-  const [unpublishModal, setUnpublishModal] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [savedAgo, setSavedAgo]     = useState('')
+  const [toast, setToast]           = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
+  const [publishModal, setPublishModal] = useState(false)
+  const [publishing, setPublishing]     = useState(false)
 
   const [aiLoading, setAiLoading] = useState<AiSection | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,157 +68,86 @@ export default function EditPostPage() {
   })
   const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
 
-  // ── Load post ──────────────────────────────────────────────────────────────
+  // Auto-slug from title
   useEffect(() => {
-    fetch(`/api/posts?slug=${slug}`)
-      .then(r => r.json())
-      .then(d => {
-        setTitle(d.title || '')
-        setContent(d.content || '')
-        setExcerpt(d.excerpt || '')
-        setTags((d.tags || []).join(', '))
-        setCategory(d.category || 'protocol')
-        setFeaturedImage(d.featuredImage || '')
-        setScene(d.scene || 'default')
-        setMood(d.mood || 'neutral')
-        setStatus(d.status || 'draft')
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [slug])
+    if (title && !savedSlugRef.current) setSlug(toSlug(title))
+  }, [title])
 
-  // ── "Saved Xs ago" ticker ──────────────────────────────────────────────────
-  useEffect(() => {
-    tickRef.current = setInterval(() => {
-      if (savedAtRef.current && saveStatus === 'saved') {
-        const secs = Math.floor((Date.now() - savedAtRef.current) / 1000)
-        setSavedAgo(secs < 5 ? 'just now' : `${secs}s ago`)
-      }
-    }, 3000)
-    return () => { if (tickRef.current) clearInterval(tickRef.current) }
-  }, [saveStatus])
-
-  // ── Auto-save (4s debounce, preserves current status) ────────────────────
+  // Auto-save (upserts draft after 4s)
   const doAutoSave = useCallback(async (
-    t: string, c: string, e: string, tg: string, cat: string,
-    img: string, sc: string, md: string, st: 'draft' | 'published'
+    t: string, c: string, e: string, tg: string,
+    cat: string, img: string, sc: string, md: string, sl: string
   ) => {
     if (!t) return
+    const finalSlug = sl || toSlug(t)
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts/${slug}`, {
-        method: 'PUT',
+      const res = await fetch('/api/posts/save', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: t, content: c, excerpt: e,
+          slug: finalSlug, title: t, content: c, excerpt: e,
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
-          category: cat, featuredImage: img, scene: sc, mood: md, status: st,
+          category: cat, featuredImage: img, scene: sc, mood: md, status: 'draft',
         }),
       })
+      const saved = await res.json()
+      savedSlugRef.current = saved.slug
+      setSlug(saved.slug)
       savedAtRef.current = Date.now()
       setSaveStatus('saved')
       setSavedAgo('just now')
     } catch {
       setSaveStatus('unsaved')
     }
-  }, [slug])
+  }, [])
 
   const scheduleAutoSave = useCallback(() => {
+    if (!title) return
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, savedSlugRef.current || slug)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, slug, doAutoSave])
 
-  // Trigger auto-save on any field change
-  useEffect(() => {
-    if (!loading) scheduleAutoSave()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood])
+  useEffect(() => { scheduleAutoSave() }, [title, content, excerpt, tags, category, featuredImage, scene, mood])
 
-  // ── Markdown insert ────────────────────────────────────────────────────────
+  // Markdown insert
   const insert = useCallback((before: string, after = '', placeholder = '') => {
-    const ta = textareaRef.current
-    if (!ta) return
+    const ta = textareaRef.current; if (!ta) return
     const s = ta.selectionStart, e = ta.selectionEnd
     const sel = content.slice(s, e) || placeholder
     setContent(content.slice(0, s) + before + sel + after + content.slice(e))
     setTimeout(() => { ta.focus(); ta.setSelectionRange(s + before.length, s + before.length + sel.length) }, 0)
   }, [content])
 
-  // ── Save Draft ────────────────────────────────────────────────────────────
-  const saveDraft = async () => {
-    setSaveStatus('saving')
-    try {
-      await fetch(`/api/posts/${slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title, content, excerpt,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-          category, featuredImage, scene, mood, status,
-        }),
-      })
-      savedAtRef.current = Date.now()
-      setSaveStatus('saved')
-      setSavedAgo('just now')
-      showToast('ok', 'Draft saved')
-    } catch {
-      setSaveStatus('unsaved')
-      showToast('err', 'Save failed')
-    }
-  }
-
-  // ── Publish ───────────────────────────────────────────────────────────────
+  // Publish
   const doPublish = async () => {
     setPublishModal(false)
-    setSaveStatus('saving')
+    setPublishing(true)
     try {
-      await fetch(`/api/posts/${slug}`, {
-        method: 'PUT',
+      const finalSlug = savedSlugRef.current || slug || toSlug(title)
+      const res = await fetch('/api/posts/save', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title, content, excerpt,
+          slug: finalSlug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
           category, featuredImage, scene, mood, status: 'published',
         }),
       })
-      setStatus('published')
-      savedAtRef.current = Date.now()
-      setSaveStatus('saved')
+      const post = await res.json()
       showToast('ok', 'Published!')
+      setTimeout(() => { window.location.href = `/content/${post.slug}` }, 900)
     } catch {
-      setSaveStatus('unsaved')
       showToast('err', 'Publish failed')
+    } finally {
+      setPublishing(false)
     }
   }
 
-  // ── Unpublish ─────────────────────────────────────────────────────────────
-  const doUnpublish = async () => {
-    setUnpublishModal(false)
-    setSaveStatus('saving')
-    try {
-      await fetch(`/api/posts/${slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title, content, excerpt,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-          category, featuredImage, scene, mood, status: 'draft',
-        }),
-      })
-      setStatus('draft')
-      savedAtRef.current = Date.now()
-      setSaveStatus('saved')
-      showToast('ok', 'Moved to drafts')
-    } catch {
-      setSaveStatus('unsaved')
-      showToast('err', 'Failed')
-    }
-  }
-
-  // ── AI ────────────────────────────────────────────────────────────────────
+  // AI
   const runAI = async (section: AiSection) => {
     setAiLoading(section)
     try {
@@ -248,105 +174,51 @@ export default function EditPostPage() {
   }
 
   const showToast = (type: 'ok' | 'err', msg: string) => {
-    setToast({ type, msg })
-    setTimeout(() => setToast(null), 3500)
+    setToast({ type, msg }); setTimeout(() => setToast(null), 3500)
   }
 
-  // ── Save status label ─────────────────────────────────────────────────────
   const saveLabel =
-    saveStatus === 'saving'  ? 'Saving…' :
+    saveStatus === 'saving'  ? 'Auto-saving…' :
     saveStatus === 'saved'   ? `Saved ${savedAgo}` :
     saveStatus === 'unsaved' ? 'Unsaved changes' : ''
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center text-sm" style={{ backgroundColor: ET.bg, color: ET.sub }}>
-        Loading…
-      </div>
-    )
-  }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: ET.bg, color: ET.ink }}>
 
-      {/* ── Header ── */}
-      <header
-        className="shrink-0 h-12 flex items-center justify-between px-5 border-b z-30"
-        style={{ backgroundColor: ET.surface, borderColor: ET.border }}
-      >
+      {/* Header */}
+      <header className="shrink-0 h-12 flex items-center justify-between px-5 border-b z-30" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/" className="hover:opacity-70 transition-opacity shrink-0">
             <Image src="/logo.png" alt="Adduckivity" width={22} height={22} className="rounded-md" />
           </Link>
           <span style={{ color: ET.border }}>/</span>
-          <Link href="/content" className="text-xs transition-opacity hover:opacity-70 shrink-0" style={{ color: ET.sub }}>
-            Content
-          </Link>
+          <Link href="/content" className="text-xs transition-opacity hover:opacity-70 shrink-0" style={{ color: ET.sub }}>Content</Link>
           <span style={{ color: ET.border }}>/</span>
-          <span className="text-xs truncate max-w-36" style={{ color: ET.sub }}>{title || slug}</span>
-
-          {/* Status badge */}
-          {status === 'published' ? (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>
-              Published
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: ET.accentL, color: ET.accent }}>
-              Draft
-            </span>
-          )}
+          <span className="text-xs font-semibold" style={{ color: ET.ink }}>New Post</span>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: ET.accentL, color: ET.accent }}>Draft</span>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          {/* Auto-save status */}
           {saveLabel && (
-            <span className="text-[11px] hidden md:block" style={{
-              color: saveStatus === 'unsaved' ? ET.accent : ET.sub
-            }}>
+            <span className="text-[11px] hidden md:block" style={{ color: saveStatus === 'unsaved' ? ET.accent : ET.sub }}>
               {saveLabel}
             </span>
           )}
-
-          {/* Save Draft */}
           <button
-            onClick={saveDraft}
-            disabled={!title}
-            className="h-8 px-3 rounded-lg text-xs font-medium border transition-opacity hover:opacity-80 disabled:opacity-40"
-            style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
+            onClick={() => setPublishModal(true)}
+            disabled={publishing || !title || !content}
+            className="h-8 px-4 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
+            style={{ backgroundColor: ET.ink, color: ET.surface }}
           >
-            Save Draft
+            {publishing ? 'Publishing…' : 'Publish'}
           </button>
-
-          {/* Publish / Unpublish */}
-          {status === 'draft' ? (
-            <button
-              onClick={() => setPublishModal(true)}
-              disabled={!title || !content}
-              className="h-8 px-4 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
-              style={{ backgroundColor: ET.ink, color: ET.surface }}
-            >
-              Publish
-            </button>
-          ) : (
-            <button
-              onClick={() => setUnpublishModal(true)}
-              className="h-8 px-4 rounded-lg text-xs font-semibold border transition-opacity hover:opacity-80"
-              style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
-            >
-              Unpublish
-            </button>
-          )}
         </div>
       </header>
 
-      {/* ── Three columns ── */}
       <div className="flex-1 flex overflow-hidden">
 
         {/* Left: metadata */}
-        <aside
-          className="w-64 shrink-0 border-r overflow-y-auto"
-          style={{ backgroundColor: ET.surface, borderColor: ET.border }}
-        >
+        <aside className="w-64 shrink-0 border-r overflow-y-auto" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
           <SideSection label="Cover Image" open={open.image} onToggle={() => toggle('image')}>
             <CoverImagePicker value={featuredImage} onChange={setFeaturedImage} />
           </SideSection>
@@ -361,25 +233,14 @@ export default function EditPostPage() {
               </select>
             </Field>
             <Field label="Excerpt">
-              <textarea
-                value={excerpt}
-                onChange={e => setExcerpt(e.target.value)}
-                placeholder="Brief summary for SEO…"
-                rows={3}
-                className="et-input resize-none text-xs leading-relaxed"
-              />
+              <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} placeholder="Brief summary for SEO…" rows={3} className="et-input resize-none text-xs leading-relaxed" />
               <div className="flex items-center justify-between mt-0.5">
                 <span className="text-[10px]" style={{ color: ET.sub }}>{excerptLen}/160</span>
                 <ProgressBar value={excerptLen} max={160} optimal={[120, 160]} className="w-20" />
               </div>
             </Field>
             <Field label="Tags" icon={<Tag size={13} />}>
-              <input
-                value={tags}
-                onChange={e => setTags(e.target.value)}
-                placeholder="adhd, system, protocol"
-                className="et-input font-mono"
-              />
+              <input value={tags} onChange={e => setTags(e.target.value)} placeholder="adhd, system, protocol" className="et-input font-mono" />
               <p className="text-[10px] mt-0.5" style={{ color: ET.sub }}>Comma separated</p>
             </Field>
             <Field label="3D Scene">
@@ -401,7 +262,6 @@ export default function EditPostPage() {
 
         {/* Center: editor */}
         <main className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: ET.bg }}>
-          {/* Title */}
           <div className="px-10 pt-8 pb-3 border-b" style={{ borderColor: ET.border }}>
             <input
               type="text"
@@ -419,7 +279,6 @@ export default function EditPostPage() {
             </div>
           </div>
 
-          {/* Toolbar */}
           <div className="px-10 py-2 flex items-center gap-0.5 border-b" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
             <ToolBtn title="Bold"          onClick={() => insert('**', '**', 'bold')}><Bold size={15} /></ToolBtn>
             <ToolBtn title="Italic"        onClick={() => insert('*', '*', 'italic')}><Italic size={15} /></ToolBtn>
@@ -435,7 +294,6 @@ export default function EditPostPage() {
             <ToolBtn title="Link"          onClick={() => insert('[', '](url)', '')}><Link2 size={15} /></ToolBtn>
           </div>
 
-          {/* Writing area */}
           <div className="flex-1 overflow-y-auto px-10 py-6">
             <textarea
               ref={textareaRef}
@@ -507,32 +365,19 @@ export default function EditPostPage() {
         </aside>
       </div>
 
-      {/* ── Modals ── */}
       <ConfirmModal
         open={publishModal}
         title="Publish this post?"
-        body="It will be marked as published and visible in the public listing."
+        body="The post will be marked as published and appear in the public listing."
         confirmLabel="Publish"
         onConfirm={doPublish}
         onCancel={() => setPublishModal(false)}
       />
-      <ConfirmModal
-        open={unpublishModal}
-        title="Move back to drafts?"
-        body="The post will become a draft and will no longer appear as published."
-        confirmLabel="Unpublish"
-        confirmStyle={{ backgroundColor: ET.mid, color: ET.surface }}
-        onConfirm={doUnpublish}
-        onCancel={() => setUnpublishModal(false)}
-      />
 
-      {/* ── Toast ── */}
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-50"
             style={{ backgroundColor: toast.type === 'ok' ? '#16a34a' : '#ef4444', color: '#fff' }}
           >
