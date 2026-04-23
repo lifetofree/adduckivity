@@ -18,8 +18,11 @@ export const metadata: Metadata = {
   title: "Adduckivity - Duck OS | Life Architecture for Neurodivergent Creators",
   description: "Systems over willpower. Build your life operating system with Duck OS protocols for ADHD/MDD creators who need more than motivation.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/logo.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    apple: "/logo.png",
   },
 };
 
