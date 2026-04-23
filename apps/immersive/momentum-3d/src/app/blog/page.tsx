@@ -21,47 +21,65 @@ export default function BlogPage() {
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
 
       {/* ── Nav ── */}
-      <header
-        className="sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between"
+      <nav
+        className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
         style={{
           backgroundColor: 'rgba(250,245,236,0.92)',
           borderColor: ET.border,
           backdropFilter: 'blur(12px)',
         }}
       >
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-            <Image src="/logo.png" alt="Adduckivity" width={26} height={26} className="rounded-md" />
-          </Link>
-          <span style={{ color: ET.border }}>/</span>
-          <span className="text-sm font-semibold" style={{ color: ET.ink }}>Blog</span>
-        </div>
-        <Link
-          href="/"
-          className="text-xs font-medium transition-opacity hover:opacity-70"
-          style={{ color: ET.sub }}
-        >
-          ← Home
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Image src="/logo.png" alt="Adduckivity" width={36} height={36} className="rounded-lg" />
+          <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
         </Link>
-      </header>
+        <div className="hidden md:flex items-center gap-7">
+          <Link href="/blog" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.accent }}>
+            Blog
+          </Link>
+          <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+            3D Experience
+          </Link>
+          <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+            Archive
+          </a>
+          <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+            Tools
+          </a>
+        </div>
+      </nav>
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-6">
 
-        {/* Heading */}
-        <div className="mb-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: ET.accent }}>
+        {/* ── Page header ── */}
+        <div className="py-16 md:py-20 border-b" style={{ borderColor: ET.border }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.sub }}>
             Duck OS
           </p>
-          <h1 className="text-3xl font-bold mb-2" style={{ color: ET.ink }}>All Posts</h1>
-          <p className="text-sm" style={{ color: ET.sub }}>
-            {posts.length} {posts.length === 1 ? 'article' : 'articles'} · systems, protocols, and ideas for neurodivergent creators
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-3" style={{ color: ET.ink }}>
+                All <span style={{ color: ET.accent }}>Posts</span>
+              </h1>
+              <p className="text-sm" style={{ color: ET.sub }}>
+                {posts.length} {posts.length === 1 ? 'article' : 'articles'} · systems, protocols, and ideas for neurodivergent creators
+              </p>
+            </div>
+            {posts.length > 0 && (
+              <span
+                className="shrink-0 text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full border"
+                style={{ borderColor: ET.border, color: ET.sub, backgroundColor: ET.surface }}
+              >
+                {posts.length} Published
+              </span>
+            )}
+          </div>
         </div>
 
         {/* ── Empty ── */}
         {posts.length === 0 && (
           <div
-            className="rounded-2xl border py-24 text-center"
+            className="rounded-2xl border py-24 text-center my-12"
             style={{ backgroundColor: ET.surface, borderColor: ET.border }}
           >
             <p className="text-sm" style={{ color: ET.sub }}>No published posts yet. Check back soon.</p>
@@ -70,11 +88,11 @@ export default function BlogPage() {
 
         {/* ── Card grid ── */}
         {posts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-12">
             {posts.map(post => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
                 <article
-                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-lg h-full flex flex-col"
+                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 h-full flex flex-col"
                   style={{ backgroundColor: ET.surface, borderColor: ET.border }}
                 >
                   {/* 16:9 cover */}
@@ -111,12 +129,21 @@ export default function BlogPage() {
 
                   {/* Body */}
                   <div className="p-5 flex flex-col flex-1">
-                    <h2
-                      className="font-semibold text-base leading-snug mb-1.5 line-clamp-2 transition-opacity group-hover:opacity-70"
-                      style={{ color: ET.ink }}
-                    >
-                      {post.title}
-                    </h2>
+                    <div className="flex items-start justify-between gap-3 mb-1.5">
+                      <h2
+                        className="font-semibold text-base leading-snug line-clamp-2"
+                        style={{ color: ET.ink }}
+                      >
+                        {post.title}
+                      </h2>
+                      <span
+                        className="shrink-0 text-lg mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-1"
+                        style={{ color: ET.accent }}
+                        aria-hidden
+                      >
+                        →
+                      </span>
+                    </div>
 
                     {post.excerpt && (
                       <p className="text-xs leading-relaxed line-clamp-2 mb-3" style={{ color: ET.sub }}>
@@ -153,13 +180,20 @@ export default function BlogPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t py-10 px-6 text-center mt-12" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Image src="/logo.png" alt="Adduckivity" width={24} height={24} className="rounded-md" />
-          <span className="text-sm font-semibold" style={{ color: ET.ink }}>Adduckivity</span>
+      {/* ── Footer ── */}
+      <footer className="border-t py-10 px-6" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <Image src="/logo.png" alt="Adduckivity" width={28} height={28} className="rounded-md" />
+            <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
+          </div>
+          <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
+            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
+            <a href="https://github.com/lifetofree/adduckivity" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">GitHub</a>
+          </div>
+          <p className="text-xs" style={{ color: ET.sub }}>Powered by Duck OS Systems</p>
         </div>
-        <p className="text-xs" style={{ color: ET.sub }}>Duck OS — Life Architecture for Neurodivergent Creators</p>
       </footer>
     </div>
   )

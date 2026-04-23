@@ -58,6 +58,24 @@ const features = [
   },
 ]
 
+const principles = [
+  {
+    label: 'Systems over Willpower',
+    desc: 'Reliable systems outperform unreliable motivation every time.',
+    num: '01',
+  },
+  {
+    label: 'Assets over Effort',
+    desc: 'Build things that compound. Output that works while you sleep.',
+    num: '02',
+  },
+  {
+    label: 'Momentum over Perfection',
+    desc: 'Start small, iterate fast, let the flywheel carry you.',
+    num: '03',
+  },
+]
+
 export default function Home() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
@@ -83,7 +101,7 @@ export default function Home() {
             3D Experience
           </Link>
           <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-            Blog
+            Archive
           </a>
           <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
             Tools
@@ -92,23 +110,29 @@ export default function Home() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="max-w-7xl mx-auto px-6 py-24 md:py-36">
+      <section className="max-w-7xl mx-auto px-6 py-24 md:py-40">
         <div className="max-w-3xl">
-          <Image src="/logo.png" alt="Adduckivity" width={72} height={72} className="rounded-xl mb-10" />
+          {/* eyebrow */}
+          <div className="flex items-center gap-3 mb-8">
+            <Image src="/logo.png" alt="Adduckivity" width={40} height={40} className="rounded-xl" />
+            <span
+              className="text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border"
+              style={{ color: ET.sub, borderColor: ET.border, backgroundColor: ET.surface }}
+            >
+              Duck OS
+            </span>
+          </div>
 
-          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.sub }}>
-            Duck OS
-          </p>
-
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight" style={{ color: ET.ink }}>
-            Life Architecture
+          <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-[0.95] tracking-tight" style={{ color: ET.ink }}>
+            Life{' '}
+            <span style={{ color: ET.accent }}>Architecture</span>
           </h1>
 
-          <p className="text-xl md:text-2xl mb-4 leading-relaxed" style={{ color: ET.mid }}>
+          <p className="text-xl md:text-2xl mb-4 font-medium leading-relaxed" style={{ color: ET.mid }}>
             For Neurodivergent Creators
           </p>
 
-          <p className="text-base mb-12 leading-relaxed max-w-2xl" style={{ color: ET.sub }}>
+          <p className="text-base mb-12 leading-relaxed max-w-xl" style={{ color: ET.sub }}>
             Systems over willpower. Asset-building over busywork. Momentum over motivation.
             Build your life operating system.
           </p>
@@ -116,14 +140,15 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/blog/momentum-protocol"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-opacity hover:opacity-85"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-85 hover:gap-3"
               style={{ backgroundColor: ET.ink, color: ET.surface }}
             >
               Read Momentum Protocol
+              <span aria-hidden>→</span>
             </Link>
             <Link
               href="/blog"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm border transition-opacity hover:opacity-80"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm border transition-all hover:opacity-80"
               style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.surface }}
             >
               Browse All Posts
@@ -138,18 +163,27 @@ export default function Home() {
         style={{ borderColor: ET.border }}
       >
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-3" style={{ color: ET.ink }}>Explore Protocols</h2>
-            <p className="text-base" style={{ color: ET.sub }}>
-              Evidence-based systems for ADHD/MDD creators who need more than motivation.
-            </p>
+          <div className="mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: ET.ink }}>Explore Protocols</h2>
+              <p className="text-sm" style={{ color: ET.sub }}>
+                Evidence-based systems for ADHD/MDD creators who need more than motivation.
+              </p>
+            </div>
+            <Link
+              href="/blog"
+              className="text-sm font-medium shrink-0 transition-opacity hover:opacity-70 flex items-center gap-1"
+              style={{ color: ET.accent }}
+            >
+              View all <span aria-hidden>→</span>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => (
               <Link key={i} href={f.href} className="group block">
                 <article
-                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-lg"
+                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1"
                   style={{ backgroundColor: ET.surface, borderColor: ET.border }}
                 >
                   {/* 16:9 image */}
@@ -175,16 +209,25 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="p-5">
-                    <h3
-                      className="font-semibold text-base leading-snug mb-1.5 transition-opacity group-hover:opacity-70"
-                      style={{ color: ET.ink }}
+                  <div className="p-5 flex items-start justify-between gap-3">
+                    <div>
+                      <h3
+                        className="font-semibold text-base leading-snug mb-1.5"
+                        style={{ color: ET.ink }}
+                      >
+                        {f.title}
+                      </h3>
+                      <p className="text-xs leading-relaxed" style={{ color: ET.sub }}>
+                        {f.description}
+                      </p>
+                    </div>
+                    <span
+                      className="shrink-0 text-lg mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-0 group-hover:translate-x-1"
+                      style={{ color: ET.accent }}
+                      aria-hidden
                     >
-                      {f.title}
-                    </h3>
-                    <p className="text-xs leading-relaxed" style={{ color: ET.sub }}>
-                      {f.description}
-                    </p>
+                      →
+                    </span>
                   </div>
 
                   {/* Hover accent line */}
@@ -200,17 +243,22 @@ export default function Home() {
       </section>
 
       {/* ── Principles strip ── */}
-      <section className="border-t border-b py-16" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
+      <section className="border-t border-b py-20" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
         <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
-            {[
-              { label: 'Systems over Willpower', desc: 'Reliable systems outperform unreliable motivation every time.' },
-              { label: 'Assets over Effort', desc: 'Build things that compound. Output that works while you sleep.' },
-              { label: 'Momentum over Perfection', desc: 'Start small, iterate fast, let the flywheel carry you.' },
-            ].map(p => (
-              <div key={p.label}>
-                <div className="w-8 h-0.5 mx-auto mb-4" style={{ backgroundColor: ET.accent }} />
-                <h3 className="font-semibold text-sm mb-2" style={{ color: ET.ink }}>{p.label}</h3>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-12 text-center" style={{ color: ET.sub }}>
+            Core Principles
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+            {principles.map(p => (
+              <div key={p.label} className="flex flex-col gap-3">
+                <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: ET.accentL.replace('0.12', '0.5') }}>
+                  {p.num}
+                </span>
+                <div
+                  className="w-10 h-0.5 rounded-full"
+                  style={{ backgroundColor: ET.accent }}
+                />
+                <h3 className="font-semibold text-sm" style={{ color: ET.ink }}>{p.label}</h3>
                 <p className="text-xs leading-relaxed" style={{ color: ET.sub }}>{p.desc}</p>
               </div>
             ))}
@@ -219,18 +267,35 @@ export default function Home() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-24 px-6 text-center" style={{ backgroundColor: ET.bg }}>
-        <div className="max-w-xl mx-auto">
-          <h2 className="text-2xl font-bold mb-3" style={{ color: ET.ink }}>Start Your Flywheel</h2>
-          <p className="text-sm mb-8 leading-relaxed" style={{ color: ET.sub }}>
+      <section
+        className="py-28 px-6 text-center relative overflow-hidden"
+        style={{ backgroundColor: ET.bg }}
+      >
+        {/* Subtle radial glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 60% 60% at 50% 50%, rgba(192,120,80,0.10) 0%, transparent 70%)`,
+          }}
+        />
+        <div className="relative max-w-xl mx-auto">
+          <div
+            className="w-12 h-0.5 mx-auto mb-8 rounded-full"
+            style={{ backgroundColor: ET.accent }}
+          />
+          <h2 className="text-3xl font-bold mb-4 leading-tight" style={{ color: ET.ink }}>
+            Start Your Flywheel
+          </h2>
+          <p className="text-sm mb-10 leading-relaxed" style={{ color: ET.sub }}>
             Pick one protocol. Run it for 7 days. Build from there.
           </p>
           <Link
             href="/blog"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-opacity hover:opacity-85"
+            className="inline-flex items-center gap-2 justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-85 hover:gap-3"
             style={{ backgroundColor: ET.accent, color: ET.surface }}
           >
             Browse All Posts
+            <span aria-hidden>→</span>
           </Link>
         </div>
       </section>
@@ -243,7 +308,7 @@ export default function Home() {
             <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
           </div>
           <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
-            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Blog</a>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
             <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
             <a href="https://github.com/lifetofree/adduckivity" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">GitHub</a>
           </div>

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Loader2, Wand2, Search, X } from 'lucide-react'
+import { ChevronDown, Loader2, Wand2, Search, X, Upload } from 'lucide-react'
 import { ET } from './theme'
 
 /* ── Section accordion ── */
@@ -161,11 +161,55 @@ export function CoverImagePicker({
   value: string
   onChange: (url: string) => void
 }) {
-  const [tab, setTab] = useState<'url' | 'unsplash'>('url')
+  const [tab, setTab] = useState<'upload' | 'url' | 'unsplash'>('upload')
   const [query, setQuery] = useState('')
   const [photos, setPhotos] = useState<UnsplashPhoto[]>([])
   const [searching, setSearching] = useState(false)
   const [searchErr, setSearchErr] = useState('')
+
+  // Upload state
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadErr, setUploadErr] = useState('')
+  const [dragOver, setDragOver] = useState(false)
+
+  const uploadFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setUploadErr('Please select an image file')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadErr('File too large (max 10 MB)')
+      return
+    }
+    setUploading(true)
+    setUploadErr('')
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      onChange(data.url)
+    } catch (err) {
+      setUploadErr(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) uploadFile(file)
+    e.target.value = ''
+  }
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) uploadFile(file)
+  }
 
   const search = async () => {
     if (!query.trim()) return
@@ -216,7 +260,7 @@ export function CoverImagePicker({
 
       {/* Tabs */}
       <div className="flex rounded-lg overflow-hidden border text-[11px] font-medium" style={{ borderColor: ET.border }}>
-        {(['url', 'unsplash'] as const).map(t => (
+        {(['upload', 'url', 'unsplash'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -226,11 +270,52 @@ export function CoverImagePicker({
               color: tab === t ? ET.surface : ET.sub,
             }}
           >
-            {t === 'url' ? 'URL' : 'Unsplash'}
+            {t === 'upload' ? 'Upload' : t === 'url' ? 'URL' : 'Unsplash'}
           </button>
         ))}
       </div>
 
+      {/* Upload tab */}
+      {tab === 'upload' && (
+        <div className="space-y-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            disabled={uploading}
+            className="w-full rounded-lg border-2 border-dashed py-5 flex flex-col items-center gap-2 transition-colors disabled:opacity-50"
+            style={{
+              borderColor: dragOver ? ET.accent : ET.border,
+              backgroundColor: dragOver ? ET.accentL : ET.bg,
+              color: ET.sub,
+            }}
+          >
+            {uploading
+              ? <Loader2 size={18} className="animate-spin" style={{ color: ET.accent }} />
+              : <Upload size={18} style={{ color: ET.sub }} />
+            }
+            <span className="text-[11px] text-center leading-relaxed" style={{ color: ET.sub }}>
+              {uploading
+                ? 'Converting to WebP…'
+                : <>Click or drag an image<br />Saved as <strong>.webp</strong></>
+              }
+            </span>
+          </button>
+          {uploadErr && (
+            <p className="text-[11px]" style={{ color: '#ef4444' }}>{uploadErr}</p>
+          )}
+        </div>
+      )}
+
+      {/* URL tab */}
       {tab === 'url' && (
         <input
           type="url"
@@ -241,6 +326,7 @@ export function CoverImagePicker({
         />
       )}
 
+      {/* Unsplash tab */}
       {tab === 'unsplash' && (
         <div className="space-y-2">
           <div className="flex gap-1.5">

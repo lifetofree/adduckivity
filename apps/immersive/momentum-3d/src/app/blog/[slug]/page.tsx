@@ -64,8 +64,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
 
       {/* ── Nav ── */}
-      <header
-        className="sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between"
+      <nav
+        className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
         style={{
           backgroundColor: 'rgba(250,245,236,0.92)',
           borderColor: ET.border,
@@ -73,17 +73,25 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         }}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity shrink-0">
-            <Image src="/logo.png" alt="Adduckivity" width={26} height={26} className="rounded-md" />
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
+            <Image src="/logo.png" alt="Adduckivity" width={32} height={32} className="rounded-lg" />
+            <span className="font-semibold hidden sm:block" style={{ color: ET.ink }}>Adduckivity</span>
           </Link>
-          <span style={{ color: ET.border }}>/</span>
+          <span className="text-sm" style={{ color: ET.border }}>/</span>
           <Link href="/blog" className="text-sm transition-opacity hover:opacity-70 shrink-0" style={{ color: ET.sub }}>
             Blog
           </Link>
-          <span style={{ color: ET.border }}>/</span>
-          <span className="text-sm font-semibold truncate" style={{ color: ET.ink }}>{post.title}</span>
+          <span className="text-sm hidden sm:block" style={{ color: ET.border }}>/</span>
+          <span className="text-sm font-medium truncate hidden sm:block" style={{ color: ET.mid }}>{post.title}</span>
         </div>
-      </header>
+        <Link
+          href="/blog"
+          className="shrink-0 text-xs font-medium transition-opacity hover:opacity-70 flex items-center gap-1"
+          style={{ color: ET.sub }}
+        >
+          ← All posts
+        </Link>
+      </nav>
 
       <main className="max-w-3xl mx-auto px-6 py-14">
 
@@ -98,7 +106,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4" style={{ color: ET.ink }}>
+        <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4" style={{ color: ET.ink }}>
           {post.title}
         </h1>
 
@@ -140,7 +148,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* Tags */}
         {post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-8 border-t" style={{ borderColor: ET.border }}>
+          <div className="flex flex-wrap gap-2 pt-8 border-t mb-10" style={{ borderColor: ET.border }}>
             {post.tags.map(tag => (
               <span
                 key={tag}
@@ -152,6 +160,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             ))}
           </div>
         )}
+
+        {/* Back CTA */}
+        <Link
+          href="/blog"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold border transition-all hover:opacity-80"
+          style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.surface }}
+        >
+          ← Back to all posts
+        </Link>
       </main>
 
       {/* ── Related posts ── */}
@@ -216,12 +233,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       )}
 
       {/* Footer */}
-      <footer className="border-t py-10 px-6 text-center" style={{ backgroundColor: ET.bg, borderColor: ET.border }}>
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Image src="/logo.png" alt="Adduckivity" width={24} height={24} className="rounded-md" />
-          <span className="text-sm font-semibold" style={{ color: ET.ink }}>Adduckivity</span>
+      <footer className="border-t py-10 px-6" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <Image src="/logo.png" alt="Adduckivity" width={28} height={28} className="rounded-md" />
+            <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
+          </div>
+          <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
+            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
+            <a href="https://github.com/lifetofree/adduckivity" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">GitHub</a>
+          </div>
+          <p className="text-xs" style={{ color: ET.sub }}>Powered by Duck OS Systems</p>
         </div>
-        <p className="text-xs" style={{ color: ET.sub }}>Duck OS — Life Architecture for Neurodivergent Creators</p>
       </footer>
 
       <style>{`
