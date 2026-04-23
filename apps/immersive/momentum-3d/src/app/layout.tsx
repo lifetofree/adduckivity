@@ -19,10 +19,10 @@ export const metadata: Metadata = {
   description: "Systems over willpower. Build your life operating system with Duck OS protocols for ADHD/MDD creators who need more than motivation.",
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png" },
+      { url: "/adduckivity-logo.png", type: "image/png" },
       { url: "/favicon.ico" },
     ],
-    apple: "/logo.png",
+    apple: "/adduckivity-logo.png",
   },
 };
 
