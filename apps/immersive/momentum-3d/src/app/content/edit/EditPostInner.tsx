@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, Copy, Check,
@@ -17,7 +17,6 @@ import {
 } from '@/components/editor/EditorShared'
 import { ET, inputCss } from '@/components/editor/theme'
 
-export const dynamic = 'force-dynamic'
 
 type AiSection = 'titles' | 'excerpt' | 'outline' | 'seo' | 'tags'
 
@@ -35,7 +34,8 @@ async function callAI(action: AiSection, payload: Record<string, unknown>) {
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'unsaved'
 
 export default function EditPostPage() {
-  const { slug } = useParams() as { slug: string }
+  const searchParams = useSearchParams()
+  const slug = searchParams.get('slug') || ''
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savedAtRef = useRef<number>(0)
@@ -109,7 +109,7 @@ export default function EditPostPage() {
     if (!t) return
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts/${slug}`, {
+      await fetch(`/api/posts?slug=${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -154,7 +154,7 @@ export default function EditPostPage() {
   const saveDraft = async () => {
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts/${slug}`, {
+      await fetch(`/api/posts?slug=${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -178,7 +178,7 @@ export default function EditPostPage() {
     setPublishModal(false)
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts/${slug}`, {
+      await fetch(`/api/posts?slug=${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -202,7 +202,7 @@ export default function EditPostPage() {
     setUnpublishModal(false)
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts/${slug}`, {
+      await fetch(`/api/posts?slug=${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

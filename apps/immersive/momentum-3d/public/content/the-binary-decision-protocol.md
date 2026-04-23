@@ -6,14 +6,13 @@ category: protocol
 scene: default
 mood: energetic
 excerpt: >-
-  ลืมการตัดสินใจที่น่าปวดหัวไปได้เลย! พรพาคุณเจาะลึกโพรโทคอล DEC-01
+  ลืมการตัดสินใจที่น่าปวดหัวไปได้เลย! เจาะลึกโพรโทคอล DEC-01
   วิธีเปลี่ยนการเลือกให้เป็นระบบอัตโนมัติ ลดความล้าจากการตัดสินใจ (Decision
   Fatigue) 
 tags:
   - Protocol
   - DuckOS
-featuredImage: >-
-  https://midgardisnotaplace.com/img/lifetofree/cl11y75f_20260409-IMG-DEC-01-BINARY-DECISION.webp
+featuredImage: /uploads/20260409-img-dec-01-binary-decision-1776944641044.webp
 author: Adduckivity
 readingTime: 2 min read
 status: published

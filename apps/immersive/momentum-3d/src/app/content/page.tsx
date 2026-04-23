@@ -125,7 +125,7 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <Link
-            href={`/content/${post.slug}`}
+            href={`/content/edit?slug=${post.slug}`}
             className="font-semibold text-sm leading-snug transition-opacity hover:opacity-70 truncate"
             style={{ color: '#2C1F14' }}
           >
@@ -175,7 +175,7 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
       {/* Edit */}
       <p className="text-right pt-0.5">
         <Link
-          href={`/content/${post.slug}`}
+          href={`/content/edit?slug=${post.slug}`}
           className="text-xs font-semibold transition-opacity hover:opacity-70"
           style={{ color: '#C07850' }}
         >

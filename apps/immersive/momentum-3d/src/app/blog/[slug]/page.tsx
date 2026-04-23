@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getPostBySlug, getAllPosts } from '@/lib/content'
+import { getPostBySlug, getAllPosts, getPublishedPosts } from '@/lib/content'
+
+export function generateStaticParams() {
+  return getPublishedPosts().map(post => ({ slug: post.slug }))
+}
 
 const ET = {
   bg:      '#F5EFE3',

@@ -19,7 +19,6 @@ function toSlug(title: string) {
   return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
 }
 
-export const dynamic = 'force-dynamic'
 
 type AiSection = 'titles' | 'excerpt' | 'outline' | 'seo' | 'tags'
 
@@ -145,7 +144,7 @@ export default function NewPostPage() {
       })
       const post = await res.json()
       showToast('ok', 'Published!')
-      setTimeout(() => { window.location.href = `/content/${post.slug}` }, 900)
+      setTimeout(() => { window.location.href = `/content/edit?slug=${post.slug}` }, 900)
     } catch {
       showToast('err', 'Publish failed')
     } finally {
