@@ -41,8 +41,9 @@ function renderMarkdown(md: string): string {
     .join('\n')
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug)
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
 
   // Only show published posts to public
   if (!post || post.status !== 'published') notFound()
