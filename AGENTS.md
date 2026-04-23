@@ -29,12 +29,20 @@
 
 A full headless CMS lives inside the app itself. Posts are markdown files in `public/content/` with gray-matter frontmatter.
 
-**Routes:**
-| Route | Purpose |
-|---|---|
-| `/content` | Posts table: stats row (Total/Published/Drafts), status badges, excerpt, "Edit →" |
-| `/content/new` | New post editor with auto-save, Unsplash cover picker, AI assistant |
-| `/content/[slug]` | Edit page: auto-save (4s), Save Draft, Publish/Unpublish with modals, status badge |
+**Routes — public (visitors):**
+| Route | Audience | Purpose |
+|---|---|---|
+| `/blog` | Everyone | Published posts only — card grid, no admin UI |
+| `/blog/[slug]` | Everyone | Reading view — prose, related posts, tags. Drafts return 404. |
+
+**Routes — owner/admin:**
+| Route | Audience | Purpose |
+|---|---|---|
+| `/content` | Owner | CMS dashboard — all posts (draft + published), stats row, status badges, "Edit →" |
+| `/content/new` | Owner | New post editor — auto-save, slug field, Unsplash cover picker, AI assistant |
+| `/content/[slug]` | Owner | Edit page — auto-save (4s), Save Draft, Publish/Unpublish with modals, status badge |
+
+> **Auth note:** `/content` routes are not publicly linked — no hard auth yet. Add Next.js middleware on `/content/*` for password protection when needed.
 
 **API routes** (`src/app/api/`):
 | Route | Method | Purpose |
@@ -210,4 +218,4 @@ adduckivity/
 
 **Built by one person with AI systems, not hustle.**
 
-*Last updated: 2026-04-23*
+*Last updated: 2026-04-23 — added public/owner route split*

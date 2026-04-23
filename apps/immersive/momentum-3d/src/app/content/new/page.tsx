@@ -7,14 +7,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, Copy, Check,
   Bold, Italic, List, ListOrdered, Link2, Code,
-  Heading1, Heading2, Heading3, Quote, FileText, Tag,
+  Heading1, Heading2, Heading3, Quote, FileText, Tag, Hash,
 } from 'lucide-react'
 import {
   SideSection, Field, AISection, ProgressBar,
   ToolBtn, Divider, CoverImagePicker, ConfirmModal,
 } from '@/components/editor/EditorShared'
 import { ET, inputCss } from '@/components/editor/theme'
-import { toSlug } from '@/lib/posts'
+
+function toSlug(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -68,9 +71,12 @@ export default function NewPostPage() {
   })
   const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
 
-  // Auto-slug from title
+  // Auto-slug from title (only if user hasn't manually edited it)
+  const slugEditedRef = useRef(false)
   useEffect(() => {
-    if (title && !savedSlugRef.current) setSlug(toSlug(title))
+    if (title && !slugEditedRef.current && !savedSlugRef.current) {
+      setSlug(toSlug(title))
+    }
   }, [title])
 
   // Auto-save (upserts draft after 4s)
@@ -224,6 +230,15 @@ export default function NewPostPage() {
           </SideSection>
 
           <SideSection label="Post Metadata" open={open.meta} onToggle={() => toggle('meta')}>
+            <Field label="Slug" icon={<Hash size={13} />}>
+              <input
+                value={slug}
+                onChange={e => { slugEditedRef.current = true; setSlug(e.target.value) }}
+                placeholder="auto-generated"
+                className="et-input font-mono"
+              />
+              <p className="text-[10px] mt-0.5" style={{ color: ET.sub }}>Auto-filled from title</p>
+            </Field>
             <Field label="Category" icon={<FileText size={13} />}>
               <select value={category} onChange={e => setCategory(e.target.value)} className="et-select">
                 <option value="protocol">Protocol</option>

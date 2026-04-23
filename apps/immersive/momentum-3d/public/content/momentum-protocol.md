@@ -16,6 +16,7 @@ featuredImage: >-
   https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1
 author: Adduckivity
 readingTime: 3 min read
+status: draft
 ---
 
 # Momentum Protocol: Action Over Motivation

@@ -18,7 +18,7 @@ const features = [
     title: 'Momentum Protocol',
     description: 'Action over motivation. Build momentum when you don\'t feel like it.',
     image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1',
-    href: '/content/momentum-protocol',
+    href: '/blog/momentum-protocol',
     badge: 'ACT-04',
   },
   {
@@ -76,8 +76,8 @@ export default function Home() {
           <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
         </Link>
         <div className="hidden md:flex items-center gap-7">
-          <Link href="/content" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-            Content
+          <Link href="/blog" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+            Blog
           </Link>
           <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
             3D Experience
@@ -115,14 +115,14 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/content/momentum-protocol"
+              href="/blog/momentum-protocol"
               className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-opacity hover:opacity-85"
               style={{ backgroundColor: ET.ink, color: ET.surface }}
             >
               Read Momentum Protocol
             </Link>
             <Link
-              href="/content"
+              href="/blog"
               className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm border transition-opacity hover:opacity-80"
               style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.surface }}
             >
@@ -226,11 +226,11 @@ export default function Home() {
             Pick one protocol. Run it for 7 days. Build from there.
           </p>
           <Link
-            href="/content"
+            href="/blog"
             className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-opacity hover:opacity-85"
             style={{ backgroundColor: ET.accent, color: ET.surface }}
           >
-            Browse All Content
+            Browse All Posts
           </Link>
         </div>
       </section>

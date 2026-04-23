@@ -91,16 +91,23 @@ Each app has its own Cloudflare Pages project:
 
 Posts live as markdown in `apps/immersive/momentum-3d/public/content/`.
 
+### Public routes (visitors)
 | URL | What it does |
 |---|---|
-| `/content` | Table of all posts — stats, status badges, edit links |
-| `/content/new` | New post editor — auto-save, Unsplash/URL cover, AI assist |
-| `/content/[slug]` | Edit existing post — Publish / Unpublish / Save Draft |
+| `/blog` | Published posts — card grid, reading experience |
+| `/blog/[slug]` | Article reading view — prose, related posts. Drafts → 404. |
+
+### Owner routes (admin only)
+| URL | What it does |
+|---|---|
+| `/content` | CMS dashboard — all posts, stats (Total/Published/Drafts), edit links |
+| `/content/new` | New post editor — auto-save, slug, Unsplash/URL cover, AI assist |
+| `/content/[slug]` | Edit post — Publish / Unpublish / Save Draft, auto-save (4s) |
 
 **Env vars needed** (in `apps/immersive/momentum-3d/.env.local`):
 ```
-GEMINI_API_KEY=...
-UNSPLASH_ACCESS_KEY=...
+GEMINI_API_KEY=...        # Google Gemini 1.5 Flash (AI assistant)
+UNSPLASH_ACCESS_KEY=...   # Unsplash image search
 ```
 
 ## 🦆 UDO - AI Co-Founder
