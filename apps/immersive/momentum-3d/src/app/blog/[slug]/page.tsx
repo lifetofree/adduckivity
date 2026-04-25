@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { getPostBySlug, getAllPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
+import { getMockKV } from '@/lib/dev-kv'
 
 function renderMarkdown(md: string): string {
   return md
@@ -35,8 +36,10 @@ function renderMarkdown(md: string): string {
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { env } = getRequestContext<CloudflareEnv>()
-  const kv = env.POSTS_KV
+  // Use mock KV for local development, real KV for production
+  const kv = process.env.NODE_ENV === 'development'
+    ? getMockKV()
+    : getRequestContext<CloudflareEnv>().env.POSTS_KV
   const post = await getPostBySlug(kv, slug)
 
   if (!post || post.status !== 'published') notFound()

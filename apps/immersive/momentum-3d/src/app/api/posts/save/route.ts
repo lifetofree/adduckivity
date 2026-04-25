@@ -3,9 +3,25 @@ export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { savePost, toSlug, getPostBySlug } from '@/lib/posts'
+import { getMockKV } from '@/lib/dev-kv'
+
+function getKV(): KVNamespace {
+  return process.env.NODE_ENV === 'development'
+    ? getMockKV()
+    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+}
+
+function getEnv(): CloudflareEnv {
+  if (process.env.NODE_ENV === 'development') {
+    throw new Error('Cloudflare env not available in development')
+  }
+  return getRequestContext<CloudflareEnv>().env
+}
 
 async function postToFacebook(post: { title: string; excerpt: string; slug: string; featuredImage?: string }) {
-  const { env } = getRequestContext<CloudflareEnv>()
+  if (process.env.NODE_ENV === 'development') return // Skip Facebook posting in dev
+
+  const env = getEnv()
   const token   = env.FACEBOOK_PAGE_ACCESS_TOKEN
   const pageId  = env.FACEBOOK_PAGE_ID
   const siteUrl = env.SITE_URL || 'https://immersive-adduckivity.pages.dev'
@@ -23,8 +39,7 @@ async function postToFacebook(post: { title: string; excerpt: string; slug: stri
 }
 
 export async function POST(req: NextRequest) {
-  const { env } = getRequestContext<CloudflareEnv>()
-  const kv = env.POSTS_KV
+  const kv = getKV()
   try {
     const body = await req.json() as Partial<import('@/lib/posts').Post> & { title?: string; content?: string }
     if (!body.title) return NextResponse.json({ error: 'title required' }, { status: 400 })
