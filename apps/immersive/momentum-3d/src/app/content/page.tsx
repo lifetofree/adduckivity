@@ -1,18 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { getAllPosts } from '@/lib/content'
-
-const ET = {
-  bg:      '#F5EFE3',
-  surface: '#FAF5EC',
-  muted:   '#EDE5D8',
-  border:  '#D8C9B0',
-  ink:     '#2C1F14',
-  mid:     '#5A4030',
-  sub:     '#7B6248',
-  accent:  '#C07850',
-  accentL: 'rgba(192,120,80,0.12)',
-}
+import { ET } from '@/lib/theme'
 
 export default function ContentDashboard() {
   const posts = getAllPosts()
@@ -26,7 +15,7 @@ export default function ContentDashboard() {
       <header
         className="sticky top-0 z-10 border-b px-6 py-4 flex items-center justify-between"
         style={{
-          backgroundColor: 'rgba(250,245,236,0.92)',
+          backgroundColor: 'rgba(10,15,30,0.92)',
           borderColor: ET.border,
           backdropFilter: 'blur(12px)',
         }}
@@ -117,8 +106,8 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
       style={{
         gridTemplateColumns: '1fr 90px 100px 52px',
         gap: '1rem',
-        borderColor: '#D8C9B0',
-        backgroundColor: '#FAF5EC',
+        borderColor: ET.border,
+        backgroundColor: ET.surface,
       }}
     >
       {/* Title block */}
@@ -127,29 +116,29 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
           <Link
             href={`/content/edit?slug=${post.slug}`}
             className="font-semibold text-sm leading-snug transition-opacity hover:opacity-70 truncate"
-            style={{ color: '#2C1F14' }}
+            style={{ color: ET.ink }}
           >
-            {post.title || <span style={{ color: '#7B6248' }}>Untitled</span>}
+            {post.title || <span style={{ color: ET.sub }}>Untitled</span>}
           </Link>
           {post.status === 'published' ? (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>
               Published
             </span>
           ) : (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(192,120,80,0.12)', color: '#C07850' }}>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: ET.accentL, color: ET.accent }}>
               Draft
             </span>
           )}
         </div>
         {post.excerpt && (
-          <p className="text-xs leading-relaxed line-clamp-1 mt-0.5" style={{ color: '#7B6248' }}>
+          <p className="text-xs leading-relaxed line-clamp-1 mt-0.5" style={{ color: ET.sub }}>
             {post.excerpt}
           </p>
         )}
         {post.tags.length > 0 && (
           <div className="flex gap-1 mt-1.5 flex-wrap">
             {post.tags.slice(0, 4).map(t => (
-              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full border" style={{ borderColor: '#D8C9B0', color: '#7B6248' }}>
+              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full border" style={{ borderColor: ET.border, color: ET.sub }}>
                 #{t}
               </span>
             ))}
@@ -161,14 +150,14 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
       <div className="flex justify-end pt-0.5">
         <span
           className="text-[11px] font-medium px-2.5 py-0.5 rounded-full capitalize"
-          style={{ backgroundColor: 'rgba(192,120,80,0.12)', color: '#C07850' }}
+          style={{ backgroundColor: ET.accentL, color: ET.accent }}
         >
           {post.category}
         </span>
       </div>
 
       {/* Date */}
-      <p className="font-mono text-[11px] text-right pt-0.5" style={{ color: '#7B6248' }}>
+      <p className="font-mono text-[11px] text-right pt-0.5" style={{ color: ET.sub }}>
         {new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
       </p>
 
@@ -177,7 +166,7 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
         <Link
           href={`/content/edit?slug=${post.slug}`}
           className="text-xs font-semibold transition-opacity hover:opacity-70"
-          style={{ color: '#C07850' }}
+          style={{ color: ET.accent }}
         >
           Edit →
         </Link>
@@ -189,8 +178,8 @@ function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
 function Stat({ value, label, color }: { value: number; label: string; color?: string }) {
   return (
     <div>
-      <p className="text-3xl font-bold leading-none" style={{ color: color || '#2C1F14' }}>{value}</p>
-      <p className="text-xs mt-1" style={{ color: '#7B6248' }}>{label}</p>
+      <p className="text-3xl font-bold leading-none" style={{ color: color || ET.ink }}>{value}</p>
+      <p className="text-xs mt-1" style={{ color: ET.sub }}>{label}</p>
     </div>
   )
 }

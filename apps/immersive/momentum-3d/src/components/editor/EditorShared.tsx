@@ -242,7 +242,7 @@ export function CoverImagePicker({
             <button
               onClick={() => onChange('')}
               className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(44,31,20,0.7)', color: '#FAF5EC' }}
+              style={{ backgroundColor: 'rgba(0,229,255,0.2)', color: '#E8F4F8' }}
             >
               <X size={11} />
             </button>

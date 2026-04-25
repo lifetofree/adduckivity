@@ -15,7 +15,7 @@ import {
   SideSection, Field, AISection, ProgressBar,
   ToolBtn, Divider, CoverImagePicker, ConfirmModal,
 } from '@/components/editor/EditorShared'
-import { ET, inputCss } from '@/components/editor/theme'
+import { ET, inputCss } from '@/lib/theme'
 
 
 type AiSection = 'titles' | 'excerpt' | 'outline' | 'seo' | 'tags'

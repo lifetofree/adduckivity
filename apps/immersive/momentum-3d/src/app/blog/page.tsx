@@ -1,18 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { getPublishedPosts } from '@/lib/content'
-
-const ET = {
-  bg:      '#F5EFE3',
-  surface: '#FAF5EC',
-  muted:   '#EDE5D8',
-  border:  '#D8C9B0',
-  ink:     '#2C1F14',
-  mid:     '#5A4030',
-  sub:     '#7B6248',
-  accent:  '#C07850',
-  accentL: 'rgba(192,120,80,0.12)',
-}
+import { ET } from '@/lib/theme'
 
 export default function BlogPage() {
   const posts = getPublishedPosts()
@@ -24,7 +13,7 @@ export default function BlogPage() {
       <nav
         className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
         style={{
-          backgroundColor: 'rgba(250,245,236,0.92)',
+          backgroundColor: 'rgba(10,15,30,0.92)',
           borderColor: ET.border,
           backdropFilter: 'blur(12px)',
         }}
@@ -120,7 +109,7 @@ export default function BlogPage() {
                     <div className="absolute top-3 left-3">
                       <span
                         className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
-                        style={{ backgroundColor: 'rgba(44,31,20,0.55)', color: '#FAF5EC' }}
+                        style={{ backgroundColor: 'rgba(0,229,255,0.15)', color: '#00E5FF' }}
                       >
                         {post.category}
                       </span>

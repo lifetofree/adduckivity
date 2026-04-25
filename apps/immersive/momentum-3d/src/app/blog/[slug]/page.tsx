@@ -2,21 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getPostBySlug, getAllPosts, getPublishedPosts } from '@/lib/content'
+import { ET } from '@/lib/theme'
 
 export function generateStaticParams() {
   return getPublishedPosts().map(post => ({ slug: post.slug }))
-}
-
-const ET = {
-  bg:      '#F5EFE3',
-  surface: '#FAF5EC',
-  muted:   '#EDE5D8',
-  border:  '#D8C9B0',
-  ink:     '#2C1F14',
-  mid:     '#5A4030',
-  sub:     '#7B6248',
-  accent:  '#C07850',
-  accentL: 'rgba(192,120,80,0.12)',
 }
 
 function renderMarkdown(md: string): string {
@@ -71,7 +60,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <nav
         className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
         style={{
-          backgroundColor: 'rgba(250,245,236,0.92)',
+          backgroundColor: 'rgba(10,15,30,0.92)',
           borderColor: ET.border,
           backdropFilter: 'blur(12px)',
         }}
@@ -211,7 +200,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                         </div>
                       )}
                       <div className="absolute top-3 left-3">
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm" style={{ backgroundColor: 'rgba(44,31,20,0.55)', color: '#FAF5EC' }}>
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm" style={{ backgroundColor: 'rgba(0,229,255,0.15)', color: '#00E5FF' }}>
                           {rp.category}
                         </span>
                       </div>
@@ -265,7 +254,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           background: ${ET.accentL}; border-radius: 0 0.5rem 0.5rem 0;
         }
         .prose-et code { font-size: 0.85em; background: ${ET.muted}; color: ${ET.accent}; padding: 0.15em 0.4em; border-radius: 0.25rem; }
-        .prose-et pre  { background: ${ET.ink}; color: #FAF5EC; border-radius: 0.75rem; padding: 1.25rem 1.5rem; overflow-x: auto; margin: 1.5rem 0; font-size: 0.875rem; line-height: 1.7; }
+        .prose-et pre  { background: ${ET.muted}; color: ${ET.ink}; border-radius: 0.75rem; padding: 1.25rem 1.5rem; overflow-x: auto; margin: 1.5rem 0; font-size: 0.875rem; line-height: 1.7; }
         .prose-et pre code { background: none; color: inherit; padding: 0; }
         .prose-et a   { color: ${ET.accent}; text-decoration: underline; text-decoration-color: ${ET.accentL}; text-underline-offset: 3px; }
         .prose-et a:hover { text-decoration-color: ${ET.accent}; }

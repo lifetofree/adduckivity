@@ -1,17 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-
-const ET = {
-  bg:      '#F5EFE3',
-  surface: '#FAF5EC',
-  muted:   '#EDE5D8',
-  border:  '#D8C9B0',
-  ink:     '#2C1F14',
-  mid:     '#5A4030',
-  sub:     '#7B6248',
-  accent:  '#C07850',
-  accentL: 'rgba(192,120,80,0.12)',
-}
+import { ET } from '@/lib/theme'
 
 const features = [
   {
@@ -84,7 +73,7 @@ export default function Home() {
       <nav
         className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
         style={{
-          backgroundColor: 'rgba(250,245,236,0.92)',
+          backgroundColor: 'rgba(10,15,30,0.92)',
           borderColor: ET.border,
           backdropFilter: 'blur(12px)',
         }}
@@ -202,7 +191,7 @@ export default function Home() {
                     <div className="absolute top-3 left-3">
                       <span
                         className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
-                        style={{ backgroundColor: 'rgba(44,31,20,0.55)', color: '#FAF5EC' }}
+                        style={{ backgroundColor: 'rgba(0,229,255,0.15)', color: '#00E5FF' }}
                       >
                         {f.badge}
                       </span>
@@ -275,7 +264,7 @@ export default function Home() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse 60% 60% at 50% 50%, rgba(192,120,80,0.10) 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,229,255,0.08) 0%, transparent 70%)`,
           }}
         />
         <div className="relative max-w-xl mx-auto">

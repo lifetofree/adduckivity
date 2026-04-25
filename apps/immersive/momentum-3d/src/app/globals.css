@@ -3,8 +3,8 @@
 :root {
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-mono), "JetBrains Mono", monospace;
-  --color-bg: #FBFBFA;
-  --color-ink: #141414;
+  --color-bg: #0A0F1E;
+  --color-ink: #E8F4F8;
 }
 
 body {
