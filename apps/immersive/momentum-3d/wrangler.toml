@@ -1,0 +1,9 @@
+name = "immersive-adduckivity"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[[kv_namespaces]]
+binding = "POSTS_KV"
+id = "a07209b5ad9a4972aa82a30d0af3071e"
+preview_id = "f264112c6d4e408b973696fa6f6ddb8d"

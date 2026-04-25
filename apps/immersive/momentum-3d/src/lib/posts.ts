@@ -1,23 +1,3 @@
-import fs from 'fs'
-import path from 'path'
-import matter from 'gray-matter'
-
-const dir = path.join(process.cwd(), 'public/content')
-
-function ensure() {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-}
-
-function readingTime(content: string): string {
-  const words = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
-  const mins = Math.ceil(words / 200)
-  return mins < 1 ? '< 1 min read' : `${mins} min read`
-}
-
-export function toSlug(title: string): string {
-  return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
-}
-
 export interface Post {
   slug: string
   title: string
@@ -34,83 +14,81 @@ export interface Post {
   content: string
 }
 
-export function getAllPosts(): Post[] {
-  if (!fs.existsSync(dir)) return []
-  return fs.readdirSync(dir)
-    .filter(f => f.endsWith('.md'))
-    .map(f => getPostBySlug(f.replace(/\.md$/, '')))
+export function readingTime(content: string): string {
+  const words = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
+  const mins = Math.ceil(words / 200)
+  return mins < 1 ? '< 1 min read' : `${mins} min read`
+}
+
+export function toSlug(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
+}
+
+export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
+  const list = await kv.list({ prefix: 'post:' })
+  const posts = await Promise.all(
+    list.keys.map(({ name }) => kv.get(name, 'json') as Promise<Post | null>)
+  )
+  return posts
     .filter((p): p is Post => p !== null)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
-export function getPostBySlug(slug: string): Post | null {
-  try {
-    const { data, content } = matter(fs.readFileSync(path.join(dir, `${slug}.md`), 'utf8'))
-    return {
-      slug,
-      title:       data.title       || '',
-      date:        data.date        || new Date().toISOString().split('T')[0],
-      category:    data.category    || 'uncategorized',
-      scene:       data.scene       || 'default',
-      mood:        data.mood        || 'neutral',
-      excerpt:     data.excerpt     || '',
-      tags:        data.tags        || [],
-      featuredImage: data.featuredImage || '',
-      author:      data.author      || 'Adduckivity',
-      readingTime: data.readingTime || readingTime(content),
-      status:      data.status === 'published' ? 'published' : 'draft',
-      content,
-    }
-  } catch {
-    return null
-  }
+export async function getPublishedPosts(kv: KVNamespace): Promise<Post[]> {
+  const all = await getAllPosts(kv)
+  return all.filter(p => p.status === 'published')
 }
 
-export function savePost(input: Partial<Post> & { slug: string; title: string; content: string }): Post {
-  ensure()
-  const existing = getPostBySlug(input.slug)
+export async function getPostBySlug(kv: KVNamespace, slug: string): Promise<Post | null> {
+  return kv.get(`post:${slug}`, 'json') as Promise<Post | null>
+}
+
+export async function savePost(
+  kv: KVNamespace,
+  input: Partial<Post> & { slug: string; title: string; content: string }
+): Promise<Post> {
+  const existing = await getPostBySlug(kv, input.slug)
   const now = new Date().toISOString().split('T')[0]
   const merged = { ...existing, ...input }
-  const rt = readingTime(merged.content)
-  const fm = {
-    title:        merged.title,
+  const post: Post = {
     slug:         merged.slug,
-    date:         merged.date || now,
-    category:     merged.category    || 'uncategorized',
-    scene:        merged.scene       || 'default',
-    mood:         merged.mood        || 'neutral',
-    excerpt:      merged.excerpt     || '',
-    tags:         merged.tags        || [],
+    title:        merged.title,
+    date:         merged.date         || now,
+    category:     merged.category     || 'uncategorized',
+    scene:        merged.scene        || 'default',
+    mood:         merged.mood         || 'neutral',
+    excerpt:      merged.excerpt      || '',
+    tags:         merged.tags         || [],
     featuredImage: merged.featuredImage || '',
-    author:       merged.author      || 'Adduckivity',
-    readingTime:  rt,
-    status:       merged.status      || 'draft',
+    author:       merged.author       || 'Adduckivity',
+    readingTime:  readingTime(merged.content),
+    status:       merged.status       || 'draft',
+    content:      merged.content,
   }
-  fs.writeFileSync(path.join(dir, `${fm.slug}.md`), matter.stringify(merged.content, fm))
-  return { ...fm, content: merged.content }
+  await kv.put(`post:${post.slug}`, JSON.stringify(post))
+  return post
 }
 
-export function createPost(input: Omit<Post, 'date' | 'readingTime' | 'slug'> & { slug?: string }): Post {
-  ensure()
-  const slug = input.slug || toSlug(input.title)
-  return savePost({ ...input, slug })
-}
-
-export function updatePost(slug: string, input: Partial<Post>): Post | null {
-  const existing = getPostBySlug(slug)
+export async function updatePost(
+  kv: KVNamespace,
+  slug: string,
+  input: Partial<Post>
+): Promise<Post | null> {
+  const existing = await getPostBySlug(kv, slug)
   if (!existing) return null
-  // If slug changed, delete old file
   const newSlug = input.slug && input.slug !== slug ? input.slug : slug
-  if (newSlug !== slug) fs.unlinkSync(path.join(dir, `${slug}.md`))
-  return savePost({ ...existing, ...input, slug: newSlug })
+  if (newSlug !== slug) await kv.delete(`post:${slug}`)
+  return savePost(kv, { ...existing, ...input, slug: newSlug })
 }
 
-export function deletePost(slug: string): boolean {
-  const p = path.join(dir, `${slug}.md`)
-  if (fs.existsSync(p)) { fs.unlinkSync(p); return true }
-  return false
+export async function deletePost(kv: KVNamespace, slug: string): Promise<boolean> {
+  const existing = await getPostBySlug(kv, slug)
+  if (!existing) return false
+  await kv.delete(`post:${slug}`)
+  return true
 }
 
-export function slugExists(slug: string): boolean {
-  return fs.existsSync(path.join(dir, `${slug}.md`))
+export async function slugExists(kv: KVNamespace, slug: string): Promise<boolean> {
+  const post = await getPostBySlug(kv, slug)
+  return post !== null
 }

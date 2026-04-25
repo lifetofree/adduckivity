@@ -28,7 +28,7 @@ async function callAI(action: AiSection, payload: Record<string, unknown>) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...payload }),
   })
-  const data = await res.json()
+  const data = await res.json() as { error?: string; result?: unknown }
   if (!res.ok) throw new Error(data.error || 'AI request failed')
   return data.result
 }
@@ -96,7 +96,7 @@ export default function NewPostPage() {
           category: cat, featuredImage: img, scene: sc, mood: md, status: 'draft',
         }),
       })
-      const saved = await res.json()
+      const saved = await res.json() as import('@/lib/posts').Post
       savedSlugRef.current = saved.slug
       setSlug(saved.slug)
       savedAtRef.current = Date.now()
@@ -142,7 +142,7 @@ export default function NewPostPage() {
           category, featuredImage, scene, mood, status: 'published',
         }),
       })
-      const post = await res.json()
+      const post = await res.json() as import('@/lib/posts').Post
       showToast('ok', 'Published!')
       setTimeout(() => { window.location.href = `/content/edit?slug=${post.slug}` }, 900)
     } catch {

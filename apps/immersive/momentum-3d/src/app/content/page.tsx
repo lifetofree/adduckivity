@@ -1,10 +1,14 @@
+export const runtime = 'edge'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { getAllPosts } from '@/lib/content'
+import { getRequestContext } from '@cloudflare/next-on-pages'
+import { getAllPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 
-export default function ContentDashboard() {
-  const posts = getAllPosts()
+export default async function ContentDashboard() {
+  const { env } = getRequestContext<CloudflareEnv>()
+  const posts = await getAllPosts(env.POSTS_KV)
   const published = posts.filter(p => p.status === 'published').length
   const drafts    = posts.filter(p => p.status === 'draft').length
 
@@ -99,7 +103,7 @@ export default function ContentDashboard() {
   )
 }
 
-function Row({ post }: { post: ReturnType<typeof getAllPosts>[0] }) {
+function Row({ post }: { post: import('@/lib/posts').Post }) {
   return (
     <div
       className="group grid items-start px-5 py-4 border-b last:border-0 transition-colors"

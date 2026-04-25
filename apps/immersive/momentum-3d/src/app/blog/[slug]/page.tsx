@@ -1,12 +1,11 @@
+export const runtime = 'edge'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getPostBySlug, getAllPosts, getPublishedPosts } from '@/lib/content'
+import { getRequestContext } from '@cloudflare/next-on-pages'
+import { getPostBySlug, getAllPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
-
-export function generateStaticParams() {
-  return getPublishedPosts().map(post => ({ slug: post.slug }))
-}
 
 function renderMarkdown(md: string): string {
   return md
@@ -36,12 +35,13 @@ function renderMarkdown(md: string): string {
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const post = getPostBySlug(slug)
+  const { env } = getRequestContext<CloudflareEnv>()
+  const kv = env.POSTS_KV
+  const post = await getPostBySlug(kv, slug)
 
-  // Only show published posts to public
   if (!post || post.status !== 'published') notFound()
 
-  const allPosts = getAllPosts()
+  const allPosts = await getAllPosts(kv)
   const related = allPosts
     .filter(p => p.slug !== post.slug && p.status === 'published' && (
       p.category === post.category || p.tags.some(t => post.tags.includes(t))

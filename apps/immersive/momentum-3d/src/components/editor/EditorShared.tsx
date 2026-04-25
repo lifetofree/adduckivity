@@ -188,9 +188,9 @@ export function CoverImagePicker({
       const form = new FormData()
       form.append('file', file)
       const res = await fetch('/api/upload', { method: 'POST', body: form })
-      const data = await res.json()
+      const data = await res.json() as { error?: string; url?: string }
       if (!res.ok) throw new Error(data.error || 'Upload failed')
-      onChange(data.url)
+      onChange(data.url ?? '')
     } catch (err) {
       setUploadErr(err instanceof Error ? err.message : 'Upload failed')
     } finally {
@@ -218,7 +218,7 @@ export function CoverImagePicker({
     setPhotos([])
     try {
       const res = await fetch(`/api/unsplash?q=${encodeURIComponent(query.trim())}`)
-      const data = await res.json()
+      const data = await res.json() as { error?: string; photos?: UnsplashPhoto[] }
       if (!res.ok) throw new Error(data.error || 'Search failed')
       setPhotos(data.photos || [])
     } catch (err) {

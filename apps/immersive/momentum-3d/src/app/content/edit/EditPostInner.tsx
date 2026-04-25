@@ -26,7 +26,7 @@ async function callAI(action: AiSection, payload: Record<string, unknown>) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...payload }),
   })
-  const data = await res.json()
+  const data = await res.json() as { error?: string; result?: unknown }
   if (!res.ok) throw new Error(data.error || 'AI request failed')
   return data.result
 }
@@ -74,7 +74,7 @@ export default function EditPostPage() {
   // ── Load post ──────────────────────────────────────────────────────────────
   useEffect(() => {
     fetch(`/api/posts?slug=${slug}`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<import('@/lib/posts').Post>)
       .then(d => {
         setTitle(d.title || '')
         setContent(d.content || '')

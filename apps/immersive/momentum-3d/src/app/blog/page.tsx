@@ -1,10 +1,14 @@
+export const runtime = 'edge'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { getPublishedPosts } from '@/lib/content'
+import { getRequestContext } from '@cloudflare/next-on-pages'
+import { getPublishedPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 
-export default function BlogPage() {
-  const posts = getPublishedPosts()
+export default async function BlogPage() {
+  const { env } = getRequestContext<CloudflareEnv>()
+  const posts = await getPublishedPosts(env.POSTS_KV)
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
