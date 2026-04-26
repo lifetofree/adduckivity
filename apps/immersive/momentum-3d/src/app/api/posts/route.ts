@@ -15,24 +15,35 @@ function getEnv(): CloudflareEnv {
   return getRequestContext<CloudflareEnv>().env
 }
 
-async function postToFacebook(post: { title: string; excerpt: string; slug: string }) {
-  if (process.env.NODE_ENV === 'development') return // Skip Facebook posting in dev
+async function postToFacebook(post: { title: string; excerpt: string; slug: string }): Promise<{ ok: boolean; error?: string }> {
+  if (process.env.NODE_ENV === 'development') return { ok: false, error: 'skipped in dev' }
 
   const env = getEnv()
   const token   = env.FACEBOOK_PAGE_ACCESS_TOKEN
   const pageId  = env.FACEBOOK_PAGE_ID
   const siteUrl = env.SITE_URL || 'https://immersive-adduckivity.pages.dev'
 
-  if (!token || !pageId) return
+  if (!token) return { ok: false, error: 'FACEBOOK_PAGE_ACCESS_TOKEN not set' }
+  if (!pageId) return { ok: false, error: 'FACEBOOK_PAGE_ID not set' }
 
   const link    = `${siteUrl}/blog/${post.slug}`
   const message = `🦆 ${post.title}\n\n${post.excerpt}\n\nRead the full protocol → ${link}\n\n#DuckOS #Productivity #ADHD #Neurodivergent`
 
   const params = new URLSearchParams({ message, link, access_token: token })
-  await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
+  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
     method: 'POST',
     body: params,
   })
+
+  const data = await res.json() as { id?: string; error?: { message: string } }
+  if (!res.ok || data.error) {
+    const msg = data.error?.message || `HTTP ${res.status}`
+    console.error('[Facebook] Post failed:', msg)
+    return { ok: false, error: msg }
+  }
+
+  console.log('[Facebook] Posted successfully:', data.id)
+  return { ok: true }
 }
 
 export async function GET(req: NextRequest) {
@@ -57,10 +68,11 @@ export async function PUT(req: NextRequest) {
     const isFirstPublish = body.status === 'published' && existing?.status !== 'published'
     const post = await updatePost(kv, slug, body)
     if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    let facebook: { ok: boolean; error?: string } | undefined
     if (isFirstPublish) {
-      await postToFacebook(post).catch(() => {})
+      facebook = await postToFacebook(post)
     }
-    return NextResponse.json(post)
+    return NextResponse.json({ ...post, facebook })
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
