@@ -199,6 +199,8 @@ export default function MomentumPage() {
               <p><strong style={{ color: ET.ink }}>Right now:</strong> Set a timer for 2 minutes. Start one thing you&apos;ve been avoiding. Watch the flywheel begin to spin.</p>
               <p>In 48 hours, you&apos;ll have momentum. In 30 days, a new identity. In 90 days, an asset library that compounds forever.</p>
             </div>
+            {/* Starter Kit CTA — hidden until product is ready */}
+            {false && (
             <div className="rounded-2xl p-8 max-w-md mx-auto" style={{ backgroundColor: ET.surface, border: `1px solid ${ET.border}` }}>
               <h3 className="text-lg font-bold mb-2" style={{ color: ET.ink }}>Want the Complete Duck OS Starter Kit?</h3>
               <p className="text-sm mb-6" style={{ color: ET.sub }}>Get 5 protocols, a Notion template, and quick-start guide — free.</p>
@@ -218,6 +220,7 @@ export default function MomentumPage() {
               </div>
               <p className="text-xs mt-4" style={{ color: ET.sub }}>No spam. Just systems that work. Unsubscribe anytime.</p>
             </div>
+            )}
           </div>
         </section>
 
