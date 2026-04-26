@@ -5,10 +5,14 @@ import Image from 'next/image'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { getAllPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
+import { getMockKV } from '@/lib/dev-kv'
 
 export default async function ContentDashboard() {
-  const { env } = getRequestContext<CloudflareEnv>()
-  const posts = await getAllPosts(env.POSTS_KV)
+  // Use mock KV for local development, real KV for production
+  const kv = process.env.NODE_ENV === 'development'
+    ? getMockKV()
+    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+  const posts = await getAllPosts(kv)
   const published = posts.filter(p => p.status === 'published').length
   const drafts    = posts.filter(p => p.status === 'draft').length
 

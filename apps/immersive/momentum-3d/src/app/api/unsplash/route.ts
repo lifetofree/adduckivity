@@ -4,11 +4,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 
 export async function GET(req: NextRequest) {
-  const { env } = getRequestContext<CloudflareEnv>()
   const q = req.nextUrl.searchParams.get('q')
   if (!q) return NextResponse.json({ error: 'q required' }, { status: 400 })
 
-  const key = env.UNSPLASH_ACCESS_KEY
+  const key = process.env.NODE_ENV === 'development'
+    ? process.env.UNSPLASH_ACCESS_KEY || ''
+    : getRequestContext<CloudflareEnv>().env.UNSPLASH_ACCESS_KEY
   if (!key) return NextResponse.json({ error: 'Unsplash key not configured' }, { status: 500 })
 
   const res = await fetch(

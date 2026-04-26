@@ -35,8 +35,10 @@ function friendlyError(err: unknown): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { env } = getRequestContext<CloudflareEnv>()
-    const apiKey = env.GEMINI_API_KEY
+    const apiKey = process.env.NODE_ENV === 'development'
+      ? process.env.GEMINI_API_KEY || ''
+      : getRequestContext<CloudflareEnv>().env.GEMINI_API_KEY
+
     if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
 
     const body = await req.json() as {
