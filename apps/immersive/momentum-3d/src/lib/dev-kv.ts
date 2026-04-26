@@ -8,14 +8,9 @@ interface MockKVEntry {
   metadata?: Record<string, unknown>
 }
 
-class MockKVNamespace implements KVNamespace {
+class MockKVNamespace {
   private store: Map<string, MockKVEntry> = new Map()
 
-  async get(key: string): Promise<string | null>
-  async get(key: string, type: 'text'): Promise<string | null>
-  async get(key: string, type: 'json'): Promise<unknown | null>
-  async get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>
-  async get(key: string, type: 'stream'): Promise<ReadableStream | null>
   async get(key: string, type?: string): Promise<string | ArrayBuffer | ReadableStream | null | unknown> {
     const entry = this.store.get(key)
     if (!entry) return null
@@ -33,13 +28,12 @@ class MockKVNamespace implements KVNamespace {
           }
         })
       case 'text':
+      case undefined:
       default:
         return entry.value
     }
   }
 
-  async put(key: string, value: string | ReadableStream | ArrayBuffer): Promise<void>
-  async put(key: string, value: string | ReadableStream | ArrayBuffer, options?: { expiration?: number; expirationTtl?: number; metadata?: Record<string, unknown> }): Promise<void>
   async put(key: string, value: string | ReadableStream | ArrayBuffer, options?: unknown): Promise<void> {
     let stringValue: string
 
@@ -99,9 +93,9 @@ export function getMockKV(): KVNamespace {
   if (!mockKV) {
     mockKV = new MockKVNamespace()
   }
-  return mockKV
+  return mockKV as unknown as KVNamespace
 }
 
 export function isLocalDev(): boolean {
-  return process.env.NODE_ENV === 'development' && !process.env.CF_PAGES)
+  return process.env.NODE_ENV === 'development' && !process.env.CF_PAGES
 }
