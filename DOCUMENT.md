@@ -1,80 +1,160 @@
-# Project Documentation: Adduckivity (Immersive Momentum)
+# Project Documentation: Adduckivity
 
-## 1. Project Overview
-Adduckivity is a high-performance content platform designed for immersive storytelling. It combines the speed of edge computing with interactive 3D visualizations to create a unique "Momentum" protocol for content consumption.
-
-### Key Features
-- **Edge-First Architecture**: Built on Cloudflare Pages and KV for sub-100ms response times globally.
-- **AI-Powered Editor**: Real-time content assistance (SEO, tagging, excerpts) powered by Google Gemini.
-- **Immersive 3D Flywheel**: A scroll-synced 3D environment that visualizes the concept of "Momentum".
-- **Minimalist CMS**: Simple, JSON-based storage using Cloudflare KV.
+**Last updated:** 2026-04-26  
+**Production URL:** https://immersive.adduckivity.com
 
 ---
 
-## 2. Technical Architecture
-The system is designed for maximum efficiency and scalability.
+## 1. Architecture Overview
 
-- **Frontend**: Next.js (App Router) with React Three Fiber (R3F) for 3D rendering.
-- **Logic**: Edge Functions (`next-on-pages`) running on Cloudflare's global network.
-- **Storage**: Cloudflare KV for metadata and post content.
-- **Integrations**: 
-  - Google Gemini API (`gemini-1.5-flash` and `gemini-2.0-flash-exp`) for intelligence.
-  - Unsplash API for high-quality visual assets.
+Edge-first content platform combining immersive 3D storytelling with a built-in CMS, AI assistant, and newsletter integration.
+
+| Layer | Tech |
+|---|---|
+| Frontend | Next.js 16.2 App Router + React Three Fiber |
+| Runtime | Cloudflare Pages (edge, `@cloudflare/next-on-pages`) |
+| Storage | Cloudflare KV (`POSTS_KV`) |
+| AI | Google Gemini 1.5 Flash |
+| Newsletter | SendFox API |
+| Social | Facebook Graph API v19.0 |
 
 ---
 
-## 3. Module Documentation
+## 2. Module Documentation
 
 ### `src/lib/posts.ts`
-Core logic for post management and persistence.
-- `toSlug(title: string)`: URL-safe slug generation (with whitespace/dash trimming).
-- `getAllPosts(kv)`: High-performance retrieval from Cloudflare KV.
-- `savePost(kv, input)`: Atomically updates post content and metadata.
+KV-backed post CRUD. All functions accept `KVNamespace` as first arg.
+
+| Function | Description |
+|---|---|
+| `readingTime(content)` | Returns `"< 1 min read"` for <200 words, else `"N min read"` |
+| `toSlug(title)` | Lowercase, strip non-alphanumeric, collapse hyphens, trim edges, max 60 chars |
+| `getAllPosts(kv)` | All posts sorted newest-first |
+| `getPublishedPosts(kv)` | Filtered to `status === 'published'` |
+| `getPostBySlug(kv, slug)` | Returns `Post \| null` |
+| `savePost(kv, input)` | Upsert — merges with existing, auto-fills defaults |
+| `updatePost(kv, slug, input)` | Patch — handles slug rename (deletes old key) |
+| `deletePost(kv, slug)` | Returns `boolean` |
+| `slugExists(kv, slug)` | Returns `boolean` |
+
+### `src/lib/content.ts`
+Build-time file-system loader (reads `public/content/*.md` via gray-matter). Used for static pages only.
+
+### `src/lib/dev-kv.ts`
+In-memory `KVNamespace` mock for local development. Auto-used when `NODE_ENV === 'development'`.
 
 ### `src/lib/gemini.ts`
-AI orchestration layer.
-- `suggestTitles(content)`: SEO-driven title generation.
-- `autoExcerpt(title, content)`: Automated meta-description creation.
-- `suggestTags(title, content)`: Semantic tag extraction.
+Gemini API wrapper. Called by `/api/ai` — never exposed to client.
 
 ### `src/components/FlywheelScene.tsx`
-The primary visual engine.
-- Renders a 3D torus-based flywheel.
-- Syncs rotation and particle density with `scrollProgress`.
+3D torus flywheel. Takes `scrollProgress: number` prop — syncs rotation and particle density to scroll position.
+
+### `src/components/editor/EditorShared.tsx`
+Shared CMS UI primitives: `SideSection`, `Field`, `AISection`, `ProgressBar`, `ToolBtn`, `CoverImagePicker`, `ConfirmModal`.
 
 ---
 
-## 4. Developer Guide
+## 3. API Reference
 
-### Installation
+### `POST /api/subscribe`
+Subscribe email to SendFox list.
+
+**Request:** `{ email: string }`  
+**Response:** `{ success: true }` or `{ error: string }`  
+**Notes:** 422 from SendFox (already subscribed) returns `{ success: true }`
+
+### `PUT /api/posts?slug=`
+Update post. Triggers Facebook auto-post on first publish.
+
+**Response includes:** `{ ...post, facebook?: { ok: boolean, error?: string } }`
+
+### `POST /api/ai`
+Gemini AI assistant proxy.
+
+**Actions:** `titles | excerpt | outline | seo | tags`
+
+---
+
+## 4. Local Development
+
 ```bash
-npm install
-# Note: Use --legacy-peer-deps if Next.js version conflicts occur with Cloudflare types
+cd apps/immersive/momentum-3d
+npm run dev        # http://localhost:3000
+npm run test       # Vitest — 32 tests
+npm run deploy     # Build + deploy to Cloudflare Pages
 ```
 
-### Running Tests
-This project uses **Vitest** for unit testing.
-```bash
-npm run test          # Run in watch mode
-npm run test -- --run # Run once
+### `.env.local` required keys
+```
+GEMINI_API_KEY=
+UNSPLASH_ACCESS_KEY=
+SENDFOX_API_TOKEN=
+SENDFOX_LIST_ID=614719
 ```
 
-### Deployment
-Deployment is automated via Cloudflare Pages.
+Facebook and SITE_URL only needed for testing auto-post locally.
+
+---
+
+## 5. Deployment
+
+### Normal flow
 ```bash
-npm run deploy
+# On dev branch — develop + test
+npm run test
+
+# Merge to main
+git checkout main && git merge dev
+
+# Deploy production
+cd apps/immersive/momentum-3d && npm run deploy
+```
+
+### Cloudflare environment variables
+All secrets must be set in **Cloudflare Dashboard → Pages → immersive-adduckivity → Settings → Environment variables**:
+
+```
+GEMINI_API_KEY
+UNSPLASH_ACCESS_KEY
+FACEBOOK_PAGE_ACCESS_TOKEN
+FACEBOOK_PAGE_ID
+SITE_URL=https://immersive.adduckivity.com
+SENDFOX_API_TOKEN
+SENDFOX_LIST_ID
+```
+
+> After adding new env vars, always redeploy — Cloudflare loads env at deploy time, not at runtime.
+
+### KV Namespace (`wrangler.toml`)
+```toml
+[[kv_namespaces]]
+binding = "POSTS_KV"
+id = "a07209b5ad9a4972aa82a30d0af3071e"
 ```
 
 ---
 
-## 5. Code Review & Recommendations
+## 6. Known Behaviours
 
-### Security Flaws
-- **Critical**: `lib/gemini.ts` uses `NEXT_PUBLIC_GEMINI_API_KEY`. This exposes your Google AI key to the client-side. **Fix**: Move all Gemini calls to the server-side API routes (which already use secure environment variables).
+- **Facebook auto-post** fires only on first publish (`draft → published`). Re-saving a published post does not re-post.
+- **`readingTime`** strips `# * \` [ ]` markdown chars before counting words.
+- **`toSlug`** strips leading/trailing hyphens — `toSlug("สวัสดี world")` → `"world"`.
+- **Dev KV** is in-memory and resets on server restart.
+- **`/content` routes** have no authentication — unlinked from public nav only.
 
-### Performance Bottlenecks
-- **3D Rendering**: `FlywheelScene` currently updates via `useEffect`. For smoother 60FPS performance, consider refactoring to use the `useFrame` hook from `@react-three/fiber` to offload rotation logic to the render loop.
+---
 
-### Future Roadmap
-- **R2 Integration**: Shift image uploads from local/external to Cloudflare R2 for better control.
-- **D1 Database**: If relational queries are needed, migrate KV metadata to Cloudflare D1.
+## 7. Test Suite
+
+```bash
+npm run test        # single run
+npm run test:watch  # watch mode
+```
+
+| File | Tests |
+|---|---|
+| `src/lib/posts.test.ts` | 6 — toSlug, readingTime (legacy) |
+| `src/__tests__/posts.pure.test.ts` | 12 — readingTime, toSlug |
+| `src/__tests__/posts.kv.test.ts` | 14 — full KV CRUD |
+
+**Total: 32 passing**

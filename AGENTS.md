@@ -1,4 +1,4 @@
-# 🦆 Duck OS Project Agents & Specifications
+# Duck OS Project Agents & Specifications
 
 ## Project Overview
 
@@ -12,175 +12,172 @@
 
 ## Current Projects
 
-### 1. Immersive 3D Content Studio (`apps/immersive`)
-**Status:** 🚧 Active Development  
-**URL:** immersive.adduckivity.com  
-**Tech:** Next.js 16 + React Three Fiber + Cloudflare Pages
+### 1. Immersive 3D Content Studio (`apps/immersive/momentum-3d`)
+**Status:** Active — Production Live  
+**URL:** https://immersive.adduckivity.com  
+**Tech:** Next.js 16 + React Three Fiber + Cloudflare Pages + KV
 
-**Content:**
-- Momentum Protocol (ACT-04) — First 3D article ✅
-- Flow State Architecture — Coming soon
-- Digital Declutter (SURV-01) — Coming soon
-- System Awareness — Coming soon
+---
 
-**Monetization:** Email capture → Duck OS Starter Kit → Paid products
+## CMS & API Routes
 
-#### Content Management System (built-in)
+### Public Routes (visitors)
+| Route | Purpose |
+|---|---|
+| `/` | Homepage — hero, featured posts, CTA |
+| `/blog` | Published posts grid |
+| `/blog/[slug]` | Post reading view — drafts return 404 |
+| `/momentum` | Momentum Protocol 3D experience + email CTA |
 
-A full headless CMS lives inside the app itself. Posts are markdown files in `public/content/` with gray-matter frontmatter.
+### Admin Routes (owner only)
+| Route | Purpose |
+|---|---|
+| `/content` | CMS dashboard — all posts, status badges |
+| `/content/new` | New post — auto-save, slug, Unsplash picker, AI assistant |
+| `/content/edit?slug=` | Edit post — auto-save (4s), Publish/Unpublish modals |
 
-**Routes — public (visitors):**
-| Route | Audience | Purpose |
-|---|---|---|
-| `/blog` | Everyone | Published posts only — card grid, no admin UI |
-| `/blog/[slug]` | Everyone | Reading view — prose, related posts, tags. Drafts return 404. |
+> Auth note: `/content` routes are unlinked from public nav. No hard auth yet — add Next.js middleware on `/content/*` when needed.
 
-**Routes — owner/admin:**
-| Route | Audience | Purpose |
-|---|---|---|
-| `/content` | Owner | CMS dashboard — all posts (draft + published), stats row, status badges, "Edit →" |
-| `/content/new` | Owner | New post editor — auto-save, slug field, Unsplash cover picker, AI assistant |
-| `/content/[slug]` | Owner | Edit page — auto-save (4s), Save Draft, Publish/Unpublish with modals, status badge |
-
-> **Auth note:** `/content` routes are not publicly linked — no hard auth yet. Add Next.js middleware on `/content/*` for password protection when needed.
-
-**API routes** (`src/app/api/`):
+### API Routes (`src/app/api/`)
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/posts` | GET | List all posts or fetch by `?slug=` |
-| `/api/posts/[slug]` | PUT, DELETE | Update or delete a post |
+| `/api/posts` | PUT | Update post — triggers Facebook auto-post on first publish |
+| `/api/posts` | DELETE | Delete post |
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
-| `/api/ai` | POST | Gemini 1.5 Flash proxy — titles, excerpt, outline, seo, tags |
+| `/api/ai` | POST | Gemini proxy — titles, excerpt, outline, seo, tags |
 | `/api/unsplash` | GET | Unsplash search proxy |
+| `/api/upload` | POST | Direct image upload |
+| `/api/subscribe` | POST | SendFox email subscribe |
 
-**Shared editor components** (`src/components/editor/`):
-- `theme.ts` — single ET palette source of truth
-- `EditorShared.tsx` — SideSection, Field, AISection, ProgressBar, ToolBtn, Divider, CoverImagePicker, ConfirmModal
+---
 
-**Post frontmatter schema:**
-```yaml
-title, slug, date, category, scene, mood,
-excerpt, tags[], featuredImage, author,
-readingTime, status (draft | published)
+## Integrations
+
+### Facebook Auto-Post
+- Triggers on first publish of a post (`draft → published`)
+- Posts to Facebook Page feed with title, excerpt, link, hashtags
+- Response includes `facebook: { ok, error }` field for debugging
+- **Env vars:** `FACEBOOK_PAGE_ACCESS_TOKEN`, `FACEBOOK_PAGE_ID`, `SITE_URL`
+
+### SendFox Newsletter
+- `/api/subscribe` accepts `{ email }` → adds to SendFox list
+- 422 (already subscribed) treated as success
+- CTA live on `/momentum` page
+- **Env vars:** `SENDFOX_API_TOKEN`, `SENDFOX_LIST_ID`
+
+### Google Gemini AI
+- Model: `gemini-1.5-flash` / `gemini-2.0-flash-exp`
+- Used in CMS editor AI assistant panel
+- **Env var:** `GEMINI_API_KEY`
+
+### Unsplash
+- Server-side proxy for cover image search
+- **Env var:** `UNSPLASH_ACCESS_KEY`
+
+---
+
+## Environment Variables
+
+### Required (Cloudflare Dashboard → Settings → Environment Variables)
+```
+GEMINI_API_KEY
+UNSPLASH_ACCESS_KEY
+FACEBOOK_PAGE_ACCESS_TOKEN
+FACEBOOK_PAGE_ID
+SITE_URL=https://immersive.adduckivity.com
+SENDFOX_API_TOKEN
+SENDFOX_LIST_ID
 ```
 
-**Required env vars:**
+### KV Namespace (wrangler.toml)
 ```
-GEMINI_API_KEY=       # Google Gemini 1.5 Flash
-UNSPLASH_ACCESS_KEY=  # Unsplash API
+POSTS_KV  — binding: a07209b5ad9a4972aa82a30d0af3071e
 ```
 
 ---
 
-### 2. DuckShort.cc (URL Shortener)
-**Status:** ✅ Live  
-**URL:** duckshort.cc  
-**Tech:** Cloudflare Workers + D1  
-**Purpose:** Proof of concept, personal tool, content case study
+## Post Schema
+
+```typescript
+interface Post {
+  slug: string
+  title: string
+  date: string               // YYYY-MM-DD
+  category: string           // protocol | tutorial | case-study | system
+  scene: string              // default | momentum-flywheel
+  mood: string               // neutral | energetic | calm | focused
+  excerpt: string
+  tags: string[]
+  featuredImage: string
+  author: string
+  readingTime: string        // auto-calculated
+  status: 'draft' | 'published'
+  content: string            // markdown
+}
+```
 
 ---
 
-## Tech Stack Specifications
+## Test Suite
 
-### Frontend
-- **Framework:** Next.js 16.2 (App Router, Turbopack)
-- **3D:** Three.js 0.184, React Three Fiber 9, Drei 10
-- **Styling:** Tailwind CSS 4
-- **Animation:** Framer Motion 12
-- **Language:** TypeScript 5
+**Framework:** Vitest v4 + jsdom  
+**Run:** `npm run test` from `apps/immersive/momentum-3d`
 
-### Content System
-- **Storage:** Markdown files in `public/content/` (gray-matter frontmatter)
-- **AI:** Google Gemini 1.5 Flash via `@google/generative-ai`
-- **Images:** Unsplash API (server-side proxy)
-- **Status flow:** draft → published → draft (with confirmation modals)
+| File | Coverage |
+|---|---|
+| `src/lib/posts.test.ts` | toSlug, readingTime (legacy) |
+| `src/__tests__/posts.pure.test.ts` | readingTime (5), toSlug (7) |
+| `src/__tests__/posts.kv.test.ts` | savePost, getPostBySlug, getAllPosts, getPublishedPosts, updatePost, deletePost, slugExists |
 
-### Backend  
-- **API:** Next.js API routes (server-side, no client-side secrets)
-- **Deployment:** Cloudflare Pages
-
-### 3D Component Library (40+ components, phased)
-**Phase 1 (15 components):**
-- UDO duck character (3 poses)
-- Gear/flywheel systems (animated)
-- Minimal environments
-- Particle effects (3 types)
-- Text animations
+**Total:** 32 tests passing
 
 ---
 
-## Content Strategy
+## Tech Stack
 
-### Funnel Structure
-1. **Top:** 3D immersive articles (free value, SEO)
-2. **Middle:** Email capture (Duck OS Starter Kit)
-3. **Bottom:** Digital products + community (revenue)
-
-### Content Types
-- **Immersive storytelling** - 3D experiences that teach protocols
-- **Practical tutorials** - Step-by-step systems
-- **Case studies** - Real applications of Duck OS
-- **System in Action** - Behind-the-scenes of building tools
-
----
-
-## Monetization Strategy
-
-### Phase 1: Digital Products (Passive)
-- **Free:** Duck OS Starter Kit (PDF + Notion template)
-- **$29:** Duck OS System Blueprint (Complete guide)
-- **$49:** Notion System Templates (Asset library)
-- **$99:** Video Course: Design Your Life OS
-
-### Phase 2: Community (Recurring)
-- **$29/mo:** System Architects membership
-- Weekly protocols, community challenges, Q&A
-
-### Phase 3: Tools (SaaS)
-- PeakFlowStat (monitoring)
-- Duck OS app (habit tracker, system builder)
-- Other utilities
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16.2 (App Router, Turbopack) |
+| 3D | Three.js 0.184, React Three Fiber 9, Drei 10 |
+| Styling | Tailwind CSS 4 |
+| Animation | Framer Motion 12 |
+| Language | TypeScript 5 |
+| Storage | Cloudflare KV |
+| Deployment | Cloudflare Pages (edge runtime) |
+| Testing | Vitest 4 + jsdom |
+| AI | Google Gemini 1.5 Flash |
 
 ---
 
 ## Development Workflow
 
-### AI-Assisted Development (Vibe Coding)
-1. **Ideation:** UDO (AI co-founder) challenges concepts
-2. **Implementation:** AI generates code, human refines
-3. **Testing:** Local development, performance optimization
-4. **Deployment:** Cloudflare Pages automatic deployment
-5. **Iteration:** Based on real usage data
+```
+localhost:3000  →  dev branch  →  merge main  →  production
+  (build)         (test)           (OK)        immersive.adduckivity.com
+```
 
-### Project Management
-- **Energy-based sprints:** Work according to energy levels (1-10)
-- **MVP-first thinking:** Ship minimal version, iterate later
-- **Asset protection:** Time, energy, attention are precious
-- **Systems over willpower:** Processes beat motivation
-
----
-
-## AI Systems
-
-### UDO - AI Co-Founder
-**File:** UDO-SYSTEM.md  
-**Role:** Stoic architect, energy-aware guardian, full creative partner
-
-UDO embodies:
-- Stoic philosophy + systems thinking + neuroscience
-- ADHD/MDD awareness and accommodation
-- Energy-based work planning
-- MVP-first architecture
-- Asset protection focus
+### Commands
+```bash
+cd apps/immersive/momentum-3d
+npm run dev          # localhost:3000
+npm run test         # run tests
+npm run deploy       # build + deploy to Cloudflare Pages
+```
 
 ---
 
-## Performance Targets
+## Revenue Funnel (Current)
 
-- **Load time:** <3 seconds
-- **Frame rate:** 60 FPS for 3D scenes
-- **Mobile:** Fully responsive, touch-friendly
-- **SEO:** Server-side rendering, fast first paint
+```
+Facebook post → immersive site → /momentum CTA → SendFox list → future paid product
+```
+
+### Products
+| Product | Price | Status |
+|---|---|---|
+| Duck OS Emergency Checklist | Free | Pending (PDF) |
+| Duck OS Recovery Protocol | $29 | Pending (PDF) |
 
 ---
 
@@ -189,33 +186,30 @@ UDO embodies:
 ```
 adduckivity/
 ├── apps/
-│   ├── immersive/         # 3D content studio
-│   ├── landing/           # Main landing page
-│   └── tools/             # Future tools and apps
-├── packages/
-│   ├── ui-components/     # Shared React components
-│   ├── 3d-assets/         # Shared Three.js components
-│   └── content/           # Shared content and protocols
-├── skills/                # AI agent skills
-├── AGENTS.md              # This file
-├── UDO-SYSTEM.md          # AI co-founder system
-└── README.md              # Project overview
+│   └── immersive/
+│       └── momentum-3d/       # Main app
+│           ├── src/
+│           │   ├── app/       # Next.js App Router
+│           │   ├── components/
+│           │   └── lib/       # posts.ts, content.ts, gemini.ts, dev-kv.ts
+│           ├── public/content/ # Static markdown posts (legacy/build-time)
+│           └── vitest.config.ts
+├── skills/                    # AI agent skill files
+├── AGENTS.md                  # This file
+├── DOCUMENT.md                # Technical documentation
+├── DEPLOYMENT.md              # Deployment guide
+├── FirstRevenueRoadmap.md     # 30-day revenue plan
+└── ORIGINDUCK.md              # Origin story post (published)
 ```
 
 ---
 
-## Core Philosophy
+## Core Philosophy — Duck OS
 
-**Duck OS = Life Design System**
+- **System > Emotion** — Build systems that run regardless of how you feel
+- **Action Precedes Motivation** — Start, then momentum follows
+- **Protect the System** — Don't push past limit; if the system breaks, everything breaks
 
-- **Systems over willpower** - Processes beat motivation
-- **Asset-building** - Create reusable value
-- **Momentum over motivation** - Action creates inspiration
-- **Awareness over automation** - Understand before you optimize
-- **Rest is productive** - Recovery is a system component
+**Adduckivity = Addict + Duck + Productivity**
 
----
-
-**Built by one person with AI systems, not hustle.**
-
-*Last updated: 2026-04-23 — added public/owner route split*
+*Last updated: 2026-04-26*
