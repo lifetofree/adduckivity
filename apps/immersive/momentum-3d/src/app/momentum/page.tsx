@@ -43,8 +43,8 @@ function EmailCTA() {
         </div>
       ) : (
         <form onSubmit={submit}>
-          <h3 className="text-lg font-bold mb-2" style={{ color: ET.ink }}>ติดตาม Duck OS</h3>
-          <p className="text-sm mb-6" style={{ color: ET.sub }}>รับ update ระบบและ protocol ใหม่ก่อนใคร</p>
+          <h3 className="text-lg font-bold mb-2" style={{ color: ET.ink }}>Want the Complete Duck OS Starter Kit?</h3>
+          <p className="text-sm mb-6" style={{ color: ET.sub }}>Get 5 protocols, a Notion template, and quick-start guide — free.</p>
           <div className="flex flex-col gap-3">
             <input
               type="email"
@@ -62,13 +62,13 @@ function EmailCTA() {
               className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity hover:opacity-85 disabled:opacity-40"
               style={{ backgroundColor: ET.accent, color: ET.bg }}
             >
-              {status === 'loading' ? 'กำลังส่ง…' : 'ติดตาม (ฟรี)'}
+              {status === 'loading' ? 'Sending…' : 'Get the Kit (Free)'}
             </button>
           </div>
           {status === 'error' && (
             <p className="text-xs mt-3 text-red-400">{errMsg}</p>
           )}
-          <p className="text-xs mt-4" style={{ color: ET.sub }}>ไม่มี spam ถอนการติดตามได้ตลอดเวลา</p>
+          <p className="text-xs mt-4" style={{ color: ET.sub }}>No spam. Just systems that work. Unsubscribe anytime.</p>
         </form>
       )}
     </div>
