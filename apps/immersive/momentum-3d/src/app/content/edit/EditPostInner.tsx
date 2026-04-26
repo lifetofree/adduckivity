@@ -35,7 +35,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'unsaved'
 
 export default function EditPostPage() {
   const searchParams = useSearchParams()
-  const slug = searchParams.get('slug') || ''
+  const initialSlug = searchParams.get('slug') || ''
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savedAtRef = useRef<number>(0)
@@ -44,6 +44,7 @@ export default function EditPostPage() {
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [slug, setSlug] = useState(initialSlug)
   const [excerpt, setExcerpt] = useState('')
   const [tags, setTags] = useState('')
   const [category, setCategory] = useState('protocol')
@@ -78,6 +79,7 @@ export default function EditPostPage() {
       .then(d => {
         setTitle(d.title || '')
         setContent(d.content || '')
+        setSlug(d.slug || initialSlug)
         setExcerpt(d.excerpt || '')
         setTags((d.tags || []).join(', '))
         setCategory(d.category || 'protocol')
@@ -104,16 +106,16 @@ export default function EditPostPage() {
   // ── Auto-save (4s debounce, preserves current status) ────────────────────
   const doAutoSave = useCallback(async (
     t: string, c: string, e: string, tg: string, cat: string,
-    img: string, sc: string, md: string, st: 'draft' | 'published'
+    img: string, sc: string, md: string, st: 'draft' | 'published', sl: string
   ) => {
     if (!t) return
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts?slug=${slug}`, {
+      await fetch(`/api/posts?slug=${sl}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: t, content: c, excerpt: e,
+          slug: sl, title: t, content: c, excerpt: e,
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
           category: cat, featuredImage: img, scene: sc, mood: md, status: st,
         }),
@@ -130,9 +132,9 @@ export default function EditPostPage() {
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, doAutoSave])
 
   // Trigger auto-save on any field change
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function EditPostPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title, content, excerpt,
+          slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
           category, featuredImage, scene, mood, status,
         }),
@@ -182,7 +184,7 @@ export default function EditPostPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title, content, excerpt,
+          slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
           category, featuredImage, scene, mood, status: 'published',
         }),
@@ -206,7 +208,7 @@ export default function EditPostPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title, content, excerpt,
+          slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
           category, featuredImage, scene, mood, status: 'draft',
         }),
@@ -352,6 +354,15 @@ export default function EditPostPage() {
           </SideSection>
 
           <SideSection label="Post Metadata" open={open.meta} onToggle={() => toggle('meta')}>
+            <Field label="Slug" icon={<Tag size={13} />}>
+              <input
+                value={slug}
+                onChange={e => setSlug(e.target.value)}
+                placeholder="url-friendly-slug"
+                className="et-input font-mono"
+              />
+              <p className="text-[10px] mt-0.5" style={{ color: ET.sub }}>URL-friendly identifier</p>
+            </Field>
             <Field label="Category" icon={<FileText size={13} />}>
               <select value={category} onChange={e => setCategory(e.target.value)} className="et-select">
                 <option value="protocol">Protocol</option>
