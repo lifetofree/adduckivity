@@ -103,5 +103,5 @@ export function getMockKV(): KVNamespace {
 }
 
 export function isLocalDev(): boolean {
-  return process.env.NODE_ENV === 'development' && !process.env.CF_PAGES)
+  return process.env.NODE_ENV === 'development' && !process.env.CF_PAGES
 }
