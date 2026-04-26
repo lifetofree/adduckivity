@@ -26,8 +26,8 @@ describe('posts library', () => {
       expect(readingTime('')).toBe('< 1 min read')
     })
 
-    it('returns 1 min read for small number of words', () => {
-      expect(readingTime('Hello world')).toBe('1 min read')
+    it('returns < 1 min read for small number of words', () => {
+      expect(readingTime('Hello world')).toBe('< 1 min read')
     })
   })
 })

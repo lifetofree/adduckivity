@@ -45,6 +45,7 @@ export default function EditPostPage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [slug, setSlug] = useState(initialSlug)
+  const [originalSlug, setOriginalSlug] = useState(initialSlug) // Track the original slug
   const [excerpt, setExcerpt] = useState('')
   const [tags, setTags] = useState('')
   const [category, setCategory] = useState('protocol')
@@ -74,12 +75,13 @@ export default function EditPostPage() {
 
   // ── Load post ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    fetch(`/api/posts?slug=${slug}`)
+    fetch(`/api/posts?slug=${initialSlug}`)
       .then(r => r.json() as Promise<import('@/lib/posts').Post>)
       .then(d => {
         setTitle(d.title || '')
         setContent(d.content || '')
         setSlug(d.slug || initialSlug)
+        setOriginalSlug(d.slug || initialSlug)
         setExcerpt(d.excerpt || '')
         setTags((d.tags || []).join(', '))
         setCategory(d.category || 'protocol')
@@ -90,7 +92,7 @@ export default function EditPostPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [slug])
+  }, [initialSlug])
 
   // ── "Saved Xs ago" ticker ──────────────────────────────────────────────────
   useEffect(() => {
@@ -106,12 +108,12 @@ export default function EditPostPage() {
   // ── Auto-save (4s debounce, preserves current status) ────────────────────
   const doAutoSave = useCallback(async (
     t: string, c: string, e: string, tg: string, cat: string,
-    img: string, sc: string, md: string, st: 'draft' | 'published', sl: string
+    img: string, sc: string, md: string, st: 'draft' | 'published', sl: string, origSl: string
   ) => {
     if (!t) return
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts?slug=${sl}`, {
+      await fetch(`/api/posts?slug=${origSl}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,6 +125,8 @@ export default function EditPostPage() {
       savedAtRef.current = Date.now()
       setSaveStatus('saved')
       setSavedAgo('just now')
+      // Update originalSlug after successful auto-save
+      setOriginalSlug(sl)
     } catch {
       setSaveStatus('unsaved')
     }
@@ -132,9 +136,9 @@ export default function EditPostPage() {
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug, doAutoSave])
 
   // Trigger auto-save on any field change
   useEffect(() => {
@@ -156,7 +160,7 @@ export default function EditPostPage() {
   const saveDraft = async () => {
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts?slug=${slug}`, {
+      await fetch(`/api/posts?slug=${originalSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -169,6 +173,8 @@ export default function EditPostPage() {
       setSaveStatus('saved')
       setSavedAgo('just now')
       showToast('ok', 'Draft saved')
+      // Update originalSlug after successful save
+      setOriginalSlug(slug)
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Save failed')
@@ -180,7 +186,7 @@ export default function EditPostPage() {
     setPublishModal(false)
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts?slug=${slug}`, {
+      await fetch(`/api/posts?slug=${originalSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -192,6 +198,7 @@ export default function EditPostPage() {
       setStatus('published')
       savedAtRef.current = Date.now()
       setSaveStatus('saved')
+      setOriginalSlug(slug) // Update originalSlug after successful publish
       showToast('ok', 'Published!')
     } catch {
       setSaveStatus('unsaved')
