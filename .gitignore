@@ -42,4 +42,7 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Cloudflare Wrangler
+.wrangler/
+
 .claude/
