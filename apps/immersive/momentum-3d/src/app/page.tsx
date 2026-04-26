@@ -7,7 +7,7 @@ const features = [
     title: 'Momentum Protocol',
     description: 'Action over motivation. Build momentum when you don\'t feel like it.',
     image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1',
-    href: '/blog/momentum-protocol',
+    href: '/momentum',
     badge: 'ACT-04',
   },
   {
@@ -128,7 +128,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/blog/momentum-protocol"
+              href="/momentum"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-85 hover:gap-3"
               style={{ backgroundColor: ET.ink, color: ET.surface }}
             >
