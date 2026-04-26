@@ -282,7 +282,7 @@ export default function MomentumPage() {
             <p className="text-sm mb-1" style={{ color: ET.sub }}>
               Part of the <strong style={{ color: ET.ink }}>Duck OS</strong> — Life Architecture for Neurodivergent Creators
             </p>
-            <p className="text-xs" style={{ color: ET.sub }}>Built with Next.js + React Three Fiber.</p>
+
           </div>
         </footer>
       </div>
