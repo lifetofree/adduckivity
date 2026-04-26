@@ -5,4 +5,6 @@ interface CloudflareEnv extends Record<string, unknown> {
   FACEBOOK_PAGE_ACCESS_TOKEN: string
   FACEBOOK_PAGE_ID: string
   SITE_URL: string
+  SENDFOX_API_TOKEN: string
+  SENDFOX_LIST_ID: string
 }

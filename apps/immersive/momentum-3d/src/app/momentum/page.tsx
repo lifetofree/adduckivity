@@ -6,6 +6,75 @@ import Link from 'next/link'
 import FlywheelScene from '@/components/FlywheelScene'
 import { ET } from '@/lib/theme'
 
+function EmailCTA() {
+  const [email, setEmail]   = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errMsg, setErrMsg] = useState('')
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json() as { success?: boolean; error?: string }
+      if (data.success) {
+        setStatus('success')
+      } else {
+        setErrMsg(data.error || 'Something went wrong')
+        setStatus('error')
+      }
+    } catch {
+      setErrMsg('Network error, please try again')
+      setStatus('error')
+    }
+  }
+
+  return (
+    <div className="rounded-2xl p-8 max-w-md mx-auto" style={{ backgroundColor: ET.surface, border: `1px solid ${ET.border}` }}>
+      {status === 'success' ? (
+        <div className="text-center py-4">
+          <p className="text-2xl mb-2">🦆</p>
+          <h3 className="text-lg font-bold mb-1" style={{ color: ET.ink }}>You&apos;re in!</h3>
+          <p className="text-sm" style={{ color: ET.sub }}>Check your email — the system is on its way.</p>
+        </div>
+      ) : (
+        <form onSubmit={submit}>
+          <h3 className="text-lg font-bold mb-2" style={{ color: ET.ink }}>ติดตาม Duck OS</h3>
+          <p className="text-sm mb-6" style={{ color: ET.sub }}>รับ update ระบบและ protocol ใหม่ก่อนใคร</p>
+          <div className="flex flex-col gap-3">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+              disabled={status === 'loading'}
+              className="px-4 py-3 rounded-lg text-sm focus:outline-none disabled:opacity-50"
+              style={{ border: `1px solid ${ET.border}`, backgroundColor: ET.bg, color: ET.ink }}
+            />
+            <button
+              type="submit"
+              disabled={status === 'loading' || !email}
+              className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity hover:opacity-85 disabled:opacity-40"
+              style={{ backgroundColor: ET.accent, color: ET.bg }}
+            >
+              {status === 'loading' ? 'กำลังส่ง…' : 'ติดตาม (ฟรี)'}
+            </button>
+          </div>
+          {status === 'error' && (
+            <p className="text-xs mt-3 text-red-400">{errMsg}</p>
+          )}
+          <p className="text-xs mt-4" style={{ color: ET.sub }}>ไม่มี spam ถอนการติดตามได้ตลอดเวลา</p>
+        </form>
+      )}
+    </div>
+  )
+}
+
 export default function MomentumPage() {
   const [scrollProgress, setScrollProgress] = useState(0)
 
@@ -199,28 +268,7 @@ export default function MomentumPage() {
               <p><strong style={{ color: ET.ink }}>Right now:</strong> Set a timer for 2 minutes. Start one thing you&apos;ve been avoiding. Watch the flywheel begin to spin.</p>
               <p>In 48 hours, you&apos;ll have momentum. In 30 days, a new identity. In 90 days, an asset library that compounds forever.</p>
             </div>
-            {/* Starter Kit CTA — hidden until product is ready */}
-            {false && (
-            <div className="rounded-2xl p-8 max-w-md mx-auto" style={{ backgroundColor: ET.surface, border: `1px solid ${ET.border}` }}>
-              <h3 className="text-lg font-bold mb-2" style={{ color: ET.ink }}>Want the Complete Duck OS Starter Kit?</h3>
-              <p className="text-sm mb-6" style={{ color: ET.sub }}>Get 5 protocols, a Notion template, and quick-start guide — free.</p>
-              <div className="flex flex-col gap-3">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="px-4 py-3 rounded-lg text-sm focus:outline-none"
-                  style={{ border: `1px solid ${ET.border}`, backgroundColor: ET.bg, color: ET.ink }}
-                />
-                <button
-                  className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity hover:opacity-85"
-                  style={{ backgroundColor: ET.accent, color: ET.bg }}
-                >
-                  Get the Kit (Free)
-                </button>
-              </div>
-              <p className="text-xs mt-4" style={{ color: ET.sub }}>No spam. Just systems that work. Unsubscribe anytime.</p>
-            </div>
-            )}
+            <EmailCTA />
           </div>
         </section>
 

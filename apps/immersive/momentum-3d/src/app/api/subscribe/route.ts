@@ -1,0 +1,48 @@
+export const runtime = 'edge'
+
+import { NextRequest, NextResponse } from 'next/server'
+import { getRequestContext } from '@cloudflare/next-on-pages'
+
+function getEnv() {
+  if (process.env.NODE_ENV === 'development') {
+    return {
+      SENDFOX_API_TOKEN: process.env.SENDFOX_API_TOKEN || '',
+      SENDFOX_LIST_ID:   process.env.SENDFOX_LIST_ID   || '',
+    }
+  }
+  return getRequestContext<CloudflareEnv>().env
+}
+
+export async function POST(req: NextRequest) {
+  const { email } = await req.json() as { email?: string }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Invalid email' }, { status: 400 })
+  }
+
+  const env = getEnv()
+  const token  = env.SENDFOX_API_TOKEN
+  const listId = env.SENDFOX_LIST_ID
+
+  if (!token || !listId) {
+    return NextResponse.json({ error: 'SendFox not configured' }, { status: 500 })
+  }
+
+  const res = await fetch('https://api.sendfox.com/contacts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ email, lists: [Number(listId)] }),
+  })
+
+  const data = await res.json() as { id?: number; message?: string }
+
+  if (!res.ok && res.status !== 422) {
+    return NextResponse.json({ error: data.message || 'SendFox error' }, { status: 500 })
+  }
+
+  // 422 = email already subscribed — treat as success
+  return NextResponse.json({ success: true })
+}
