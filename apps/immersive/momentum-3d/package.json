@@ -8,7 +8,9 @@
     "build:cf": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "deploy": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name immersive-adduckivity --commit-dirty=true",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -4,6 +4,12 @@ const getClient = () => new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_AP
 
 const model = () => getClient().getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
 
+/**
+ * Suggests compelling, SEO-friendly titles for a post using Gemini AI.
+ * @param content - The blog post content.
+ * @param currentTitle - Optional current title for context.
+ * @returns A promise resolving to an array of 5 suggested titles.
+ */
 export async function suggestTitles(content: string, currentTitle?: string): Promise<string[]> {
   const prompt = `Generate 5 compelling SEO-friendly blog post titles.
 Current title: "${currentTitle || 'none'}"
@@ -21,6 +27,12 @@ Return only titles, one per line, numbered 1–5. No extra text.`
     .slice(0, 5)
 }
 
+/**
+ * Automatically generates a meta description (excerpt) for a post.
+ * @param title - The post title.
+ * @param content - The post content.
+ * @returns A promise resolving to a 120-160 character excerpt.
+ */
 export async function autoExcerpt(title: string, content: string): Promise<string> {
   const prompt = `Write a meta description (excerpt) for this blog post.
 Title: ${title}

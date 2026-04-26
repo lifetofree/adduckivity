@@ -13,17 +13,38 @@ export interface Post {
   status: 'draft' | 'published'
   content: string
 }
-
+/**
+ * Calculates the estimated reading time for a given content string.
+ * @param content - The raw markdown or text content.
+ * @returns A formatted string (e.g., "5 min read").
+ */
 export function readingTime(content: string): string {
   const words = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
-  const mins = Math.ceil(words / 200)
-  return mins < 1 ? '< 1 min read' : `${mins} min read`
+  if (words < 200) return '< 1 min read'
+  return `${Math.ceil(words / 200)} min read`
 }
 
+/**
+ * Converts a string into a URL-friendly slug.
+ * @param title - The title to convert.
+ * @returns A lowercase string with special characters removed and spaces replaced by dashes.
+ */
 export function toSlug(title: string): string {
-  return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
 }
 
+/**
+ * Retrieves all posts from the Cloudflare KV store.
+ * @param kv - The Cloudflare KV namespace binding.
+ * @returns A promise resolving to an array of Post objects, sorted by date.
+ */
 export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
   const list = await kv.list({ prefix: 'post:' })
   const posts = await Promise.all(
@@ -33,6 +54,7 @@ export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
     .filter((p): p is Post => p !== null)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
+
 
 export async function getPublishedPosts(kv: KVNamespace): Promise<Post[]> {
   const all = await getAllPosts(kv)
