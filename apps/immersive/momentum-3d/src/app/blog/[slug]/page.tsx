@@ -1,5 +1,6 @@
 export const runtime = 'edge'
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
@@ -7,6 +8,42 @@ import { getRequestContext } from '@cloudflare/next-on-pages'
 import { getPostBySlug, getAllPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
+
+function getKV() {
+  return process.env.NODE_ENV === 'development'
+    ? getMockKV()
+    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPostBySlug(getKV(), slug)
+  if (!post) return {}
+
+  const siteUrl = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://immersive.adduckivity.com'
+  const url = `${siteUrl}/blog/${slug}`
+  const image = post.featuredImage?.startsWith('http') ? post.featuredImage : undefined
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url,
+      type: 'article',
+      ...(image && { images: [{ url: image, width: 1200, height: 630, alt: post.title }] }),
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title: post.title,
+      description: post.excerpt,
+      ...(image && { images: [image] }),
+    },
+  }
+}
 
 function renderMarkdown(md: string): string {
   return md
@@ -36,10 +73,7 @@ function renderMarkdown(md: string): string {
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  // Use mock KV for local development, real KV for production
-  const kv = process.env.NODE_ENV === 'development'
-    ? getMockKV()
-    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+  const kv = getKV()
   const post = await getPostBySlug(kv, slug)
 
   if (!post || post.status !== 'published') notFound()
