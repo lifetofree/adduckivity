@@ -186,7 +186,7 @@ export default function EditPostPage() {
     setPublishModal(false)
     setSaveStatus('saving')
     try {
-      await fetch(`/api/posts?slug=${originalSlug}`, {
+      const res = await fetch(`/api/posts?slug=${originalSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -195,11 +195,18 @@ export default function EditPostPage() {
           category, featuredImage, scene, mood, status: 'published',
         }),
       })
+      const data = await res.json() as { facebook?: { ok: boolean; error?: string } }
       setStatus('published')
       savedAtRef.current = Date.now()
       setSaveStatus('saved')
-      setOriginalSlug(slug) // Update originalSlug after successful publish
-      showToast('ok', 'Published!')
+      setOriginalSlug(slug)
+      if (data.facebook?.ok) {
+        showToast('ok', 'Published! Posted to Facebook.')
+      } else if (data.facebook?.error) {
+        showToast('ok', `Published! Facebook: ${data.facebook.error}`)
+      } else {
+        showToast('ok', 'Published!')
+      }
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Publish failed')

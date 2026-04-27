@@ -139,9 +139,15 @@ export default function NewPostPage() {
           category, featuredImage, scene, mood, status: 'published',
         }),
       })
-      const post = await res.json() as import('@/lib/posts').Post
-      showToast('ok', 'Published!')
-      setTimeout(() => { window.location.href = `/content/edit?slug=${post.slug}` }, 900)
+      const data = await res.json() as import('@/lib/posts').Post & { facebook?: { ok: boolean; error?: string } }
+      if (data.facebook?.ok) {
+        showToast('ok', 'Published! Posted to Facebook.')
+      } else if (data.facebook?.error) {
+        showToast('ok', `Published! Facebook: ${data.facebook.error}`)
+      } else {
+        showToast('ok', 'Published!')
+      }
+      setTimeout(() => { window.location.href = `/content/edit?slug=${data.slug}` }, 900)
     } catch {
       showToast('err', 'Publish failed')
     } finally {
