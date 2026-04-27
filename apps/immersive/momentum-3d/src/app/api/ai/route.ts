@@ -6,7 +6,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 async function ask(apiKey: string, prompt: string): Promise<string> {
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
   const result = await model.generateContent(prompt)
   return result.response.text().trim()
 }
@@ -30,7 +30,7 @@ function friendlyError(err: unknown): string {
     return wait ? `Rate limited — try again in ${wait}s` : 'Rate limited — try again shortly'
   }
   if (msg.includes('API_KEY') || msg.includes('API key')) return 'Gemini API key not configured'
-  return msg.length < 120 ? msg : 'AI request failed'
+  return msg.length < 200 ? msg : 'AI request failed'
 }
 
 export async function POST(req: NextRequest) {
