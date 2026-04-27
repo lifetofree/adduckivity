@@ -15,7 +15,7 @@ function getEnv(): CloudflareEnv {
   return getRequestContext<CloudflareEnv>().env
 }
 
-async function postToFacebook(post: { title: string; excerpt: string; slug: string }): Promise<{ ok: boolean; error?: string }> {
+async function postToFacebook(post: { title: string; excerpt: string; slug: string; featuredImage?: string }): Promise<{ ok: boolean; error?: string }> {
   if (process.env.NODE_ENV === 'development') return { ok: false, error: 'skipped in dev' }
 
   const env = getEnv()
@@ -30,6 +30,7 @@ async function postToFacebook(post: { title: string; excerpt: string; slug: stri
   const message = `🦆 ${post.title}\n\n${post.excerpt}\n\nRead the full protocol → ${link}\n\n#DuckOS #Productivity #ADHD #Neurodivergent`
 
   const params = new URLSearchParams({ message, link, access_token: token })
+  if (post.featuredImage) params.set('picture', post.featuredImage)
   const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
     method: 'POST',
     body: params,
