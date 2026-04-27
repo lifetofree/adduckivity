@@ -2,7 +2,7 @@ export const runtime = 'edge'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getAllPosts, getPostBySlug, updatePost, deletePost } from '@/lib/posts'
+import { getAllPosts, getPostBySlug, savePost, updatePost, deletePost } from '@/lib/posts'
 import { getMockKV } from '@/lib/dev-kv'
 
 function getKV(): KVNamespace {
@@ -66,8 +66,10 @@ export async function PUT(req: NextRequest) {
     const existing = await getPostBySlug(kv, slug)
     const body = await req.json() as Partial<import('@/lib/posts').Post>
     const isFirstPublish = body.status === 'published' && existing?.status !== 'published'
-    const post = await updatePost(kv, slug, body)
-    if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const post = existing
+      ? await updatePost(kv, slug, body)
+      : await savePost(kv, { ...body, slug, title: body.title || slug })
+    if (!post) return NextResponse.json({ error: 'Save failed' }, { status: 500 })
     let facebook: { ok: boolean; error?: string } | undefined
     if (isFirstPublish) {
       facebook = await postToFacebook(post)

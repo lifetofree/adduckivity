@@ -76,8 +76,9 @@ export default function EditPostPage() {
   // ── Load post ──────────────────────────────────────────────────────────────
   useEffect(() => {
     fetch(`/api/posts?slug=${initialSlug}`)
-      .then(r => r.json() as Promise<import('@/lib/posts').Post>)
-      .then(d => {
+      .then(async r => {
+        const d = await r.json() as import('@/lib/posts').Post & { error?: string }
+        if (!r.ok || d.error) return
         setTitle(d.title || '')
         setContent(d.content || '')
         setSlug(d.slug || initialSlug)
@@ -195,7 +196,12 @@ export default function EditPostPage() {
           category, featuredImage, scene, mood, status: 'published',
         }),
       })
-      const data = await res.json() as { facebook?: { ok: boolean; error?: string } }
+      const data = await res.json() as { error?: string; facebook?: { ok: boolean; error?: string } }
+      if (!res.ok) {
+        setSaveStatus('unsaved')
+        showToast('err', `Publish failed: ${data.error || res.status}`)
+        return
+      }
       setStatus('published')
       savedAtRef.current = Date.now()
       setSaveStatus('saved')
