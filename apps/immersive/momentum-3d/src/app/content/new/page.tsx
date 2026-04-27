@@ -135,7 +135,7 @@ export default function NewPostPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug: finalSlug, title, content, excerpt,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, scene, mood, status: 'published',
         }),
       })

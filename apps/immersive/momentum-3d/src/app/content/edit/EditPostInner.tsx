@@ -166,7 +166,7 @@ export default function EditPostPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug, title, content, excerpt,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, scene, mood, status,
         }),
       })
@@ -192,7 +192,7 @@ export default function EditPostPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug, title, content, excerpt,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, scene, mood, status: 'published',
         }),
       })
@@ -229,7 +229,7 @@ export default function EditPostPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug, title, content, excerpt,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, scene, mood, status: 'draft',
         }),
       })
