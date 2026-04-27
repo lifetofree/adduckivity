@@ -11,6 +11,13 @@ const features = [
     badge: 'ACT-04',
   },
   {
+    title: 'Emergency Recovery',
+    description: 'A 5-step fail-safe for when burnout spirals begin.',
+    image: '/uploads/emergency-recovery-cover.svg',
+    href: '/momentum',
+    badge: 'Fail-Safe',
+  },
+  {
     title: 'Digital Declutter',
     description: 'Clear the noise. Reclaim your focus and system speed.',
     image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260407-IMG-SURV-DIGITAL-DECLUTTER.webp?fit=768%2C432&ssl=1',

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import FlywheelScene from '@/components/FlywheelScene'
+import EmergencyProtocol from '@/components/EmergencyProtocol'
 import { ET } from '@/lib/theme'
 
 function EmailCTA() {
@@ -152,6 +153,22 @@ export default function MomentumPage() {
               <p>The Momentum Protocol (ACT-04) is designed specifically for people who struggle with consistency. Whether you&apos;re dealing with ADHD, burnout, or just procrastination — this system bypasses willpower entirely.</p>
               <p><strong style={{ color: ET.ink }}>Core insight:</strong> Motivation is unreliable. Systems are not. This protocol turns action into automatic momentum.</p>
             </div>
+          </div>
+        </section>
+
+        {/* Interactive Emergency Protocol */}
+        <section className="min-h-screen flex items-center justify-center px-6 py-24 relative overflow-hidden" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
+          <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'radial-gradient(circle at center, #00e5ff 0%, transparent 70%)' }} />
+          <div className="max-w-4xl w-full">
+            <div className="text-center mb-16">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] mb-4" style={{ color: '#ff4444' }}>System Fail-Safe</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: ET.ink }}>Emergency Recovery</h2>
+              <p className="text-lg max-w-xl mx-auto" style={{ color: ET.sub }}>
+                When the spiral starts, don&apos;t think. Just activate the protocol.
+              </p>
+            </div>
+            
+            <EmergencyProtocol />
           </div>
         </section>
 

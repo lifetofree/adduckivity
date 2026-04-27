@@ -1,0 +1,49 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#0a0f1e"/>
+  
+  <!-- Subtle Grid -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a253a" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#ff4444" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0a0f1e" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#grid)" />
+  <circle cx="400" cy="225" r="300" fill="url(#glow)" />
+
+  <!-- Central Fail-Safe Icon -->
+  <g transform="translate(400, 180)">
+    <!-- Outer Shield -->
+    <path d="M 0 -60 L 50 -40 L 50 20 C 50 50 0 70 0 70 C 0 70 -50 50 -50 20 L -50 -40 Z" 
+          fill="none" stroke="#00e5ff" stroke-width="3" stroke-linejoin="round">
+      <animate attributeName="stroke-opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
+    </path>
+    
+    <!-- Inner Reset Symbol -->
+    <path d="M -15 -5 A 18 18 0 1 1 5 -15" fill="none" stroke="#ff4444" stroke-width="4" stroke-linecap="round" />
+    <path d="M 5 -22 L 5 -12 L -5 -12" fill="none" stroke="#ff4444" stroke-width="4" stroke-linecap="round" />
+  </g>
+
+  <!-- Typography -->
+  <text x="400" y="320" font-family="monospace" font-size="28" font-weight="bold" fill="#00e5ff" text-anchor="middle" letter-spacing="4">
+    EMERGENCY RECOVERY
+  </text>
+  <text x="400" y="355" font-family="monospace" font-size="12" font-weight="bold" fill="#ff4444" text-anchor="middle" letter-spacing="8" opacity="0.8">
+    FAIL-SAFE PROTOCOL // ACT-00
+  </text>
+
+  <!-- Scanning Line -->
+  <rect width="800" height="2" fill="#00e5ff" opacity="0.1">
+    <animate attributeName="y" values="0;450;0" dur="4s" repeatCount="indefinite" />
+  </rect>
+
+  <!-- Corner Accents -->
+  <path d="M 20 60 L 20 20 L 60 20" fill="none" stroke="#1a253a" stroke-width="2" />
+  <path d="M 740 20 L 780 20 L 780 60" fill="none" stroke="#1a253a" stroke-width="2" />
+  <path d="M 780 390 L 780 430 L 740 430" fill="none" stroke="#1a253a" stroke-width="2" />
+  <path d="M 60 430 L 20 430 L 20 390" fill="none" stroke="#1a253a" stroke-width="2" />
+</svg>
