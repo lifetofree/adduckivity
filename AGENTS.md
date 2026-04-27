@@ -117,7 +117,8 @@ interface Post {
   featuredImage: string
   author: string
   readingTime: string        // auto-calculated
-  status: 'draft' | 'published'
+  status: 'draft' | 'published' | 'scheduled'
+  scheduledAt?: string       // ISO datetime — only used when status is 'scheduled'
   content: string            // markdown
 }
 ```
@@ -216,5 +217,16 @@ adduckivity/
 - **Protect the System** — Don't push past limit; if the system breaks, everything breaks
 
 **Adduckivity = Addict + Duck + Productivity**
+
+---
+
+## Scheduled Publishing
+
+Posts support `status: 'scheduled'` with a `scheduledAt` ISO datetime field.
+
+- Blog pages use `isPostLive(post)` from `lib/posts.ts` — returns `true` for `published` posts or `scheduled` posts where `scheduledAt <= now`
+- No background job needed — liveness is checked at request time
+- CMS editor shows **Schedule** button (yellow badge) alongside Publish
+- Facebook auto-post does NOT fire at scheduled time — only fires when manually Published
 
 *Last updated: 2026-04-27*

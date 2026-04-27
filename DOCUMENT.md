@@ -1,6 +1,6 @@
 # Project Documentation: Adduckivity
 
-**Last updated:** 2026-04-27  
+**Last updated:** 2026-04-27 (scheduled publishing)  
 **Production URL:** https://immersive.adduckivity.com
 
 ---
@@ -29,6 +29,7 @@ KV-backed post CRUD. All functions accept `KVNamespace` as first arg.
 |---|---|
 | `readingTime(content)` | Returns `"< 1 min read"` for <200 words, else `"N min read"` |
 | `toSlug(title)` | Lowercase, strip non-alphanumeric, collapse hyphens, trim edges, max 60 chars |
+| `isPostLive(post)` | Returns `true` if `published`, or `scheduled` with `scheduledAt <= now` |
 | `getAllPosts(kv)` | All posts sorted newest-first |
 | `getPublishedPosts(kv)` | Filtered to `status === 'published'` |
 | `getPostBySlug(kv, slug)` | Returns `Post \| null` |
@@ -156,6 +157,7 @@ id = "a07209b5ad9a4972aa82a30d0af3071e"
 - **Tags** — `#` prefix is stripped on save. Blog renders tags as `#tag` so storing raw tag names (no `#`) is required.
 - **Image uploads** — stored in Cloudflare R2 (`immersive-assets` bucket), served via `/api/assets/`. Dev environment falls back to base64 data URL.
 - **OG meta tags** — generated dynamically in `blog/[slug]/page.tsx` via `generateMetadata`. Only `https://` image URLs are included (not data: URLs).
+- **Scheduled posts** — `status: 'scheduled'` + `scheduledAt` ISO datetime. `isPostLive()` checks time at request; no cron/background job needed. Facebook auto-post does not fire at scheduled time.
 - **`readingTime`** strips `# * \` [ ]` markdown chars before counting words.
 - **Dev KV** is in-memory and resets on server restart.
 - **`/content` routes** have no authentication — unlinked from public nav only.
