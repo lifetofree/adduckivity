@@ -1,13 +1,13 @@
 # Project Documentation: Adduckivity
 
-**Last updated:** 2026-04-27 (scheduled publishing)  
+**Last updated:** 2026-04-28 (Interactive Emergency Protocol)  
 **Production URL:** https://immersive.adduckivity.com
 
 ---
 
 ## 1. Architecture Overview
 
-Edge-first content platform combining immersive 3D storytelling with a built-in CMS, AI assistant, and newsletter integration.
+Edge-first content platform combining immersive 3D storytelling with a built-in CMS, AI assistant, and newsletter integration. Detailed architectural decisions are documented in `ArchitecturalAnalysis.md`.
 
 | Layer | Tech |
 |---|---|
@@ -27,8 +27,8 @@ KV-backed post CRUD. All functions accept `KVNamespace` as first arg.
 
 | Function | Description |
 |---|---|
-| `readingTime(content)` | Returns `"< 1 min read"` for <200 words, else `"N min read"` |
-| `toSlug(title)` | Lowercase, strip non-alphanumeric, collapse hyphens, trim edges, max 60 chars |
+| `readingTime(content)` | Returns `"< 1 min read"` for <200 words, else `"N min read"`. Strips markdown syntax before counting. |
+| `toSlug(title)` | Lowercase, trim, strip non-alphanumeric, collapse hyphens, remove leading/trailing hyphens. Max 60 chars. |
 | `isPostLive(post)` | Returns `true` if `published`, or `scheduled` with `scheduledAt <= now` |
 | `getAllPosts(kv)` | All posts sorted newest-first |
 | `getPublishedPosts(kv)` | Filtered to `status === 'published'` |
@@ -55,6 +55,9 @@ Serves files from R2 by key. `Cache-Control: public, max-age=31536000, immutable
 
 ### `src/components/FlywheelScene.tsx`
 3D torus flywheel. Takes `scrollProgress: number` prop — syncs rotation and particle density to scroll position.
+
+### `src/components/EmergencyProtocol.tsx`
+Interactive recovery tool for executive dysfunction. Features a 5-step guided sequence including a 30-minute timer and physical task checklist. Uses `framer-motion` for state transitions.
 
 ### `src/components/editor/EditorShared.tsx`
 Shared CMS UI primitives: `SideSection`, `Field`, `AISection`, `ProgressBar`, `ToolBtn`, `CoverImagePicker`, `ConfirmModal`.

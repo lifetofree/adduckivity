@@ -17,6 +17,10 @@
 **URL:** https://immersive.adduckivity.com  
 **Tech:** Next.js 16 + React Three Fiber + Cloudflare Pages + KV
 
+#### Featured Protocols
+- **Momentum Protocol (ACT-04)**: Visualized 3D flywheel syncing action with scroll.
+- **Emergency Recovery (FAIL-SAFE)**: Interactive 5-step recovery sequence for burnout spirals (Step 01: Name, Step 02: 30m Timer, Step 03: Anchor, Step 04: Tiny Action, Step 05: Fastest Finish).
+
 ---
 
 ## CMS & API Routes
@@ -24,10 +28,10 @@
 ### Public Routes (visitors)
 | Route | Purpose |
 |---|---|
-| `/` | Homepage — hero, featured posts, CTA |
+| `/` | Homepage — hero, protocols, CTA |
 | `/blog` | Published posts grid |
 | `/blog/[slug]` | Post reading view — drafts return 404 |
-| `/momentum` | Momentum Protocol 3D experience + email CTA |
+| `/momentum` | Momentum Protocol + Interactive Emergency Recovery + email CTA |
 
 ### Admin Routes (owner only)
 | Route | Purpose |
@@ -176,13 +180,13 @@ npm run deploy       # build + deploy to Cloudflare Pages
 ## Revenue Funnel (Current)
 
 ```
-Facebook post → immersive site → /momentum CTA → SendFox list → future paid product
+Facebook post → immersive site → /momentum (Interactive Protocol) → SendFox list → future paid product
 ```
 
 ### Products
 | Product | Price | Status |
 |---|---|---|
-| Duck OS Emergency Checklist | Free | Live — `/downloads/emergency-checklist.pdf` |
+| Duck OS Emergency Protocol | Free | Live — Interactive + `/downloads/emergency-checklist.pdf` |
 | Duck OS Recovery Protocol | $29 | Pending (PDF) |
 
 ---
@@ -229,4 +233,4 @@ Posts support `status: 'scheduled'` with a `scheduledAt` ISO datetime field.
 - CMS editor shows **Schedule** button (yellow badge) alongside Publish
 - Facebook auto-post does NOT fire at scheduled time — only fires when manually Published
 
-*Last updated: 2026-04-27*
+*Last updated: 2026-04-28*

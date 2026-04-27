@@ -69,13 +69,18 @@ Each app has its own Cloudflare Pages project:
 - Awareness over automation
 - Rest is a system component
 
+**Interactive Protocols:**
+- **Momentum (ACT-04)**: Scroll-synced 3D flywheel.
+- **Emergency Recovery (FAIL-SAFE)**: 5-step interactive reset tool.
+
 ## 🛠️ Tech Stack
 
 - **Frontend:** Next.js 16.2 (App Router, Turbopack), React 19, TypeScript 5
 - **3D:** Three.js 0.184, React Three Fiber 9, Drei 10
 - **Styling:** Tailwind CSS 4, Framer Motion 12
+- **Testing:** Vitest 4 + jsdom (32 tests)
 - **Content:** Markdown + gray-matter, built-in CMS with AI assist
-- **AI:** Google Gemini 1.5 Flash (server-side, `/api/ai`)
+- **AI:** Google Gemini 2.0 Flash (server-side, `/api/ai`)
 - **Images:** Unsplash API (server-side proxy, `/api/unsplash`)
 - **Deployment:** Cloudflare Pages
 - **AI Partner:** UDO (see UDO-SYSTEM.md)
@@ -100,9 +105,9 @@ Posts live as markdown in `apps/immersive/momentum-3d/public/content/`.
 ### Owner routes (admin only)
 | URL | What it does |
 |---|---|
-| `/content` | CMS dashboard — all posts, stats (Total/Published/Drafts), edit links |
-| `/content/new` | New post editor — auto-save, slug, Unsplash/URL cover, AI assist |
-| `/content/[slug]` | Edit post — Publish / Unpublish / Save Draft, auto-save (4s) |
+| `/content` | CMS dashboard — all posts, stats, status badges |
+| `/content/new` | New post editor — auto-save, AI assist, Unsplash/R2 |
+| `/content/edit?slug=` | Edit existing post — auto-save, Publish/Unpublish/Schedule |
 
 **Env vars needed** (in `apps/immersive/momentum-3d/.env.local`):
 ```

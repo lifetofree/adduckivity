@@ -1,21 +1,23 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ET } from '@/lib/theme'
+import EmailCTA from '@/components/EmailCTA'
 
-const features = [
+const pinnedFeature = {
+  title: 'Emergency Recovery',
+  description: 'A 5-step fail-safe for when burnout spirals begin.',
+  image: '/uploads/emergency-recovery-cover.svg',
+  href: '/momentum',
+  badge: 'Fail-Safe',
+}
+
+const otherFeatures = [
   {
     title: 'Momentum Protocol',
     description: 'Action over motivation. Build momentum when you don\'t feel like it.',
     image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1',
     href: '/momentum',
     badge: 'ACT-04',
-  },
-  {
-    title: 'Emergency Recovery',
-    description: 'A 5-step fail-safe for when burnout spirals begin.',
-    image: '/uploads/emergency-recovery-cover.svg',
-    href: '/momentum',
-    badge: 'Fail-Safe',
   },
   {
     title: 'Digital Declutter',
@@ -52,7 +54,44 @@ const features = [
     href: 'https://wp.adduckivity.com/protocols/vibe-code-idea-to-production-one-night-ai-spec',
     badge: 'Systems',
   },
+  {
+    title: 'Asset Vault Protocol',
+    description: 'Turn your output into a permanent library of leverage.',
+    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260409-img-prod-02-energy-slots-1777124323897.webp?fit=768%2C432&ssl=1',
+    href: '/blog',
+    badge: 'ASSET-01',
+  },
+  {
+    title: 'Weekly Calibration',
+    description: 'Debug your life and update your OS every 7 days.',
+    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260412-IMG-PROD-VIBE-CODE-ADDUCK.webp?fit=768%2C432&ssl=1',
+    href: '/blog',
+    badge: 'MAINT-01',
+  },
+  {
+    title: 'Deep Rest System',
+    description: 'Rest is not a luxury, it is a critical system component.',
+    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-AWARE-01-INVISIBLE-SYSTEMS.webp?fit=768%2C432&ssl=1',
+    href: '/blog',
+    badge: 'RECOV-02',
+  },
+  {
+    title: 'Input Filtering',
+    description: 'Aggressive curation for a high-performance brain.',
+    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260407-IMG-SURV-DIGITAL-DECLUTTER.webp?fit=768%2C432&ssl=1',
+    href: '/blog',
+    badge: 'SURV-02',
+  },
+  {
+    title: 'The Binary Decision',
+    description: 'Eliminate choice paralysis with rapid binary logic.',
+    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260409-img-dec-01-binary-decision-1776944641044.webp?fit=768%2C432&ssl=1',
+    href: '/blog',
+    badge: 'DEC-01',
+  },
 ]
+
+const features = [pinnedFeature, ...otherFeatures].slice(0, 12)
 
 const principles = [
   {
@@ -285,14 +324,16 @@ export default function Home() {
           <p className="text-sm mb-10 leading-relaxed" style={{ color: ET.sub }}>
             Pick one protocol. Run it for 7 days. Build from there.
           </p>
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-85 hover:gap-3"
-            style={{ backgroundColor: ET.accent, color: ET.surface }}
-          >
-            Browse All Posts
-            <span aria-hidden>→</span>
-          </Link>
+          <EmailCTA />
+          <div className="mt-6 text-center">
+            <Link
+              href="/blog"
+              className="text-sm font-medium transition-opacity hover:opacity-70 flex items-center gap-1 justify-center"
+              style={{ color: ET.sub }}
+            >
+              Browse all posts <span aria-hidden>→</span>
+            </Link>
+          </div>
         </div>
       </section>
 
