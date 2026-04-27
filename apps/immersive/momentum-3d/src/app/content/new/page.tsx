@@ -14,10 +14,7 @@ import {
   ToolBtn, Divider, CoverImagePicker, ConfirmModal,
 } from '@/components/editor/EditorShared'
 import { ET, inputCss } from '@/lib/theme'
-
-function toSlug(title: string) {
-  return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
-}
+import { toSlug } from '@/lib/posts'
 
 
 type AiSection = 'titles' | 'excerpt' | 'outline' | 'seo' | 'tags'
