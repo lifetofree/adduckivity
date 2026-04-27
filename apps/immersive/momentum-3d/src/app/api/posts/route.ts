@@ -68,7 +68,7 @@ export async function PUT(req: NextRequest) {
     const isFirstPublish = body.status === 'published' && existing?.status !== 'published'
     const post = existing
       ? await updatePost(kv, slug, body)
-      : await savePost(kv, { ...body, slug, title: body.title || slug })
+      : await savePost(kv, { ...body, slug, title: body.title || slug, content: body.content || '' })
     if (!post) return NextResponse.json({ error: 'Save failed' }, { status: 500 })
     let facebook: { ok: boolean; error?: string } | undefined
     if (isFirstPublish) {
