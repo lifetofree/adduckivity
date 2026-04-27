@@ -1,6 +1,6 @@
 # Project Documentation: Adduckivity
 
-**Last updated:** 2026-04-26  
+**Last updated:** 2026-04-27  
 **Production URL:** https://immersive.adduckivity.com
 
 ---
@@ -13,8 +13,8 @@ Edge-first content platform combining immersive 3D storytelling with a built-in 
 |---|---|
 | Frontend | Next.js 16.2 App Router + React Three Fiber |
 | Runtime | Cloudflare Pages (edge, `@cloudflare/next-on-pages`) |
-| Storage | Cloudflare KV (`POSTS_KV`) |
-| AI | Google Gemini 1.5 Flash |
+| Storage | Cloudflare KV (`POSTS_KV`) + Cloudflare R2 (`ASSETS_BUCKET`) |
+| AI | Google Gemini 2.0 Flash |
 | Newsletter | SendFox API |
 | Social | Facebook Graph API v19.0 |
 
@@ -46,6 +46,12 @@ In-memory `KVNamespace` mock for local development. Auto-used when `NODE_ENV ===
 ### `src/lib/gemini.ts`
 Gemini API wrapper. Called by `/api/ai` — never exposed to client.
 
+### `src/app/api/upload/route.ts`
+Uploads images to Cloudflare R2 (`ASSETS_BUCKET`). Returns `{ url: "https://immersive.adduckivity.com/api/assets/uploads/..." }`. Dev fallback: returns base64 data URL.
+
+### `src/app/api/assets/[...key]/route.ts`
+Serves files from R2 by key. `Cache-Control: public, max-age=31536000, immutable`.
+
 ### `src/components/FlywheelScene.tsx`
 3D torus flywheel. Takes `scrollProgress: number` prop — syncs rotation and particle density to scroll position.
 
@@ -64,12 +70,21 @@ Subscribe email to SendFox list.
 **Notes:** 422 from SendFox (already subscribed) returns `{ success: true }`
 
 ### `PUT /api/posts?slug=`
-Update post. Triggers Facebook auto-post on first publish.
+Upsert post (creates if not found in KV). Triggers Facebook auto-post on first publish.
 
 **Response includes:** `{ ...post, facebook?: { ok: boolean, error?: string } }`
 
+### `POST /api/posts/save`
+Upsert for new post auto-save and publish. Also returns `facebook` field on first publish.
+
+### `POST /api/upload`
+Upload image to R2. Returns `{ url }` as absolute `https://` URL.
+
+### `GET /api/assets/[...key]`
+Serve R2 asset by key path.
+
 ### `POST /api/ai`
-Gemini AI assistant proxy.
+Gemini AI assistant proxy. Model: `gemini-2.0-flash`.
 
 **Actions:** `titles | excerpt | outline | seo | tags`
 
@@ -136,9 +151,12 @@ id = "a07209b5ad9a4972aa82a30d0af3071e"
 
 ## 6. Known Behaviours
 
-- **Facebook auto-post** fires only on first publish (`draft → published`). Re-saving a published post does not re-post.
+- **Facebook auto-post** fires only on first publish (`draft → published`). Re-saving a published post does not re-post. Facebook image comes from OG meta tags on the blog post page — use Facebook Sharing Debugger to force re-scrape after first publish.
+- **`toSlug`** strips leading/trailing hyphens AFTER `.slice(0, 60)` — prevents trailing `-` on long titles.
+- **Tags** — `#` prefix is stripped on save. Blog renders tags as `#tag` so storing raw tag names (no `#`) is required.
+- **Image uploads** — stored in Cloudflare R2 (`immersive-assets` bucket), served via `/api/assets/`. Dev environment falls back to base64 data URL.
+- **OG meta tags** — generated dynamically in `blog/[slug]/page.tsx` via `generateMetadata`. Only `https://` image URLs are included (not data: URLs).
 - **`readingTime`** strips `# * \` [ ]` markdown chars before counting words.
-- **`toSlug`** strips leading/trailing hyphens — `toSlug("สวัสดี world")` → `"world"`.
 - **Dev KV** is in-memory and resets on server restart.
 - **`/content` routes** have no authentication — unlinked from public nav only.
 

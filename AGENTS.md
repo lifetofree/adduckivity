@@ -47,7 +47,8 @@
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
 | `/api/ai` | POST | Gemini proxy — titles, excerpt, outline, seo, tags |
 | `/api/unsplash` | GET | Unsplash search proxy |
-| `/api/upload` | POST | Direct image upload |
+| `/api/upload` | POST | Upload image to Cloudflare R2 — returns absolute `https://` URL |
+| `/api/assets/[...key]` | GET | Serve R2 asset by key |
 | `/api/subscribe` | POST | SendFox email subscribe |
 
 ---
@@ -57,8 +58,11 @@
 ### Facebook Auto-Post
 - Triggers on first publish of a post (`draft → published`)
 - Posts to Facebook Page feed with title, excerpt, link, hashtags
-- Response includes `facebook: { ok, error }` field for debugging
+- Cover image served via OG meta tags on blog post page — Facebook scrapes automatically
+- Use [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug) to force re-scrape after first publish
+- Response includes `facebook: { ok, error }` field visible in publish toast
 - **Env vars:** `FACEBOOK_PAGE_ACCESS_TOKEN`, `FACEBOOK_PAGE_ID`, `SITE_URL`
+- Token expires periodically — refresh via Graph API Explorer with `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` permissions
 
 ### SendFox Newsletter
 - `/api/subscribe` accepts `{ email }` → adds to SendFox list
@@ -67,7 +71,7 @@
 - **Env vars:** `SENDFOX_API_TOKEN`, `SENDFOX_LIST_ID`
 
 ### Google Gemini AI
-- Model: `gemini-1.5-flash` / `gemini-2.0-flash-exp`
+- Model: `gemini-2.0-flash`
 - Used in CMS editor AI assistant panel
 - **Env var:** `GEMINI_API_KEY`
 
@@ -90,9 +94,10 @@ SENDFOX_API_TOKEN
 SENDFOX_LIST_ID
 ```
 
-### KV Namespace (wrangler.toml)
+### Cloudflare Bindings (wrangler.toml)
 ```
-POSTS_KV  — binding: a07209b5ad9a4972aa82a30d0af3071e
+POSTS_KV       — KV namespace: a07209b5ad9a4972aa82a30d0af3071e
+ASSETS_BUCKET  — R2 bucket: immersive-assets
 ```
 
 ---
@@ -143,10 +148,10 @@ interface Post {
 | Styling | Tailwind CSS 4 |
 | Animation | Framer Motion 12 |
 | Language | TypeScript 5 |
-| Storage | Cloudflare KV |
+| Storage | Cloudflare KV + Cloudflare R2 |
 | Deployment | Cloudflare Pages (edge runtime) |
 | Testing | Vitest 4 + jsdom |
-| AI | Google Gemini 1.5 Flash |
+| AI | Google Gemini 2.0 Flash |
 
 ---
 
@@ -176,7 +181,7 @@ Facebook post → immersive site → /momentum CTA → SendFox list → future p
 ### Products
 | Product | Price | Status |
 |---|---|---|
-| Duck OS Emergency Checklist | Free | Pending (PDF) |
+| Duck OS Emergency Checklist | Free | Live — `/downloads/emergency-checklist.pdf` |
 | Duck OS Recovery Protocol | $29 | Pending (PDF) |
 
 ---
@@ -212,4 +217,4 @@ adduckivity/
 
 **Adduckivity = Addict + Duck + Productivity**
 
-*Last updated: 2026-04-26*
+*Last updated: 2026-04-27*

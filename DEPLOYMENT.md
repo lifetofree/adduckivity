@@ -1,6 +1,6 @@
 # Deployment Guide
 
-**Last updated:** 2026-04-26  
+**Last updated:** 2026-04-27  
 **Project:** immersive-adduckivity (Cloudflare Pages)  
 **Production:** https://immersive.adduckivity.com
 
@@ -45,7 +45,7 @@ Set in **Cloudflare Dashboard → Workers & Pages → immersive-adduckivity → 
 
 ---
 
-## KV Namespace
+## Cloudflare Bindings
 
 Configured in `wrangler.toml` — no dashboard action needed.
 
@@ -54,6 +54,10 @@ Configured in `wrangler.toml` — no dashboard action needed.
 binding = "POSTS_KV"
 id = "a07209b5ad9a4972aa82a30d0af3071e"
 preview_id = "f264112c6d4e408b973696fa6f6ddb8d"
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "immersive-assets"
 ```
 
 ---
