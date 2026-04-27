@@ -24,6 +24,7 @@ graph TD
 - **Persistence (Cloudflare KV)**: A high-read, low-latency key-value store used for post metadata and content. It avoids the complexity and latency of a traditional RDBMS.
 - **Intelligence (Gemini Integration)**: Uses `gemini-1.5-flash` for real-time content assistance (SEO, tagging, outlines), integrated directly into the edge functions.
 - **Visualization (R3F)**: Uses `@react-three/fiber` for immersive 3D "Flywheel" scenes, reflecting the "Momentum" concept visually without heavy backend processing.
+- **Dynamic Edge Dashboard**: The homepage functions as a Server Component that dynamically aggregates protocols from KV at the edge, ensuring users always see the latest "Operating System" updates without client-side hydration delays.
 
 ## 3. Performance & Minimalism
 - **Zero-Cold Starts**: By using Cloudflare KV and Edge Functions, the system avoids the cold-start latencies common in traditional lambda-based architectures.

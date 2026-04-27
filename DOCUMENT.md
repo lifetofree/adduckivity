@@ -1,6 +1,6 @@
 # Project Documentation: Adduckivity
 
-**Last updated:** 2026-04-28 (Interactive Emergency Protocol)  
+**Last updated:** 2026-04-29 (Dynamic Homepage Grid)  
 **Production URL:** https://immersive.adduckivity.com
 
 ---
@@ -52,6 +52,9 @@ Uploads images to Cloudflare R2 (`ASSETS_BUCKET`). Returns `{ url: "https://imme
 
 ### `src/app/api/assets/[...key]/route.ts`
 Serves files from R2 by key. `Cache-Control: public, max-age=31536000, immutable`.
+
+### `src/app/page.tsx`
+The dynamic homepage. An `async` Server Component (`runtime: 'edge'`) that fetches live protocols from KV, pins the "Emergency Recovery" card first, and renders the "Explore Protocols" grid.
 
 ### `src/components/FlywheelScene.tsx`
 3D torus flywheel. Takes `scrollProgress: number` prop — syncs rotation and particle density to scroll position.

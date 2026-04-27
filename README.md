@@ -94,11 +94,12 @@ Each app has its own Cloudflare Pages project:
 
 ## ✍️ Content System
 
-Posts live as markdown in `apps/immersive/momentum-3d/public/content/`.
+Posts are managed via a built-in CMS and stored in Cloudflare KV. The homepage grid is dynamically generated from these posts, with the "Emergency Recovery" protocol pinned as the primary entry point.
 
 ### Public routes (visitors)
 | URL | What it does |
 |---|---|
+| `/` | Dynamic protocol grid (Pinned + CMS posts) |
 | `/blog` | Published posts — card grid, reading experience |
 | `/blog/[slug]` | Article reading view — prose, related posts. Drafts → 404. |
 

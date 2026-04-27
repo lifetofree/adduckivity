@@ -28,7 +28,7 @@
 ### Public Routes (visitors)
 | Route | Purpose |
 |---|---|
-| `/` | Homepage — hero, protocols, CTA |
+| `/` | Homepage — dynamic protocol grid (Pinned + CMS posts), hero, CTA |
 | `/blog` | Published posts grid |
 | `/blog/[slug]` | Post reading view — drafts return 404 |
 | `/momentum` | Momentum Protocol + Interactive Emergency Recovery + email CTA |
@@ -233,4 +233,4 @@ Posts support `status: 'scheduled'` with a `scheduledAt` ISO datetime field.
 - CMS editor shows **Schedule** button (yellow badge) alongside Publish
 - Facebook auto-post does NOT fire at scheduled time — only fires when manually Published
 
-*Last updated: 2026-04-28*
+*Last updated: 2026-04-29*
