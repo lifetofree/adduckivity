@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { getPublishedPosts } from '@/lib/posts'
+import { getMockKV } from '@/lib/dev-kv'
 import { ET } from '@/lib/theme'
 import EmailCTA from '@/components/EmailCTA'
 
@@ -34,8 +35,10 @@ const principles = [
 ]
 
 export default async function Home() {
-  const { env } = getRequestContext<CloudflareEnv>()
-  const cmsPosts = await getPublishedPosts(env.POSTS_KV)
+  const kv = process.env.NODE_ENV === 'development'
+    ? getMockKV()
+    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+  const cmsPosts = await getPublishedPosts(kv)
 
   // Map CMS posts to feature card format
   const mappedFeatures = cmsPosts
