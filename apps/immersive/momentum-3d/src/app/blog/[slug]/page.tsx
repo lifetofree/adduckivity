@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getPostBySlug, getAllPosts } from '@/lib/posts'
+import { getPostBySlug, getAllPosts, isPostLive } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
 
@@ -80,7 +80,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const kv = getKV()
   const post = await getPostBySlug(kv, slug)
 
-  if (!post || post.status !== 'published') notFound()
+  if (!post || !isPostLive(post)) notFound()
 
   const allPosts = await getAllPosts(kv)
   const related = allPosts

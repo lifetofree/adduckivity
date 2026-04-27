@@ -52,7 +52,9 @@ export default function EditPostPage() {
   const [featuredImage, setFeaturedImage] = useState('')
   const [scene, setScene] = useState('default')
   const [mood, setMood] = useState('neutral')
-  const [status, setStatus] = useState<'draft' | 'published'>('draft')
+  const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>('draft')
+  const [scheduledAt, setScheduledAt] = useState('')
+  const [scheduleModal, setScheduleModal] = useState(false)
 
   const wordCount = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
   const titleLen  = title.length
@@ -90,6 +92,7 @@ export default function EditPostPage() {
         setScene(d.scene || 'default')
         setMood(d.mood || 'neutral')
         setStatus(d.status || 'draft')
+        setScheduledAt(d.scheduledAt || '')
       })
       .catch(console.error)
       .finally(() => setLoading(false))
@@ -109,7 +112,7 @@ export default function EditPostPage() {
   // ── Auto-save (4s debounce, preserves current status) ────────────────────
   const doAutoSave = useCallback(async (
     t: string, c: string, e: string, tg: string, cat: string,
-    img: string, sc: string, md: string, st: 'draft' | 'published', sl: string, origSl: string
+    img: string, sc: string, md: string, st: 'draft' | 'published' | 'scheduled', sl: string, origSl: string, schAt: string
   ) => {
     if (!t) return
     setSaveStatus('saving')
@@ -121,6 +124,7 @@ export default function EditPostPage() {
           slug: sl, title: t, content: c, excerpt: e,
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
           category: cat, featuredImage: img, scene: sc, mood: md, status: st,
+          scheduledAt: schAt || undefined,
         }),
       })
       savedAtRef.current = Date.now()
@@ -137,7 +141,7 @@ export default function EditPostPage() {
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug, scheduledAt)
     }, 4000)
   }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug, doAutoSave])
 
@@ -168,6 +172,7 @@ export default function EditPostPage() {
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, scene, mood, status,
+          scheduledAt: scheduledAt || undefined,
         }),
       })
       savedAtRef.current = Date.now()
@@ -193,7 +198,7 @@ export default function EditPostPage() {
         body: JSON.stringify({
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
-          category, featuredImage, scene, mood, status: 'published',
+          category, featuredImage, scene, mood, status: 'published', scheduledAt: undefined,
         }),
       })
       const data = await res.json() as { error?: string; facebook?: { ok: boolean; error?: string } }
@@ -240,6 +245,33 @@ export default function EditPostPage() {
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Failed')
+    }
+  }
+
+  // ── Schedule ─────────────────────────────────────────────────────────────
+  const doSchedule = async () => {
+    if (!scheduledAt) return
+    setScheduleModal(false)
+    setSaveStatus('saving')
+    try {
+      const res = await fetch(`/api/posts?slug=${originalSlug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug, title, content, excerpt,
+          tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
+          category, featuredImage, scene, mood, status: 'scheduled', scheduledAt,
+        }),
+      })
+      const data = await res.json() as { error?: string }
+      if (!res.ok) { showToast('err', `Failed: ${data.error || res.status}`); setSaveStatus('unsaved'); return }
+      setStatus('scheduled')
+      setSaveStatus('saved')
+      setOriginalSlug(slug)
+      showToast('ok', `Scheduled for ${new Date(scheduledAt).toLocaleString()}`)
+    } catch {
+      setSaveStatus('unsaved')
+      showToast('err', 'Schedule failed')
     }
   }
 
@@ -309,13 +341,11 @@ export default function EditPostPage() {
 
           {/* Status badge */}
           {status === 'published' ? (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>
-              Published
-            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>Published</span>
+          ) : status === 'scheduled' ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(234,179,8,0.12)', color: '#ca8a04' }}>Scheduled</span>
           ) : (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: ET.accentL, color: ET.accent }}>
-              Draft
-            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: ET.accentL, color: ET.accent }}>Draft</span>
           )}
         </div>
 
@@ -339,16 +369,26 @@ export default function EditPostPage() {
             Save Draft
           </button>
 
-          {/* Publish / Unpublish */}
-          {status === 'draft' ? (
-            <button
-              onClick={() => setPublishModal(true)}
-              disabled={!title || !content}
-              className="h-8 px-4 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
-              style={{ backgroundColor: ET.ink, color: ET.surface }}
-            >
-              Publish
-            </button>
+          {/* Publish / Schedule / Unpublish */}
+          {status === 'draft' || status === 'scheduled' ? (
+            <>
+              <button
+                onClick={() => setScheduleModal(true)}
+                disabled={!title || !content}
+                className="h-8 px-3 rounded-lg text-xs font-medium border transition-opacity hover:opacity-80 disabled:opacity-40"
+                style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
+              >
+                Schedule
+              </button>
+              <button
+                onClick={() => setPublishModal(true)}
+                disabled={!title || !content}
+                className="h-8 px-4 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
+                style={{ backgroundColor: ET.ink, color: ET.surface }}
+              >
+                Publish
+              </button>
+            </>
           ) : (
             <button
               onClick={() => setUnpublishModal(true)}
@@ -556,6 +596,34 @@ export default function EditPostPage() {
         onConfirm={doUnpublish}
         onCancel={() => setUnpublishModal(false)}
       />
+
+      {/* ── Schedule Modal ── */}
+      {scheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <div className="rounded-2xl p-6 w-full max-w-sm shadow-xl" style={{ backgroundColor: ET.surface, border: `1px solid ${ET.border}` }}>
+            <h3 className="text-base font-bold mb-2" style={{ color: ET.ink }}>Schedule Post</h3>
+            <p className="text-xs mb-4" style={{ color: ET.sub }}>Post will go live automatically at this date and time.</p>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={e => setScheduledAt(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm mb-4"
+              style={{ border: `1px solid ${ET.border}`, backgroundColor: ET.bg, color: ET.ink }}
+            />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setScheduleModal(false)} className="px-4 py-2 rounded-lg text-xs" style={{ color: ET.mid }}>Cancel</button>
+              <button
+                onClick={doSchedule}
+                disabled={!scheduledAt}
+                className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-40"
+                style={{ backgroundColor: '#ca8a04', color: '#fff' }}
+              >
+                Confirm Schedule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Toast ── */}
       <AnimatePresence>

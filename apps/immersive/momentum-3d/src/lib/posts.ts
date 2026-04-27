@@ -10,8 +10,17 @@ export interface Post {
   featuredImage: string
   author: string
   readingTime: string
-  status: 'draft' | 'published'
+  status: 'draft' | 'published' | 'scheduled'
+  scheduledAt?: string  // ISO datetime — only used when status is 'scheduled'
   content: string
+}
+
+export function isPostLive(post: Post): boolean {
+  if (post.status === 'published') return true
+  if (post.status === 'scheduled' && post.scheduledAt) {
+    return new Date(post.scheduledAt) <= new Date()
+  }
+  return false
 }
 /**
  * Calculates the estimated reading time for a given content string.
@@ -58,7 +67,7 @@ export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
 
 export async function getPublishedPosts(kv: KVNamespace): Promise<Post[]> {
   const all = await getAllPosts(kv)
-  return all.filter(p => p.status === 'published')
+  return all.filter(isPostLive)
 }
 
 export async function getPostBySlug(kv: KVNamespace, slug: string): Promise<Post | null> {
@@ -85,6 +94,7 @@ export async function savePost(
     author:       merged.author       || 'Adduckivity',
     readingTime:  readingTime(merged.content),
     status:       merged.status       || 'draft',
+    scheduledAt:  merged.scheduledAt,
     content:      merged.content,
   }
   await kv.put(`post:${post.slug}`, JSON.stringify(post))
