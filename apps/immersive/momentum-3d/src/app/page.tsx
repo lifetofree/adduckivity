@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { getRequestContext } from '@cloudflare/next-on-pages'
+import { getPublishedPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 import EmailCTA from '@/components/EmailCTA'
 
@@ -10,88 +12,6 @@ const pinnedFeature = {
   href: '/momentum',
   badge: 'Fail-Safe',
 }
-
-const otherFeatures = [
-  {
-    title: 'Momentum Protocol',
-    description: 'Action over motivation. Build momentum when you don\'t feel like it.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-ACT-04-MOMENTUM.webp?fit=768%2C432&ssl=1',
-    href: '/momentum',
-    badge: 'ACT-04',
-  },
-  {
-    title: 'Digital Declutter',
-    description: 'Clear the noise. Reclaim your focus and system speed.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260407-IMG-SURV-DIGITAL-DECLUTTER.webp?fit=768%2C432&ssl=1',
-    href: 'https://wp.adduckivity.com/survival/digital-declutter-system-speed-up-survival-protocol',
-    badge: 'SURV-01',
-  },
-  {
-    title: 'System Awareness',
-    description: 'See the invisible systems running your life.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-AWARE-01-INVISIBLE-SYSTEMS.webp?fit=768%2C432&ssl=1',
-    href: 'https://wp.adduckivity.com/system-awareness/system-awareness-visible-architecture',
-    badge: 'Foundation',
-  },
-  {
-    title: 'Flow State Architecture',
-    description: 'Turn scattered focus into sustained deep work.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260405-cnt-act-02-cover.webp?fit=768%2C432&ssl=1',
-    href: 'https://wp.adduckivity.com/system-in-action/architecture-of-flow-duck-os-protocol',
-    badge: 'Advanced',
-  },
-  {
-    title: 'Single-Tasking Protocol',
-    description: 'Stop multitasking. Start mastering deep work.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260407-cnt-prod-01-cover-single-tasking.webp?fit=768%2C432&ssl=1',
-    href: 'https://wp.adduckivity.com/productivity-hacks/stop-scattered-focus-single-tasking-protocol-2026',
-    badge: 'Productivity',
-  },
-  {
-    title: 'Vibe Coding',
-    description: 'Ship ideas to production in one night with AI.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260412-IMG-PROD-VIBE-CODE-ADDUCK.webp?fit=768%2C432&ssl=1',
-    href: 'https://wp.adduckivity.com/protocols/vibe-code-idea-to-production-one-night-ai-spec',
-    badge: 'Systems',
-  },
-  {
-    title: 'Asset Vault Protocol',
-    description: 'Turn your output into a permanent library of leverage.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260409-img-prod-02-energy-slots-1777124323897.webp?fit=768%2C432&ssl=1',
-    href: '/blog',
-    badge: 'ASSET-01',
-  },
-  {
-    title: 'Weekly Calibration',
-    description: 'Debug your life and update your OS every 7 days.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260412-IMG-PROD-VIBE-CODE-ADDUCK.webp?fit=768%2C432&ssl=1',
-    href: '/blog',
-    badge: 'MAINT-01',
-  },
-  {
-    title: 'Deep Rest System',
-    description: 'Rest is not a luxury, it is a critical system component.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-AWARE-01-INVISIBLE-SYSTEMS.webp?fit=768%2C432&ssl=1',
-    href: '/blog',
-    badge: 'RECOV-02',
-  },
-  {
-    title: 'Input Filtering',
-    description: 'Aggressive curation for a high-performance brain.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260407-IMG-SURV-DIGITAL-DECLUTTER.webp?fit=768%2C432&ssl=1',
-    href: '/blog',
-    badge: 'SURV-02',
-  },
-  {
-    title: 'The Binary Decision',
-    description: 'Eliminate choice paralysis with rapid binary logic.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260409-img-dec-01-binary-decision-1776944641044.webp?fit=768%2C432&ssl=1',
-    href: '/blog',
-    badge: 'DEC-01',
-  },
-]
-
-const features = [pinnedFeature, ...otherFeatures].slice(0, 12)
 
 const principles = [
   {
@@ -111,7 +31,24 @@ const principles = [
   },
 ]
 
-export default function Home() {
+export default async function Home() {
+  const { env } = getRequestContext<CloudflareEnv>()
+  const cmsPosts = await getPublishedPosts(env.POSTS_KV)
+
+  // Map CMS posts to feature card format
+  const mappedFeatures = cmsPosts
+    .filter(p => p.slug !== 'emergency-recovery') // Prevent duplicate if it exists in CMS
+    .map(p => ({
+      title: p.title,
+      description: p.excerpt || 'Read the full protocol in Duck OS.',
+      image: p.featuredImage || 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260408-IMG-AWARE-01-INVISIBLE-SYSTEMS.webp?fit=768%2C432&ssl=1',
+      href: `/blog/${p.slug}`,
+      badge: p.category.toUpperCase(),
+    }))
+
+  // Final features: Pinned first, then CMS posts, limit to 12 total
+  const features = [pinnedFeature, ...mappedFeatures].slice(0, 12)
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
 
