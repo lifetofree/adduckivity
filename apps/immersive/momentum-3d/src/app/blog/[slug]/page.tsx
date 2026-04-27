@@ -16,6 +16,7 @@ function getKV() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  try {
   const { slug } = await params
   const post = await getPostBySlug(getKV(), slug)
   if (!post) return {}
@@ -42,6 +43,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: post.excerpt,
       ...(image && { images: [image] }),
     },
+  }
+  } catch {
+    return {}
   }
 }
 
