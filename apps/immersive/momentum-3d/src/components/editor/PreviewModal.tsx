@@ -111,12 +111,12 @@ export default function PreviewModal({
 
               {/* Cover image */}
               {featuredImage && (
-                <div className="relative w-full rounded-xl overflow-hidden mb-10" style={{ aspectRatio: '16/9' }}>
+                <div className="relative w-full rounded-xl overflow-hidden mb-10" style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={featuredImage}
                     alt={imageAlt || title}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>
               )}
