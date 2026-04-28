@@ -148,6 +148,10 @@ export default function PreviewModal({
             .prose-et a:hover { text-decoration-color: ${ET.accent}; }
             .prose-et hr  { border: none; border-top: 1px solid ${ET.border}; margin: 2.5rem 0; }
             .prose-et strong { color: ${ET.ink}; font-weight: 600; }
+            .prose-et table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+            .prose-et th { background: ${ET.muted}; color: ${ET.ink}; font-weight: 600; text-align: left; padding: 0.6rem 1rem; border: 1px solid ${ET.border}; }
+            .prose-et td { color: ${ET.mid}; padding: 0.55rem 1rem; border: 1px solid ${ET.border}; }
+            .prose-et tr:nth-child(even) td { background: ${ET.surface}; }
           `}</style>
         </motion.div>
       )}
