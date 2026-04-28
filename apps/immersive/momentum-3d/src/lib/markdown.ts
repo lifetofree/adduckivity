@@ -12,12 +12,13 @@ export function renderMarkdown(md: string): string {
     .replace(/^---$/gm,            '<hr />')
     .replace(/^\d+\. (.+)$/gm,     '<li>$1</li>')
     .replace(/^[-*] (.+)$/gm,      '<li>$1</li>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" />')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .split(/\n{2,}/)
     .map(block => {
       const t = block.trim()
       if (!t) return ''
-      if (/^<(h[1-3]|pre|blockquote|hr|li)/.test(t)) return t
+      if (/^<(h[1-3]|pre|blockquote|hr|li|img)/.test(t)) return t
       if (t.startsWith('<li>')) return `<ul>${t}</ul>`
       return `<p>${t.replace(/\n/g, '<br />')}</p>`
     })

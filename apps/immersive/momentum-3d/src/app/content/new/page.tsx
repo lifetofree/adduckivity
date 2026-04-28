@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, Copy, Check,
   Bold, Italic, List, ListOrdered, Link2, Code,
-  Heading1, Heading2, Heading3, Quote, FileText, Tag, Hash, Eye,
+  Heading1, Heading2, Heading3, Quote, ImageIcon, FileText, Tag, Hash, Eye,
 } from 'lucide-react'
 import {
   SideSection, Field, AISection, ProgressBar,
@@ -369,6 +369,7 @@ export default function NewPostPage() {
             <ToolBtn title="Blockquote"    onClick={() => insert('> ', '', '')}><Quote size={15} /></ToolBtn>
             <ToolBtn title="Code"          onClick={() => insert('`', '`', 'code')}><Code size={15} /></ToolBtn>
             <ToolBtn title="Link"          onClick={() => insert('[', '](url)', '')}><Link2 size={15} /></ToolBtn>
+            <ToolBtn title="Image"         onClick={() => insert('![', '](https://)', 'alt text')}><ImageIcon size={15} /></ToolBtn>
           </div>
 
           <div className="flex-1 overflow-y-auto px-10 py-6">

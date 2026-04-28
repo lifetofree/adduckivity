@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, Copy, Check,
   Bold, Italic, List, ListOrdered, Link2, Code,
-  Heading1, Heading2, Heading3, Quote,
+  Heading1, Heading2, Heading3, Quote, ImageIcon,
   FileText, Tag, Eye,
 } from 'lucide-react'
 import {
@@ -533,6 +533,7 @@ export default function EditPostPage() {
             <ToolBtn title="Blockquote"    onClick={() => insert('> ', '', '')}><Quote size={15} /></ToolBtn>
             <ToolBtn title="Code"          onClick={() => insert('`', '`', 'code')}><Code size={15} /></ToolBtn>
             <ToolBtn title="Link"          onClick={() => insert('[', '](url)', '')}><Link2 size={15} /></ToolBtn>
+            <ToolBtn title="Image"         onClick={() => insert('![', '](https://)', 'alt text')}><ImageIcon size={15} /></ToolBtn>
           </div>
 
           {/* Writing area */}
