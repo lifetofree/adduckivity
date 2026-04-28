@@ -8,6 +8,7 @@ export interface Post {
   excerpt: string
   tags: string[]
   featuredImage: string
+  imageAlt?: string
   author: string
   readingTime: string
   status: 'draft' | 'published' | 'scheduled'
@@ -91,6 +92,7 @@ export async function savePost(
     excerpt:      merged.excerpt      || '',
     tags:         merged.tags         || [],
     featuredImage: merged.featuredImage || '',
+    imageAlt:     merged.imageAlt,
     author:       merged.author       || 'Adduckivity',
     readingTime:  readingTime(merged.content),
     status:       merged.status       || 'draft',

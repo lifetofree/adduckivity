@@ -44,6 +44,7 @@ export default function NewPostPage() {
   const [tags, setTags]                 = useState('')
   const [category, setCategory]         = useState('protocol')
   const [featuredImage, setFeaturedImage] = useState('')
+  const [imageAlt, setImageAlt]         = useState('')
   const [scene, setScene]               = useState('default')
   const [mood, setMood]                 = useState('neutral')
   const [slug, setSlug]                 = useState('')
@@ -78,7 +79,7 @@ export default function NewPostPage() {
   // Auto-save (upserts draft after 4s)
   const doAutoSave = useCallback(async (
     t: string, c: string, e: string, tg: string,
-    cat: string, img: string, sc: string, md: string, sl: string
+    cat: string, img: string, alt: string, sc: string, md: string, sl: string
   ) => {
     if (!t) return
     const finalSlug = sl || toSlug(t)
@@ -90,7 +91,8 @@ export default function NewPostPage() {
         body: JSON.stringify({
           slug: finalSlug, title: t, content: c, excerpt: e,
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
-          category: cat, featuredImage: img, scene: sc, mood: md, status: 'draft',
+          category: cat, featuredImage: img, imageAlt: alt || undefined,
+          scene: sc, mood: md, status: 'draft',
         }),
       })
       const saved = await res.json() as import('@/lib/posts').Post
@@ -109,11 +111,11 @@ export default function NewPostPage() {
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, savedSlugRef.current || slug)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, savedSlugRef.current || slug)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, slug, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, slug, doAutoSave])
 
-  useEffect(() => { scheduleAutoSave() }, [title, content, excerpt, tags, category, featuredImage, scene, mood])
+  useEffect(() => { scheduleAutoSave() }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood])
 
   // Markdown insert
   const insert = useCallback((before: string, after = '', placeholder = '') => {
@@ -136,7 +138,8 @@ export default function NewPostPage() {
         body: JSON.stringify({
           slug: finalSlug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
-          category, featuredImage, scene, mood, status: 'published',
+          category, featuredImage, imageAlt: imageAlt || undefined,
+          scene, mood, status: 'published',
         }),
       })
       const data = await res.json() as import('@/lib/posts').Post & { facebook?: { ok: boolean; error?: string } }
@@ -229,6 +232,15 @@ export default function NewPostPage() {
         <aside className="w-64 shrink-0 border-r overflow-y-auto" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
           <SideSection label="Cover Image" open={open.image} onToggle={() => toggle('image')}>
             <CoverImagePicker value={featuredImage} onChange={setFeaturedImage} />
+            <Field label="Alt Text" icon={<Hash size={13} />}>
+              <input
+                value={imageAlt}
+                onChange={e => setImageAlt(e.target.value)}
+                placeholder="Describe the image for SEO"
+                className="et-input"
+              />
+              <p className="text-[10px] mt-0.5" style={{ color: ET.sub }}>Used in OG tags and screen readers</p>
+            </Field>
           </SideSection>
 
           <SideSection label="Post Metadata" open={open.meta} onToggle={() => toggle('meta')}>

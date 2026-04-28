@@ -50,6 +50,7 @@ export default function EditPostPage() {
   const [tags, setTags] = useState('')
   const [category, setCategory] = useState('protocol')
   const [featuredImage, setFeaturedImage] = useState('')
+  const [imageAlt, setImageAlt] = useState('')
   const [scene, setScene] = useState('default')
   const [mood, setMood] = useState('neutral')
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>('draft')
@@ -89,6 +90,7 @@ export default function EditPostPage() {
         setTags((d.tags || []).join(', '))
         setCategory(d.category || 'protocol')
         setFeaturedImage(d.featuredImage || '')
+        setImageAlt(d.imageAlt || '')
         setScene(d.scene || 'default')
         setMood(d.mood || 'neutral')
         setStatus(d.status || 'draft')
@@ -112,7 +114,7 @@ export default function EditPostPage() {
   // ── Auto-save (4s debounce, preserves current status) ────────────────────
   const doAutoSave = useCallback(async (
     t: string, c: string, e: string, tg: string, cat: string,
-    img: string, sc: string, md: string, st: 'draft' | 'published' | 'scheduled', sl: string, origSl: string, schAt: string
+    img: string, alt: string, sc: string, md: string, st: 'draft' | 'published' | 'scheduled', sl: string, origSl: string, schAt: string
   ) => {
     if (!t) return
     setSaveStatus('saving')
@@ -123,7 +125,8 @@ export default function EditPostPage() {
         body: JSON.stringify({
           slug: sl, title: t, content: c, excerpt: e,
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
-          category: cat, featuredImage: img, scene: sc, mood: md, status: st,
+          category: cat, featuredImage: img, imageAlt: alt || undefined,
+          scene: sc, mood: md, status: st,
           scheduledAt: schAt || undefined,
         }),
       })
@@ -141,15 +144,15 @@ export default function EditPostPage() {
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug, scheduledAt)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, status, slug, originalSlug, scheduledAt)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood, status, slug, originalSlug, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, status, slug, originalSlug, doAutoSave])
 
   // Trigger auto-save on any field change
   useEffect(() => {
     if (!loading) scheduleAutoSave()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, content, excerpt, tags, category, featuredImage, scene, mood])
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood])
 
   // ── Markdown insert ────────────────────────────────────────────────────────
   const insert = useCallback((before: string, after = '', placeholder = '') => {
@@ -171,7 +174,8 @@ export default function EditPostPage() {
         body: JSON.stringify({
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
-          category, featuredImage, scene, mood, status,
+          category, featuredImage, imageAlt: imageAlt || undefined,
+          scene, mood, status,
           scheduledAt: scheduledAt || undefined,
         }),
       })
@@ -198,7 +202,8 @@ export default function EditPostPage() {
         body: JSON.stringify({
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
-          category, featuredImage, scene, mood, status: 'published', scheduledAt: undefined,
+          category, featuredImage, imageAlt: imageAlt || undefined,
+          scene, mood, status: 'published', scheduledAt: undefined,
         }),
       })
       const data = await res.json() as { error?: string; facebook?: { ok: boolean; error?: string } }
@@ -235,7 +240,8 @@ export default function EditPostPage() {
         body: JSON.stringify({
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
-          category, featuredImage, scene, mood, status: 'draft',
+          category, featuredImage, imageAlt: imageAlt || undefined,
+          scene, mood, status: 'draft',
         }),
       })
       setStatus('draft')
@@ -260,7 +266,8 @@ export default function EditPostPage() {
         body: JSON.stringify({
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
-          category, featuredImage, scene, mood, status: 'scheduled', scheduledAt,
+          category, featuredImage, imageAlt: imageAlt || undefined,
+          scene, mood, status: 'scheduled', scheduledAt,
         }),
       })
       const data = await res.json() as { error?: string }
@@ -411,6 +418,15 @@ export default function EditPostPage() {
         >
           <SideSection label="Cover Image" open={open.image} onToggle={() => toggle('image')}>
             <CoverImagePicker value={featuredImage} onChange={setFeaturedImage} />
+            <Field label="Alt Text" icon={<Tag size={13} />}>
+              <input
+                value={imageAlt}
+                onChange={e => setImageAlt(e.target.value)}
+                placeholder="Describe the image for SEO"
+                className="et-input"
+              />
+              <p className="text-[10px] mt-0.5" style={{ color: ET.sub }}>Used in OG tags and screen readers</p>
+            </Field>
           </SideSection>
 
           <SideSection label="Post Metadata" open={open.meta} onToggle={() => toggle('meta')}>

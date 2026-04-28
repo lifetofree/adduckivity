@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: post.excerpt,
       url,
       type: 'article',
-      ...(image && { images: [{ url: image, width: 1200, height: 630, alt: post.title }] }),
+      ...(image && { images: [{ url: image, width: 1200, height: 630, alt: post.imageAlt || post.title }] }),
     },
     twitter: {
       card: image ? 'summary_large_image' : 'summary',
@@ -168,7 +168,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           >
             <Image
               src={post.featuredImage}
-              alt={post.title}
+              alt={post.imageAlt || post.title}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 768px"
