@@ -97,18 +97,6 @@ export default function PreviewModal({
                 <p className="text-lg mb-8 leading-relaxed" style={{ color: ET.mid }}>{excerpt}</p>
               )}
 
-              {/* Tags */}
-              {tagList.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-8">
-                  {tagList.map(t => (
-                    <span key={t} className="text-xs px-2.5 py-1 rounded-full border"
-                      style={{ borderColor: ET.border, color: ET.sub, backgroundColor: ET.surface }}>
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              )}
-
               {/* Cover image */}
               {featuredImage && (
                 <div className="relative w-full rounded-xl overflow-hidden mb-10" style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}>
@@ -126,6 +114,18 @@ export default function PreviewModal({
                 className="prose-et"
                 dangerouslySetInnerHTML={{ __html: bodyHtml }}
               />
+
+              {/* Tags */}
+              {tagList.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-8 border-t mt-12" style={{ borderColor: ET.border }}>
+                  {tagList.map(t => (
+                    <span key={t} className="text-xs px-3 py-1 rounded-full border"
+                      style={{ borderColor: ET.border, color: ET.sub, backgroundColor: ET.surface }}>
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
