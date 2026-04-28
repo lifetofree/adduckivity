@@ -13,7 +13,7 @@ export default async function ContentDashboard() {
     ? getMockKV()
     : getRequestContext<CloudflareEnv>().env.POSTS_KV
   const allPosts  = await getAllPosts(kv)
-  const statusOrder = { published: 0, scheduled: 1, draft: 2 } as const
+  const statusOrder = { draft: 0, scheduled: 1, published: 2 } as const
   const posts = [...allPosts].sort((a, b) => {
     const sd = statusOrder[a.status] - statusOrder[b.status]
     if (sd !== 0) return sd
