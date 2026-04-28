@@ -289,7 +289,6 @@ export default async function Home() {
           <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
             <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
             <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
-            <a href="https://github.com/lifetofree/adduckivity" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">GitHub</a>
           </div>
           <p className="text-xs" style={{ color: ET.sub }}>Powered by Duck OS Systems</p>
         </div>

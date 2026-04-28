@@ -59,7 +59,9 @@ export default function NewPostPage() {
   const [toast, setToast]           = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
   const [publishModal, setPublishModal] = useState(false)
   const [publishing, setPublishing]     = useState(false)
-  const [preview, setPreview]           = useState(false)
+  const [scheduleModal, setScheduleModal] = useState(false)
+  const [scheduledAt, setScheduledAt]     = useState('')
+  const [preview, setPreview]             = useState(false)
 
   const [aiLoading, setAiLoading] = useState<AiSection | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -160,6 +162,33 @@ export default function NewPostPage() {
     }
   }
 
+  // Schedule
+  const doSchedule = async () => {
+    if (!scheduledAt) return
+    setScheduleModal(false)
+    setPublishing(true)
+    try {
+      const finalSlug = savedSlugRef.current || slug || toSlug(title)
+      const res = await fetch('/api/posts/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: finalSlug, title, content, excerpt,
+          tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
+          category, featuredImage, imageAlt: imageAlt || undefined,
+          scene, mood, status: 'scheduled', scheduledAt,
+        }),
+      })
+      const data = await res.json() as import('@/lib/posts').Post
+      showToast('ok', `Scheduled for ${new Date(scheduledAt).toLocaleString()}`)
+      setTimeout(() => { window.location.href = `/content/edit?slug=${data.slug}` }, 900)
+    } catch {
+      showToast('err', 'Schedule failed')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   // AI
   const runAI = async (section: AiSection) => {
     setAiLoading(section)
@@ -225,6 +254,14 @@ export default function NewPostPage() {
           >
             <Eye size={12} />
             Preview
+          </button>
+          <button
+            onClick={() => setScheduleModal(true)}
+            disabled={publishing || !title || !content}
+            className="h-8 px-3 rounded-lg text-xs font-medium border transition-opacity hover:opacity-80 disabled:opacity-40"
+            style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
+          >
+            Schedule
           </button>
           <button
             onClick={() => setPublishModal(true)}
@@ -413,6 +450,40 @@ export default function NewPostPage() {
         onConfirm={doPublish}
         onCancel={() => setPublishModal(false)}
       />
+
+      {/* ── Schedule Modal ── */}
+      {scheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-2xl p-6 w-full max-w-sm shadow-2xl" style={{ backgroundColor: ET.surface, border: `1px solid ${ET.border}` }}>
+            <h3 className="text-base font-bold mb-2" style={{ color: ET.ink }}>Schedule Post</h3>
+            <p className="text-xs mb-4" style={{ color: ET.sub }}>The post will go live automatically at the chosen time.</p>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={e => setScheduledAt(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+              className="et-input w-full mb-4"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setScheduleModal(false)}
+                className="h-8 px-4 rounded-lg text-xs border transition-opacity hover:opacity-70"
+                style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!scheduledAt}
+                onClick={doSchedule}
+                className="h-8 px-4 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
+                style={{ backgroundColor: '#ca8a04', color: '#fff' }}
+              >
+                Schedule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {toast && (
