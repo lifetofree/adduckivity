@@ -12,8 +12,15 @@ export default async function ContentDashboard() {
   const kv = process.env.NODE_ENV === 'development'
     ? getMockKV()
     : getRequestContext<CloudflareEnv>().env.POSTS_KV
-  const posts = await getAllPosts(kv)
+  const allPosts  = await getAllPosts(kv)
+  const statusOrder = { published: 0, scheduled: 1, draft: 2 } as const
+  const posts = [...allPosts].sort((a, b) => {
+    const sd = statusOrder[a.status] - statusOrder[b.status]
+    if (sd !== 0) return sd
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
   const published = posts.filter(p => p.status === 'published').length
+  const scheduled = posts.filter(p => p.status === 'scheduled').length
   const drafts    = posts.filter(p => p.status === 'draft').length
 
   return (
@@ -52,6 +59,8 @@ export default async function ContentDashboard() {
           <Stat value={posts.length}  label={posts.length === 1 ? 'post' : 'posts'} />
           <div className="w-px h-8"  style={{ backgroundColor: ET.border }} />
           <Stat value={published}     label="published" color="#16a34a" />
+          <div className="w-px h-8"  style={{ backgroundColor: ET.border }} />
+          <Stat value={scheduled}     label="scheduled" color="#ca8a04" />
           <div className="w-px h-8"  style={{ backgroundColor: ET.border }} />
           <Stat value={drafts}        label={drafts === 1 ? 'draft' : 'drafts'} color={ET.accent} />
         </div>
@@ -129,13 +138,11 @@ function Row({ post }: { post: import('@/lib/posts').Post }) {
             {post.title || <span style={{ color: ET.sub }}>Untitled</span>}
           </Link>
           {post.status === 'published' ? (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>
-              Published
-            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)', color: '#16a34a' }}>Published</span>
+          ) : post.status === 'scheduled' ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: 'rgba(202,138,4,0.12)', color: '#ca8a04' }}>Scheduled</span>
           ) : (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: ET.accentL, color: ET.accent }}>
-              Draft
-            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" style={{ backgroundColor: ET.accentL, color: ET.accent }}>Draft</span>
           )}
         </div>
         {post.excerpt && (
