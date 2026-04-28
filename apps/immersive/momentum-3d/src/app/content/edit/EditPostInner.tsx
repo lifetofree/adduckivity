@@ -9,12 +9,13 @@ import {
   Sparkles, Copy, Check,
   Bold, Italic, List, ListOrdered, Link2, Code,
   Heading1, Heading2, Heading3, Quote,
-  FileText, Tag,
+  FileText, Tag, Eye,
 } from 'lucide-react'
 import {
   SideSection, Field, AISection, ProgressBar,
   ToolBtn, Divider, CoverImagePicker, ConfirmModal,
 } from '@/components/editor/EditorShared'
+import PreviewModal from '@/components/editor/PreviewModal'
 import { ET, inputCss } from '@/lib/theme'
 
 
@@ -66,6 +67,7 @@ export default function EditPostPage() {
   const [toast, setToast]             = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
   const [publishModal, setPublishModal]     = useState(false)
   const [unpublishModal, setUnpublishModal] = useState(false)
+  const [preview, setPreview]               = useState(false)
 
   const [aiLoading, setAiLoading] = useState<AiSection | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -366,6 +368,17 @@ export default function EditPostPage() {
             </span>
           )}
 
+          {/* Preview */}
+          <button
+            onClick={() => setPreview(true)}
+            disabled={!title && !content}
+            className="h-8 px-3 rounded-lg text-xs font-medium border transition-opacity hover:opacity-80 disabled:opacity-40 flex items-center gap-1.5"
+            style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
+          >
+            <Eye size={12} />
+            Preview
+          </button>
+
           {/* Save Draft */}
           <button
             onClick={saveDraft}
@@ -657,6 +670,18 @@ export default function EditPostPage() {
       </AnimatePresence>
 
       <style>{inputCss(ET)}</style>
+
+      <PreviewModal
+        open={preview}
+        onClose={() => setPreview(false)}
+        title={title}
+        content={content}
+        featuredImage={featuredImage}
+        imageAlt={imageAlt}
+        excerpt={excerpt}
+        category={category}
+        tags={tags}
+      />
     </div>
   )
 }
