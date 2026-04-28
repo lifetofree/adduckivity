@@ -4,13 +4,22 @@ function toId(text: string): string {
   return text.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').replace(/^-+|-+$/g, '')
 }
 
+function stripInline(text: string): string {
+  return text
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+}
+
 export function extractHeadings(md: string): Heading[] {
   const result: Heading[] = []
   const regex = /^(#{1,3}) (.+)$/gm
   let m
   while ((m = regex.exec(md)) !== null) {
-    const text = m[2].trim()
-    result.push({ level: m[1].length, text, id: toId(text) })
+    const raw = m[2].trim()
+    result.push({ level: m[1].length, text: stripInline(raw), id: toId(raw) })
   }
   return result
 }
