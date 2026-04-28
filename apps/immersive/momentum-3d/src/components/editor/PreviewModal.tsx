@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { ET } from '@/lib/theme'
-import { renderMarkdown } from '@/lib/markdown'
+import { renderMarkdown, extractHeadings } from '@/lib/markdown'
 
 interface Props {
   open: boolean
@@ -31,8 +31,9 @@ export default function PreviewModal({
     return () => window.removeEventListener('keydown', handler)
   }, [open, onClose])
 
-  const tagList = tags ? tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean) : []
+  const tagList  = tags ? tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean) : []
   const bodyHtml = renderMarkdown(content || '')
+  const headings = extractHeadings(content || '')
 
   return (
     <AnimatePresence>
@@ -107,6 +108,22 @@ export default function PreviewModal({
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>
+              )}
+
+              {/* Table of Contents */}
+              {headings.length >= 2 && (
+                <nav className="rounded-xl border mb-10 p-5" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: ET.sub }}>Contents</p>
+                  <ol className="space-y-1.5">
+                    {headings.map((h, i) => (
+                      <li key={i} style={{ paddingLeft: h.level === 1 ? 0 : h.level === 2 ? '0.75rem' : '1.5rem' }}>
+                        <a href={`#${h.id}`} className="text-sm transition-opacity hover:opacity-70 leading-snug block" style={{ color: h.level === 1 ? ET.ink : ET.mid }}>
+                          {h.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
               )}
 
               {/* Body */}

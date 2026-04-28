@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { getPostBySlug, getAllPosts, isPostLive } from '@/lib/posts'
-import { renderMarkdown } from '@/lib/markdown'
+import { renderMarkdown, extractHeadings } from '@/lib/markdown'
 import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
 
@@ -66,6 +66,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     .slice(0, 3)
 
   const bodyHtml = renderMarkdown(post.content)
+  const headings = extractHeadings(post.content)
   const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',
   })
@@ -151,6 +152,31 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               priority
             />
           </div>
+        )}
+
+        {/* Table of Contents */}
+        {headings.length >= 2 && (
+          <nav
+            className="rounded-xl border mb-10 p-5"
+            style={{ backgroundColor: ET.surface, borderColor: ET.border }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: ET.sub }}>
+              Contents
+            </p>
+            <ol className="space-y-1.5">
+              {headings.map((h, i) => (
+                <li key={i} style={{ paddingLeft: h.level === 1 ? 0 : h.level === 2 ? '0.75rem' : '1.5rem' }}>
+                  <a
+                    href={`#${h.id}`}
+                    className="text-sm transition-opacity hover:opacity-70 leading-snug block"
+                    style={{ color: h.level === 1 ? ET.ink : ET.mid }}
+                  >
+                    {h.text}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
         )}
 
         {/* Body */}

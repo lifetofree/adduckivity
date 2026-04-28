@@ -1,3 +1,20 @@
+export interface Heading { level: number; text: string; id: string }
+
+function toId(text: string): string {
+  return text.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+export function extractHeadings(md: string): Heading[] {
+  const result: Heading[] = []
+  const regex = /^(#{1,3}) (.+)$/gm
+  let m
+  while ((m = regex.exec(md)) !== null) {
+    const text = m[2].trim()
+    result.push({ level: m[1].length, text, id: toId(text) })
+  }
+  return result
+}
+
 function applyInline(s: string): string {
   return s
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
@@ -25,9 +42,9 @@ export function renderMarkdown(md: string): string {
   // Pre-process: fenced code blocks and block-level elements (preserve as-is)
   const processed = md
     .replace(/```[\w]*\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-    .replace(/^### (.+)$/gm, (_, t) => `<h3>${applyInline(t)}</h3>`)
-    .replace(/^## (.+)$/gm,  (_, t) => `<h2>${applyInline(t)}</h2>`)
-    .replace(/^# (.+)$/gm,   (_, t) => `<h1>${applyInline(t)}</h1>`)
+    .replace(/^### (.+)$/gm, (_, t) => `<h3 id="${toId(t)}">${applyInline(t)}</h3>`)
+    .replace(/^## (.+)$/gm,  (_, t) => `<h2 id="${toId(t)}">${applyInline(t)}</h2>`)
+    .replace(/^# (.+)$/gm,   (_, t) => `<h1 id="${toId(t)}">${applyInline(t)}</h1>`)
     .replace(/^> (.+)$/gm,   (_, t) => `<blockquote>${applyInline(t)}</blockquote>`)
     .replace(/^---$/gm, '<hr />')
     .replace(/^\d+\. (.+)$/gm, (_, t) => `<li>${applyInline(t)}</li>`)
