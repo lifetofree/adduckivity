@@ -361,13 +361,13 @@ const Checkout = () => (
 
     <div className="space-y-4">
       <a 
-        href="https://line.me" // Placeholder for your Line
+        href="https://m.me/adduckivity" // Direct link to Facebook Messenger
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full py-4 rounded-xl font-bold text-center"
-        style={{ backgroundColor: ET.accent, color: ET.bg }}
+        className="block w-full py-4 rounded-xl font-bold text-center flex items-center justify-center gap-2 transition-all hover:opacity-90"
+        style={{ backgroundColor: '#0084FF', color: '#fff' }}
       >
-        I&apos;ve Sent the Slip (Line)
+        <span>💬</span> Send Slip to Facebook Inbox
       </a>
       <button 
         onClick={() => window.location.reload()}
