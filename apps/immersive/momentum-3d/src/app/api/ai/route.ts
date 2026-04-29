@@ -50,12 +50,20 @@ async function ask(apiKey: string, prompt: string, retries = 2): Promise<string>
 function parseJSON(raw: string): unknown {
   const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
   try { return JSON.parse(cleaned) } catch { /* fall through */ }
+  
+  // Try to find JSON array in response
   const arrMatch = cleaned.match(/\[[\s\S]*\]/)
   if (arrMatch) { try { return JSON.parse(arrMatch[0]) } catch { /* fall through */ } }
+  
+  // Try to find JSON object in response
   const objMatch = cleaned.match(/\{[\s\S]*\}/)
   if (objMatch) { try { return JSON.parse(objMatch[0]) } catch { /* fall through */ } }
+  
+  // Fallback: parse as line-by-line text
   const lines = cleaned.split('\n').map(l => l.replace(/^[-*\d.)\s"']+/, '').replace(/["',]+$/, '').trim()).filter(Boolean)
   if (lines.length) return lines
+  
+  console.error('[AI] Failed to parse response:', raw.substring(0, 200))
   throw new Error('Could not parse AI response as JSON')
 }
 
@@ -81,7 +89,10 @@ export async function POST(req: NextRequest) {
       ? process.env.GEMINI_API_KEY || ''
       : getRequestContext<CloudflareEnv>().env.GEMINI_API_KEY
 
-    if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
+    if (!apiKey) {
+      console.error('[AI] API key not configured')
+      return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
+    }
 
     const body = await req.json() as {
       action: string
@@ -110,8 +121,25 @@ export async function POST(req: NextRequest) {
         break
       }
       case 'seo': {
-        const raw = await ask(apiKey, `Give 5 actionable, specific SEO tips for this blog post.\nTitle: ${body.title}\nExcerpt: ${body.excerpt || '(none)'}\nTags: ${(body.tags || []).join(', ') || '(none)'}\n\nRespond with ONLY a JSON array of 5 tip strings. No explanation.`)
-        result = parseJSON(raw)
+        const tags = (body.tags || []).join(', ') || '(none)'
+        const excerpt = body.excerpt || '(none)'
+        const prompt = `Give 5 actionable, specific SEO tips for this blog post.\nTitle: "${body.title || 'unknown'}"\nExcerpt: "${excerpt}"\nTags: "${tags}"\n\nRespond with ONLY a JSON array of 5 tip strings. No explanation.`
+        
+        try {
+          const raw = await ask(apiKey, prompt)
+          console.log('[AI] SEO response received, length:', raw.length)
+          result = parseJSON(raw)
+        } catch (parseErr) {
+          console.error('[AI] SEO parse error, returning fallback')
+          // Return fallback SEO tips if parsing fails
+          result = [
+            "Use your target keyword in the first 100 words",
+            "Include related keywords naturally throughout the content",
+            "Write a compelling meta description under 160 characters",
+            "Use descriptive alt text for images",
+            "Build internal links to related content"
+          ]
+        }
         break
       }
       case 'tags': {
@@ -125,6 +153,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ result })
   } catch (err) {
+    console.error('[AI] Request failed:', err)
     return NextResponse.json({ error: friendlyError(err) }, { status: 500 })
   }
 }
