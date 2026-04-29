@@ -117,18 +117,18 @@ export default async function Home() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/momentum"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-sm transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,68,68,0.3)] border border-red-500/50"
+              style={{ backgroundColor: '#ff4444', color: ET.ink }}
+            >
+              ⚠️ Run 2-Min System Reset
+            </Link>
+            <Link
+              href="/momentum"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:opacity-85 hover:gap-3"
               style={{ backgroundColor: ET.ink, color: ET.surface }}
             >
               Read Momentum Protocol
               <span aria-hidden>→</span>
-            </Link>
-            <Link
-              href="/blog"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm border transition-all hover:opacity-80"
-              style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.surface }}
-            >
-              Browse All Posts
             </Link>
           </div>
         </div>
