@@ -1,6 +1,6 @@
 # Project Documentation: Adduckivity
 
-**Last updated:** 2026-04-29 (Dynamic Homepage Grid)  
+**Last updated:** 2026-04-30 (Conversion & Revenue Funnel)  
 **Production URL:** https://immersive.adduckivity.com
 
 ---
@@ -60,7 +60,10 @@ The dynamic homepage. An `async` Server Component (`runtime: 'edge'`) that fetch
 3D torus flywheel. Takes `scrollProgress: number` prop — syncs rotation and particle density to scroll position.
 
 ### `src/components/EmergencyProtocol.tsx`
-Interactive recovery tool for executive dysfunction. Features a 5-step guided sequence including a 30-minute timer and physical task checklist. Uses `framer-motion` for state transitions.
+Interactive recovery tool for executive dysfunction.
+- **5-Step Guided Sequence**: Guided pattern interrupt (Timer, Anchor Audio, Tiny Actions).
+- **Integrated Lead Capture**: Success state includes a `/api/subscribe` form to claim the free Starter Kit.
+- **Early Bird Checkout**: Post-subscription state offering "The Recovery Protocol" for 299 THB via manual transfer (QR).
 
 ### `src/components/editor/EditorShared.tsx`
 Shared CMS UI primitives: `SideSection`, `Field`, `AISection`, `ProgressBar`, `ToolBtn`, `CoverImagePicker`, `ConfirmModal`.

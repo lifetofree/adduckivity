@@ -87,10 +87,10 @@ Each app has its own Cloudflare Pages project:
 
 ## 📝 Content Strategy
 
-1. **Immersive 3D articles** — Each protocol gets an interactive 3D experience
-2. **Digital products** — Duck OS Starter Kit (free), Complete System (paid)
-3. **Community** — System Architects membership (future)
-4. **Tools** — Duck OS apps and utilities (future)
+1. **Immersive 3D articles** — Each protocol gets an interactive 3D experience.
+2. **Digital products** — Duck OS Starter Kit (Free) and The Recovery Protocol (299 THB Early Bird Pre-Order).
+3. **Community** — System Architects membership (future).
+4. **Tools** — Duck OS apps and utilities (future).
 
 ## ✍️ Content System
 

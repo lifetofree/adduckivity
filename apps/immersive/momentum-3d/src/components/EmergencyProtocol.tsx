@@ -243,27 +243,133 @@ const Step5 = ({ onNext }: StepProps) => {
   )
 }
 
-const Success = () => (
-  <motion.div 
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="text-center"
-  >
-    <div className="mb-6 inline-flex p-4 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-      <span className="text-3xl">🚀</span>
-    </div>
-    <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Momentum Restored</h3>
-    <p className="text-base mb-8 max-w-md mx-auto" style={{ color: ET.mid }}>
-      Protocol complete. The spiral has been broken. <br/>
-      Welcome back to the system.
-    </p>
-    <button 
-      onClick={() => window.location.reload()}
-      className="px-8 py-4 rounded-xl font-bold"
-      style={{ border: `1px solid ${ET.border}`, color: ET.ink }}
+const Success = ({ onNext }: StepProps) => {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+
+  const subscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (res.ok) setStatus('success')
+      else setStatus('error')
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="text-center"
     >
-      Close Protocol
-    </button>
+      <div className="mb-6 inline-flex p-4 rounded-full bg-cyan-500/10 border border-cyan-500/20">
+        <span className="text-3xl">🚀</span>
+      </div>
+      <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Momentum Restored</h3>
+      
+      {status === 'success' ? (
+        <div className="py-4">
+          <p className="text-lg font-bold text-cyan-400 mb-2">System Updated.</p>
+          <p className="text-sm mb-8" style={{ color: ET.mid }}>Check your inbox for the Duck OS Starter Kit.</p>
+          <button 
+            onClick={onNext}
+            className="w-full py-4 rounded-xl font-bold animate-pulse"
+            style={{ backgroundColor: ET.accent, color: ET.bg }}
+          >
+            Level Up: The Recovery Protocol
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={subscribe} className="text-left">
+          <p className="text-sm mb-6 text-center" style={{ color: ET.mid }}>
+            Protocol complete. Claim your **Duck OS Starter Kit** (Free) to maintain this momentum.
+          </p>
+          <input 
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            required
+            className="w-full p-4 rounded-xl mb-3 bg-black/40 outline-none border"
+            style={{ color: ET.ink, borderColor: ET.border }}
+          />
+          <button 
+            type="submit"
+            disabled={status === 'loading'}
+            className="w-full py-4 rounded-xl font-bold mb-4"
+            style={{ backgroundColor: ET.accent, color: ET.bg }}
+          >
+            {status === 'loading' ? 'Processing...' : 'Claim Starter Kit (Free)'}
+          </button>
+          <button 
+            type="button"
+            onClick={onNext}
+            className="w-full text-xs opacity-50 hover:opacity-100 transition-opacity"
+            style={{ color: ET.mid }}
+          >
+            Skip to next step
+          </button>
+        </form>
+      )}
+    </motion.div>
+  )
+}
+
+const Checkout = () => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+  >
+    <div className="flex items-center justify-between mb-6">
+      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+        Founding Architect Offer
+      </span>
+      <span className="text-lg font-bold text-cyan-400 line-through opacity-50">499 THB</span>
+    </div>
+    
+    <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>The Recovery Protocol</h3>
+    <p className="text-sm mb-6 leading-relaxed" style={{ color: ET.mid }}>
+      Get the complete, deep-dive system to break burnout loops forever. Includes the 12-page PDF and Lifetime Access to the System Hub.
+    </p>
+
+    <div className="p-6 rounded-2xl bg-black/40 border-2 border-dashed border-cyan-500/30 mb-8 text-center">
+      <p className="text-xs uppercase tracking-widest mb-4 opacity-60" style={{ color: ET.mid }}>Scan to Pay (Early Bird)</p>
+      <div className="w-40 h-40 mx-auto bg-white/10 rounded-lg flex items-center justify-center mb-4">
+        <span className="text-xs text-center p-4 opacity-50">[ PromptPay QR Code Placeholder ]</span>
+      </div>
+      <p className="text-3xl font-bold text-white mb-1">299 THB</p>
+      <p className="text-[10px]" style={{ color: ET.sub }}>Transfer to: K-Bank 000-0-00000-0</p>
+    </div>
+
+    <div className="space-y-4">
+      <a 
+        href="https://line.me" // Placeholder for your Line
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block w-full py-4 rounded-xl font-bold text-center"
+        style={{ backgroundColor: ET.accent, color: ET.bg }}
+      >
+        I&apos;ve Sent the Slip (Line)
+      </a>
+      <button 
+        onClick={() => window.location.reload()}
+        className="w-full py-4 rounded-xl font-bold border"
+        style={{ borderColor: ET.border, color: ET.mid }}
+      >
+        Return to Home
+      </button>
+    </div>
+    <p className="text-[10px] text-center mt-6 opacity-40 leading-relaxed" style={{ color: ET.sub }}>
+      *Pre-order delivery within 72 hours via email. <br/>
+      Includes Lifetime System Updates.
+    </p>
   </motion.div>
 )
 
@@ -277,7 +383,8 @@ export default function EmergencyProtocol() {
     <Step3 key="3" onNext={() => setStep(4)} />,
     <Step4 key="4" onNext={() => setStep(5)} />,
     <Step5 key="5" onNext={() => setStep(6)} />,
-    <Success key="6" />
+    <Success key="6" onNext={() => setStep(7)} />,
+    <Checkout key="7" />
   ]
 
   return (
@@ -287,7 +394,7 @@ export default function EmergencyProtocol() {
     >
       <div 
         className="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-500"
-        style={{ width: `${(step / 6) * 100}%` }}
+        style={{ width: `${(step / 7) * 100}%` }}
       />
       
       <AnimatePresence mode="wait">

@@ -28,10 +28,10 @@
 ### Public Routes (visitors)
 | Route | Purpose |
 |---|---|
-| `/` | Homepage — dynamic protocol grid (Pinned + CMS posts), hero, CTA |
+| `/` | Homepage — "System Reset" hero trigger, dynamic protocol grid, hero, CTA |
 | `/blog` | Published posts grid |
 | `/blog/[slug]` | Post reading view — drafts return 404 |
-| `/momentum` | Momentum Protocol + Interactive Emergency Recovery + email CTA |
+| `/momentum` | Momentum Protocol + Interactive Emergency Recovery (Lead Gen + Sales) |
 
 ### Admin Routes (owner only)
 | Route | Purpose |
@@ -176,22 +176,23 @@ npm run deploy       # build + deploy to Cloudflare Pages
 ```
 
 ---
-
 ## Revenue Funnel (Current)
 
 ```
-Facebook post → immersive site → /momentum (Interactive Protocol) → SendFox list → future paid product
+Hero Reset Trigger → Interactive Protocol → In-Tool Email Capture (Free Kit) → Early Bird Pre-Order (299 THB)
 ```
 
 ### Products
 | Product | Price | Status |
 |---|---|---|
-| Duck OS Emergency Protocol | Free | Live — Interactive + `/downloads/emergency-checklist.pdf` |
-| Duck OS Recovery Protocol | $29 | Pending (PDF) |
+| Duck OS Emergency Protocol | Free | Live — Interactive Tool + Email Capture |
+| Duck OS Recovery Protocol | 299 THB | Live — Early Bird Pre-Order (Manual Fulfillment) |
 
 ---
 
-## Repository Structure
+...
+
+*Last updated: 2026-04-30*
 
 ```
 adduckivity/
