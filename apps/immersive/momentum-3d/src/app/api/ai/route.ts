@@ -4,11 +4,47 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-async function ask(apiKey: string, prompt: string): Promise<string> {
+// Simple in-memory rate limiter for edge runtime
+const rateLimiter = new Map<string, { count: number; resetTime: number }>()
+
+function checkRateLimit(identifier: string, maxRequests = 5, windowMs = 60000): boolean {
+  const now = Date.now()
+  const record = rateLimiter.get(identifier)
+  
+  if (!record || now > record.resetTime) {
+    rateLimiter.set(identifier, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+  
+  if (record.count >= maxRequests) {
+    return false
+  }
+  
+  record.count++
+  return true
+}
+
+async function ask(apiKey: string, prompt: string, retries = 2): Promise<string> {
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-  const result = await model.generateContent(prompt)
-  return result.response.text().trim()
+  // Use stable model with better rate limits
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const result = await model.generateContent(prompt)
+      return result.response.text().trim()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('429') && i < retries) {
+        // Exponential backoff: 1s, 2s, 4s...
+        const waitTime = Math.pow(2, i) * 1000
+        await new Promise(resolve => setTimeout(resolve, waitTime))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error('Max retries exceeded')
 }
 
 function parseJSON(raw: string): unknown {
@@ -25,16 +61,22 @@ function parseJSON(raw: string): unknown {
 
 function friendlyError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err)
-  if (msg.includes('429')) {
-    const wait = msg.match(/retryDelay['":\s]+(\d+)s/)?.[1]
-    return wait ? `Rate limited — try again in ${wait}s` : 'Rate limited — try again shortly'
+  if (msg.includes('429') || msg.includes('quota') || msg.includes('rate limit')) {
+    return 'AI is thinking too hard. Please wait 10-20 seconds and try again.'
   }
-  if (msg.includes('API_KEY') || msg.includes('API key')) return 'Gemini API key not configured'
-  return msg.length < 200 ? msg : 'AI request failed'
+  if (msg.includes('API_KEY') || msg.includes('API key')) return 'AI not configured - check API key'
+  if (msg.includes('Max retries exceeded')) return 'Service temporarily busy - please try again'
+  return msg.length < 100 ? msg : 'AI request failed - please try again'
 }
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting by IP address
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+    if (!checkRateLimit(ip, 10, 60000)) {
+      return NextResponse.json({ error: 'Too many AI requests - please wait a minute' }, { status: 429 })
+    }
+
     const apiKey = process.env.NODE_ENV === 'development'
       ? process.env.GEMINI_API_KEY || ''
       : getRequestContext<CloudflareEnv>().env.GEMINI_API_KEY
