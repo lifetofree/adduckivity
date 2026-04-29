@@ -56,7 +56,7 @@ export function renderMarkdown(md: string): string {
     .replace(/^# (.+)$/gm,   (_, t) => `<h1 id="${toId(t)}">${applyInline(t)}</h1>`)
     .replace(/^> (.+)$/gm,   (_, t) => `<blockquote>${applyInline(t)}</blockquote>`)
     .replace(/^---$/gm, '<hr />')
-    .replace(/^\d+\. (.+)$/gm, (_, t) => `<li>${applyInline(t)}</li>`)
+    .replace(/^\d+\. (.+)$/gm, (_, t) => `<oli>${applyInline(t)}</oli>`)
     .replace(/^[-*] (.+)$/gm,  (_, t) => `<li>${applyInline(t)}</li>`)
 
   return processed
@@ -64,7 +64,8 @@ export function renderMarkdown(md: string): string {
     .map(block => {
       const t = block.trim()
       if (!t) return ''
-      if (/^<(h[1-3]|pre|blockquote|hr|li|img)/.test(t)) return t
+      if (/^<(h[1-3]|pre|blockquote|hr|img)/.test(t)) return t
+      if (t.startsWith('<oli>')) return `<ol>${t.replace(/<\/?oli>/g, m => m === '<oli>' ? '<li>' : '</li>')}</ol>`
       if (t.startsWith('<li>')) return `<ul>${t}</ul>`
       // Table: all lines start with |
       const lines = t.split('\n')

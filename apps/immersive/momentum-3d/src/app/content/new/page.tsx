@@ -176,7 +176,7 @@ export default function NewPostPage() {
           slug: finalSlug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, imageAlt: imageAlt || undefined,
-          scene, mood, status: 'scheduled', scheduledAt,
+          scene, mood, status: 'scheduled', scheduledAt: new Date(scheduledAt).toISOString(),
         }),
       })
       const data = await res.json() as import('@/lib/posts').Post
@@ -463,7 +463,7 @@ export default function NewPostPage() {
               type="datetime-local"
               value={scheduledAt}
               onChange={e => setScheduledAt(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
+              min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
               className="et-input w-full mb-4"
             />
             <div className="flex gap-2 justify-end">

@@ -96,7 +96,13 @@ export default function EditPostPage() {
         setScene(d.scene || 'default')
         setMood(d.mood || 'neutral')
         setStatus(d.status || 'draft')
-        setScheduledAt(d.scheduledAt || '')
+        if (d.scheduledAt) {
+          const dt = new Date(d.scheduledAt)
+          const pad = (n: number) => String(n).padStart(2, '0')
+          setScheduledAt(`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`)
+        } else {
+          setScheduledAt('')
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false))
@@ -269,7 +275,7 @@ export default function EditPostPage() {
           slug, title, content, excerpt,
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, imageAlt: imageAlt || undefined,
-          scene, mood, status: 'scheduled', scheduledAt,
+          scene, mood, status: 'scheduled', scheduledAt: new Date(scheduledAt).toISOString(),
         }),
       })
       const data = await res.json() as { error?: string }
@@ -638,6 +644,7 @@ export default function EditPostPage() {
               type="datetime-local"
               value={scheduledAt}
               onChange={e => setScheduledAt(e.target.value)}
+              min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
               className="w-full px-3 py-2 rounded-lg text-sm mb-4"
               style={{ border: `1px solid ${ET.border}`, backgroundColor: ET.bg, color: ET.ink }}
             />

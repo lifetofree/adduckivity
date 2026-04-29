@@ -151,8 +151,8 @@ export default function PreviewModal({
             .prose-et h1  { font-size: 1.75rem; font-weight: 700; color: ${ET.ink}; margin: 2rem 0 1rem; line-height: 1.3; }
             .prose-et h2  { font-size: 1.35rem; font-weight: 700; color: ${ET.ink}; margin: 2rem 0 0.75rem; }
             .prose-et h3  { font-size: 1.1rem;  font-weight: 600; color: ${ET.ink}; margin: 1.5rem 0 0.5rem; }
-            .prose-et ul, .prose-et ol { padding-left: 1.5rem; margin: 0 0 1.25rem; color: ${ET.mid}; }
-            .prose-et li  { margin-bottom: 0.4rem; line-height: 1.7; }
+            .prose-et ul, .prose-et ol { color: ${ET.mid}; }
+            .prose-et li  { color: ${ET.mid}; }
             .prose-et blockquote {
               border-left: 3px solid ${ET.accent}; margin: 1.5rem 0;
               padding: 0.5rem 0 0.5rem 1.25rem; color: ${ET.sub}; font-style: italic;
