@@ -352,11 +352,11 @@ const Checkout = () => (
 
     <div className="p-6 rounded-2xl bg-black/40 border-2 border-dashed border-cyan-500/30 mb-8 text-center">
       <p className="text-xs uppercase tracking-widest mb-4 opacity-60" style={{ color: ET.mid }}>Scan to Pay (Early Bird)</p>
-      <div className="w-40 h-40 mx-auto bg-white/10 rounded-lg flex items-center justify-center mb-4">
-        <span className="text-xs text-center p-4 opacity-50">[ PromptPay QR Code Placeholder ]</span>
+      <div className="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+        <img src="/PayQR.webp" alt="PromptPay QR Code" className="w-full h-full object-contain" />
       </div>
       <p className="text-3xl font-bold text-white mb-1">299 THB</p>
-      <p className="text-[10px]" style={{ color: ET.sub }}>Transfer to: K-Bank 000-0-00000-0</p>
+      <p className="text-[10px]" style={{ color: ET.sub }}>Transfer to: Chonlaphon (PromptPay)</p>
     </div>
 
     <div className="space-y-4">
