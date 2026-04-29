@@ -138,18 +138,19 @@ const Step3 = ({ onNext }: StepProps) => (
   >
     <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: ET.accent }}>Step 03</p>
     <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Activate Your Anchor</h3>
-    <p className="text-sm mb-8" style={{ color: ET.sub }}>
-      Open your anchor song or playlist. Music bypasses the thinking brain and hits the emotional brain directly.
+    <p className="text-sm mb-6" style={{ color: ET.sub }}>
+      Music bypasses the thinking brain and hits the emotional brain directly. Listen to this anchor playlist to reboot your focus.
     </p>
     
-    <div className="p-6 rounded-xl mb-8 flex items-center gap-4 bg-black/20 border" style={{ borderColor: ET.border }}>
-      <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-        ▶️
-      </div>
-      <div>
-        <p className="text-sm font-bold" style={{ color: ET.ink }}>Pattern Interrupt Audio</p>
-        <p className="text-xs" style={{ color: ET.sub }}>Waiting for your trigger...</p>
-      </div>
+    <div className="rounded-xl mb-8 overflow-hidden border" style={{ borderColor: ET.border, height: '152px' }}>
+      <iframe 
+        src="https://open.spotify.com/embed/playlist/4uNqCkauUERIwqt6HEhhsK?utm_source=generator&theme=0" 
+        width="100%" 
+        height="152" 
+        frameBorder="0" 
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+        loading="lazy"
+      />
     </div>
 
     <button 
