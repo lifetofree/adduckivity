@@ -106,18 +106,47 @@ export async function POST(req: NextRequest) {
 
     switch (action) {
       case 'titles': {
-        const raw = await ask(apiKey, `Suggest 5 compelling blog post titles.\nTopic/current title: "${body.title || 'unknown'}"\nContent snippet:\n${(body.content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of 5 title strings. No explanation.`)
-        result = parseJSON(raw)
+        try {
+          const raw = await ask(apiKey, `Suggest 5 compelling blog post titles.\nTopic/current title: "${body.title || 'unknown'}"\nContent snippet:\n${(body.content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of 5 title strings. No explanation.`)
+          result = parseJSON(raw)
+        } catch (parseErr) {
+          console.error('[AI] Titles parse error, returning fallback')
+          result = [
+            `${body.title || 'Your Topic'}: A Complete Guide`,
+            `How to Master ${body.title || 'This Topic'}`,
+            `The Ultimate ${body.title || 'Topic'} Tutorial`,
+            `${body.title || 'Your Topic'}: Tips and Strategies`,
+            `Understanding ${body.title || 'This Topic'}: A Deep Dive`
+          ]
+        }
         break
       }
       case 'excerpt': {
-        const raw = await ask(apiKey, `Write a 1–2 sentence excerpt (max 160 characters) for this post titled "${body.title}":\n${(body.content || '').slice(0, 1500)}\n\nRespond with ONLY the excerpt text. No quotes, no explanation.`)
-        result = raw.replace(/^["']|["']$/g, '').slice(0, 160)
+        try {
+          const raw = await ask(apiKey, `Write a 1–2 sentence excerpt (max 160 characters) for this post titled "${body.title}":\n${(body.content || '').slice(0, 1500)}\n\nRespond with ONLY the excerpt text. No quotes, no explanation.`)
+          result = raw.replace(/^["']|["']$/g, '').slice(0, 160)
+        } catch (parseErr) {
+          console.error('[AI] Excerpt error, returning fallback')
+          const contentPreview = (body.content || '').slice(0, 100).replace(/\n+/g, ' ')
+          result = `Discover ${body.title || 'this topic'} and learn practical strategies. ${contentPreview}...`
+        }
         break
       }
       case 'outline': {
-        const raw = await ask(apiKey, `Generate a structured outline for a blog post titled "${body.title}".\nContent so far:\n${(body.content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of heading strings (use ## or ### prefixes). No explanation.`)
-        result = parseJSON(raw)
+        try {
+          const raw = await ask(apiKey, `Generate a structured outline for a blog post titled "${body.title}".\nContent so far:\n${(body.content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of heading strings (use ## or ### prefixes). No explanation.`)
+          result = parseJSON(raw)
+        } catch (parseErr) {
+          console.error('[AI] Outline parse error, returning fallback')
+          result = [
+            "## Introduction",
+            "## Understanding the Problem",
+            "## Key Strategies and Solutions",
+            "## Step-by-Step Implementation",
+            "## Common Mistakes to Avoid",
+            "## Conclusion and Next Steps"
+          ]
+        }
         break
       }
       case 'seo': {
@@ -131,7 +160,6 @@ export async function POST(req: NextRequest) {
           result = parseJSON(raw)
         } catch (parseErr) {
           console.error('[AI] SEO parse error, returning fallback')
-          // Return fallback SEO tips if parsing fails
           result = [
             "Use your target keyword in the first 100 words",
             "Include related keywords naturally throughout the content",
@@ -143,8 +171,21 @@ export async function POST(req: NextRequest) {
         break
       }
       case 'tags': {
-        const raw = await ask(apiKey, `Suggest 6 relevant tags for a blog post titled "${body.title}".\nContent:\n${(body.content || '').slice(0, 600)}\n\nRespond with ONLY a JSON array of lowercase tag strings (no # prefix). No explanation.`)
-        result = parseJSON(raw)
+        try {
+          const raw = await ask(apiKey, `Suggest 6 relevant tags for a blog post titled "${body.title}".\nContent:\n${(body.content || '').slice(0, 600)}\n\nRespond with ONLY a JSON array of lowercase tag strings (no # prefix). No explanation.`)
+          result = parseJSON(raw)
+        } catch (parseErr) {
+          console.error('[AI] Tags parse error, returning fallback')
+          const title = body.title || 'topic'
+          result = [
+            title.toLowerCase().replace(/\s+/g, '-'),
+            'tutorial',
+            'guide',
+            'tips',
+            'strategies',
+            'how-to'
+          ]
+        }
         break
       }
       default:
