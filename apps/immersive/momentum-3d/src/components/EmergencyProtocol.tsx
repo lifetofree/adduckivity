@@ -34,29 +34,40 @@ const Step0 = ({ onNext }: StepProps) => (
   </motion.div>
 )
 
-const Step1 = ({ onNext }: StepProps) => (
-  <motion.div 
-    initial={{ opacity: 0, x: 50 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -50 }}
-  >
-    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: ET.accent }}>Step 01</p>
-    <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Name the Signal</h3>
-    <p className="text-base mb-8" style={{ color: ET.mid }}>
-      Say it out loud or write it down: <br/>
-      <span className="text-xl font-mono mt-4 block p-4 rounded-lg bg-black/20 italic" style={{ border: `1px solid ${ET.border}` }}>
-        &quot;My system is about to break.&quot;
-      </span>
-    </p>
-    <button 
-      onClick={onNext}
-      className="w-full py-4 rounded-xl font-bold border transition-all hover:bg-white/5"
-      style={{ borderColor: ET.accent, color: ET.accent }}
+const Step1 = ({ onNext }: StepProps) => {
+  const [signal, setSignal] = useState('')
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
     >
-      I Have Named It
-    </button>
-  </motion.div>
-)
+      <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: ET.accent }}>Step 01</p>
+      <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Name the Signal</h3>
+      <p className="text-sm mb-6" style={{ color: ET.mid }}>
+        Type it out. Naming the state separates you from it:
+      </p>
+      
+      <input 
+        type="text"
+        value={signal}
+        onChange={e => setSignal(e.target.value)}
+        placeholder="e.g., My system is about to break..."
+        className="w-full p-4 rounded-xl mb-8 bg-black/40 outline-none focus:ring-1 ring-cyan-500 italic font-mono"
+        style={{ color: ET.ink, border: `1px solid ${ET.border}` }}
+      />
+
+      <button 
+        disabled={!signal.trim()}
+        onClick={onNext}
+        className="w-full py-4 rounded-xl font-bold border transition-all hover:bg-white/5 disabled:opacity-40"
+        style={{ borderColor: ET.accent, color: ET.accent }}
+      >
+        I Have Named It
+      </button>
+    </motion.div>
+  )
+}
 
 const Step2 = ({ onNext }: StepProps) => {
   const [seconds, setSeconds] = useState(30 * 60)
