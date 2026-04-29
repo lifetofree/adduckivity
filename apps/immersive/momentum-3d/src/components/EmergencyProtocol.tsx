@@ -351,13 +351,13 @@ const Checkout = () => (
       Get the complete, deep-dive system to break burnout loops forever. Includes the 12-page PDF and Lifetime Access to the System Hub.
     </p>
 
-    <div className="p-6 rounded-2xl bg-black/40 border-2 border-dashed border-cyan-500/30 mb-8 text-center">
-      <p className="text-xs uppercase tracking-widest mb-4 opacity-60" style={{ color: ET.mid }}>Scan to Pay (Early Bird)</p>
-      <div className="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+    <div className="p-8 rounded-2xl bg-white border-2 border-dashed border-cyan-500/30 mb-8 text-center shadow-[0_0_40px_rgba(255,255,255,0.05)]">
+      <p className="text-xs uppercase tracking-widest mb-6 font-bold" style={{ color: '#0A0F1E' }}>Scan with Banking App</p>
+      <div className="w-64 h-64 mx-auto bg-white rounded-xl flex items-center justify-center mb-6 overflow-hidden p-2">
         <img src="/PayQR.webp" alt="PromptPay QR Code" className="w-full h-full object-contain" />
       </div>
-      <p className="text-3xl font-bold text-white mb-1">299 THB</p>
-      <p className="text-[10px]" style={{ color: ET.sub }}>Transfer to: Chonlaphon (PromptPay)</p>
+      <p className="text-4xl font-bold text-[#0A0F1E] mb-1">299 THB</p>
+      <p className="text-xs font-medium" style={{ color: '#6B9BB8' }}>Transfer to: Chonlaphon (PromptPay)</p>
     </div>
 
     <div className="space-y-4">
