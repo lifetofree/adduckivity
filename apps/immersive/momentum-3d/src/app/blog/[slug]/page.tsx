@@ -53,11 +53,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const kv = getKV()
+  const isDev = process.env.NODE_ENV === 'development'
+  const context = isDev ? null : getRequestContext<CloudflareEnv>()
+  const kv = isDev ? getMockKV() : context!.env.POSTS_KV
+  const env = isDev ? undefined : context!.env
+  
   const raw = await getPostBySlug(kv, slug)
   if (!raw || !isPostLive(raw)) notFound()
 
-  const [post] = await promoteScheduledPosts(kv, [raw])
+  const [post] = await promoteScheduledPosts(kv, [raw], env)
 
   const allPosts = await getAllPosts(kv)
   const related = allPosts

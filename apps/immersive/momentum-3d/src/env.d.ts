@@ -8,4 +8,5 @@ interface CloudflareEnv extends Record<string, unknown> {
   SITE_URL: string
   SENDFOX_API_TOKEN: string
   SENDFOX_LIST_ID: string
+  MAINTENANCE_KEY: string
 }

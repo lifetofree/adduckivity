@@ -9,12 +9,12 @@ import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
 
 export default async function BlogPage() {
-  // Use mock KV for local development, real KV for production
-  const kv = process.env.NODE_ENV === 'development'
-    ? getMockKV()
-    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+  const isDev = process.env.NODE_ENV === 'development'
+  const context = isDev ? null : getRequestContext<CloudflareEnv>()
+  const kv = isDev ? getMockKV() : context!.env.POSTS_KV
+  const env = isDev ? undefined : context!.env
 
-  const posts = await getPublishedPosts(kv)
+  const posts = await getPublishedPosts(kv, env)
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>

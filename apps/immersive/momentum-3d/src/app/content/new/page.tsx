@@ -83,9 +83,10 @@ export default function NewPostPage() {
   // Auto-save (upserts draft after 4s)
   const doAutoSave = useCallback(async (
     t: string, c: string, e: string, tg: string,
-    cat: string, img: string, alt: string, sc: string, md: string, sl: string
+    cat: string, img: string, alt: string, sc: string, md: string, sl: string,
+    st: 'draft' | 'published' | 'scheduled', schAt?: string
   ) => {
-    if (!t) return
+    if (!t || publishing) return
     const finalSlug = sl || toSlug(t)
     setSaveStatus('saving')
     try {
@@ -96,9 +97,11 @@ export default function NewPostPage() {
           slug: finalSlug, title: t, content: c, excerpt: e,
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
           category: cat, featuredImage: img, imageAlt: alt || undefined,
-          scene: sc, mood: md, status: 'draft',
+          scene: sc, mood: md, status: st,
+          scheduledAt: schAt ? new Date(schAt).toISOString() : undefined,
         }),
       })
+      if (!res.ok) throw new Error()
       const saved = await res.json() as import('@/lib/posts').Post
       savedSlugRef.current = saved.slug
       setSlug(saved.slug)
@@ -108,18 +111,20 @@ export default function NewPostPage() {
     } catch {
       setSaveStatus('unsaved')
     }
-  }, [])
+  }, [publishing])
 
   const scheduleAutoSave = useCallback(() => {
-    if (!title) return
+    if (!title || publishing) return
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      doAutoSave(title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, savedSlugRef.current || slug)
+      doAutoSave(title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, savedSlugRef.current || slug, 'draft', undefined)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, slug, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, slug, publishing, doAutoSave])
 
-  useEffect(() => { scheduleAutoSave() }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood])
+  useEffect(() => { 
+    if (title) scheduleAutoSave() 
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, slug, scheduleAutoSave])
 
   // Markdown insert
   const insert = useCallback((before: string, after = '', placeholder = '') => {

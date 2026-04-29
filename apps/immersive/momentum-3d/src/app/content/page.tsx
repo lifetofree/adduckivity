@@ -8,11 +8,12 @@ import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
 
 export default async function ContentDashboard() {
-  // Use mock KV for local development, real KV for production
-  const kv = process.env.NODE_ENV === 'development'
-    ? getMockKV()
-    : getRequestContext<CloudflareEnv>().env.POSTS_KV
-  const allPosts  = await promoteScheduledPosts(kv, await getAllPosts(kv))
+  const isDev = process.env.NODE_ENV === 'development'
+  const context = isDev ? null : getRequestContext<CloudflareEnv>()
+  const kv = isDev ? getMockKV() : context!.env.POSTS_KV
+  const env = isDev ? undefined : context!.env
+
+  const allPosts  = await promoteScheduledPosts(kv, await getAllPosts(kv), env)
   const statusOrder = { draft: 0, scheduled: 1, published: 2 } as const
   const posts = [...allPosts].sort((a, b) => {
     const sd = statusOrder[a.status] - statusOrder[b.status]

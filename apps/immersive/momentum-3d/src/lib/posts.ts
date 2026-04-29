@@ -13,6 +13,7 @@ export interface Post {
   readingTime: string
   status: 'draft' | 'published' | 'scheduled'
   scheduledAt?: string  // ISO datetime — only used when status is 'scheduled'
+  facebookPosted?: boolean
   content: string
 }
 
@@ -51,6 +52,49 @@ export function toSlug(title: string): string {
 }
 
 /**
+ * Posts to Facebook page using the Graph API.
+ */
+export async function postToFacebook(
+  env: CloudflareEnv,
+  post: { title: string; excerpt: string; slug: string; featuredImage?: string }
+): Promise<{ ok: boolean; error?: string }> {
+  if (process.env.NODE_ENV === 'development') return { ok: false, error: 'skipped in dev' }
+
+  const token   = env.FACEBOOK_PAGE_ACCESS_TOKEN
+  const pageId  = env.FACEBOOK_PAGE_ID
+  const siteUrl = env.SITE_URL || 'https://immersive-adduckivity.pages.dev'
+
+  if (!token) return { ok: false, error: 'FACEBOOK_PAGE_ACCESS_TOKEN not set' }
+  if (!pageId) return { ok: false, error: 'FACEBOOK_PAGE_ID not set' }
+
+  const link    = `${siteUrl}/blog/${post.slug}`
+  const message = `🦆 ${post.title}\n\n${post.excerpt}\n\nRead the full protocol → ${link}\n\n#DuckOS #Productivity #ADHD #Neurodivergent`
+
+  const params = new URLSearchParams({ message, link, access_token: token })
+  if (post.featuredImage?.startsWith('http')) params.set('picture', post.featuredImage)
+  
+  try {
+    const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
+      method: 'POST',
+      body: params,
+    })
+
+    const data = await res.json() as { id?: string; error?: { message: string } }
+    if (!res.ok || data.error) {
+      const msg = data.error?.message || `HTTP ${res.status}`
+      console.error('[Facebook] Post failed:', msg)
+      return { ok: false, error: msg }
+    }
+
+    console.log('[Facebook] Posted successfully:', data.id)
+    return { ok: true }
+  } catch (err) {
+    console.error('[Facebook] Fetch error:', err)
+    return { ok: false, error: String(err) }
+  }
+}
+
+/**
  * Retrieves all posts from the Cloudflare KV store.
  * @param kv - The Cloudflare KV namespace binding.
  * @returns A promise resolving to an array of Post objects, sorted by date.
@@ -66,20 +110,50 @@ export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
 }
 
 
-export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[]): Promise<Post[]> {
+export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?: CloudflareEnv): Promise<Post[]> {
   const now = new Date()
   return Promise.all(posts.map(async post => {
     if (post.status !== 'scheduled' || !post.scheduledAt) return post
     const t = new Date(post.scheduledAt)
     if (isNaN(t.getTime()) || t > now) return post
-    const promoted = { ...post, status: 'published' as const, scheduledAt: undefined, date: now.toISOString().split('T')[0] }
-    try { await kv.put(`post:${post.slug}`, JSON.stringify(promoted)) } catch { /* non-fatal */ }
+    
+    // Use the scheduled time as the new publish date (YYYY-MM-DD)
+    const promotedDate = t.toISOString().split('T')[0]
+    
+    let facebookPosted = post.facebookPosted
+    console.log(`[CMS] Promoting scheduled post: ${post.slug} (scheduled for ${post.scheduledAt})`)
+
+    // Attempt to post to Facebook if not already done
+    if (env && !facebookPosted) {
+      const lockKey = `lock:fb:${post.slug}`
+      const locked = await kv.get(lockKey)
+      if (!locked) {
+        // Simple lock for 10 minutes to reduce race conditions
+        await kv.put(lockKey, '1', { expirationTtl: 600 })
+        const fb = await postToFacebook(env, { ...post, slug: post.slug })
+        if (fb.ok) facebookPosted = true
+      }
+    }
+    
+    const promoted = { 
+      ...post, 
+      status: 'published' as const, 
+      scheduledAt: undefined, 
+      date: promotedDate,
+      facebookPosted 
+    }
+    
+    try { 
+      await kv.put(`post:${post.slug}`, JSON.stringify(promoted)) 
+    } catch (err) {
+      console.error(`[CMS] Failed to save promoted post ${post.slug}:`, err)
+    }
     return promoted
   }))
 }
 
-export async function getPublishedPosts(kv: KVNamespace): Promise<Post[]> {
-  const all = await promoteScheduledPosts(kv, await getAllPosts(kv))
+export async function getPublishedPosts(kv: KVNamespace, env?: CloudflareEnv): Promise<Post[]> {
+  const all = await promoteScheduledPosts(kv, await getAllPosts(kv), env)
   return all.filter(p => p.status === 'published').sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
@@ -109,6 +183,7 @@ export async function savePost(
     readingTime:  readingTime(merged.content),
     status:       merged.status       || 'draft',
     scheduledAt:  merged.scheduledAt,
+    facebookPosted: merged.facebookPosted,
     content:      merged.content,
   }
   await kv.put(`post:${post.slug}`, JSON.stringify(post))

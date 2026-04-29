@@ -51,9 +51,9 @@ export default function EditPostPage() {
   const [tags, setTags] = useState('')
   const [category, setCategory] = useState('protocol')
   const [featuredImage, setFeaturedImage] = useState('')
-  const [imageAlt, setImageAlt] = useState('')
-  const [scene, setScene] = useState('default')
-  const [mood, setMood] = useState('neutral')
+  const [imageAlt, setImageAlt]         = useState('')
+  const [scene, setScene]               = useState('default')
+  const [mood, setMood]                 = useState('neutral')
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>('draft')
   const [scheduledAt, setScheduledAt] = useState('')
   const [scheduleModal, setScheduleModal] = useState(false)
@@ -68,6 +68,8 @@ export default function EditPostPage() {
   const [publishModal, setPublishModal]     = useState(false)
   const [unpublishModal, setUnpublishModal] = useState(false)
   const [preview, setPreview]               = useState(false)
+
+  const [publishing, setPublishing]         = useState(false)
 
   const [aiLoading, setAiLoading] = useState<AiSection | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,7 +126,7 @@ export default function EditPostPage() {
     t: string, c: string, e: string, tg: string, cat: string,
     img: string, alt: string, sc: string, md: string, st: 'draft' | 'published' | 'scheduled', sl: string, origSl: string, schAt: string
   ) => {
-    if (!t) return
+    if (!t || publishing) return
     setSaveStatus('saving')
     try {
       await fetch(`/api/posts?slug=${origSl}`, {
@@ -146,21 +148,22 @@ export default function EditPostPage() {
     } catch {
       setSaveStatus('unsaved')
     }
-  }, [slug])
+  }, [publishing])
 
   const scheduleAutoSave = useCallback(() => {
+    if (publishing) return
     setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       doAutoSave(title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, status, slug, originalSlug, scheduledAt)
     }, 4000)
-  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, status, slug, originalSlug, doAutoSave])
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, status, slug, originalSlug, scheduledAt, publishing, doAutoSave])
 
   // Trigger auto-save on any field change
   useEffect(() => {
     if (!loading) scheduleAutoSave()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood])
+  }, [title, content, excerpt, tags, category, featuredImage, imageAlt, scene, mood, status, slug, scheduledAt, scheduleAutoSave])
 
   // ── Markdown insert ────────────────────────────────────────────────────────
   const insert = useCallback((before: string, after = '', placeholder = '') => {
@@ -174,6 +177,7 @@ export default function EditPostPage() {
 
   // ── Save Draft ────────────────────────────────────────────────────────────
   const saveDraft = async () => {
+    setPublishing(true)
     setSaveStatus('saving')
     try {
       await fetch(`/api/posts?slug=${originalSlug}`, {
@@ -196,12 +200,15 @@ export default function EditPostPage() {
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Save failed')
+    } finally {
+      setPublishing(false)
     }
   }
 
   // ── Publish ───────────────────────────────────────────────────────────────
   const doPublish = async () => {
     setPublishModal(false)
+    setPublishing(true)
     setSaveStatus('saving')
     try {
       const res = await fetch(`/api/posts?slug=${originalSlug}`, {
@@ -234,12 +241,15 @@ export default function EditPostPage() {
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Publish failed')
+    } finally {
+      setPublishing(false)
     }
   }
 
   // ── Unpublish ─────────────────────────────────────────────────────────────
   const doUnpublish = async () => {
     setUnpublishModal(false)
+    setPublishing(true)
     setSaveStatus('saving')
     try {
       await fetch(`/api/posts?slug=${slug}`, {
@@ -259,6 +269,8 @@ export default function EditPostPage() {
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Failed')
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -266,6 +278,7 @@ export default function EditPostPage() {
   const doSchedule = async () => {
     if (!scheduledAt) return
     setScheduleModal(false)
+    setPublishing(true)
     setSaveStatus('saving')
     try {
       const res = await fetch(`/api/posts?slug=${originalSlug}`, {
@@ -287,6 +300,8 @@ export default function EditPostPage() {
     } catch {
       setSaveStatus('unsaved')
       showToast('err', 'Schedule failed')
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -389,7 +404,7 @@ export default function EditPostPage() {
           <button
             onClick={saveDraft}
             disabled={!title}
-            className="h-8 px-3 rounded-lg text-xs font-medium border transition-opacity hover:opacity-80 disabled:opacity-40"
+            className="h-8 px-3 rounded-lg text-xs font-medium border transition-opacity hover:opacity-80 disabled:opacity-40 flex items-center gap-1.5"
             style={{ borderColor: ET.border, color: ET.mid, backgroundColor: ET.bg }}
           >
             Save Draft
