@@ -144,7 +144,7 @@ const Step3 = ({ onNext }: StepProps) => (
     
     <div className="rounded-xl mb-8 overflow-hidden border" style={{ borderColor: ET.border, height: '152px' }}>
       <iframe 
-        src="https://open.spotify.com/embed/playlist/4uNqCkauUERIwqt6HEhhsK?utm_source=generator&theme=0" 
+        src="https://open.spotify.com/embed/playlist/2ofu1VIe6umZDQjjdMsZ6j?utm_source=generator&theme=0" 
         width="100%" 
         height="152" 
         frameBorder="0" 
