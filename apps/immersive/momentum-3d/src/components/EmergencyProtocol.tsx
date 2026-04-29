@@ -300,7 +300,7 @@ const Success = ({ onNext }: StepProps) => {
       ) : (
         <form onSubmit={subscribe} className="text-left">
           <p className="text-sm mb-6 text-center" style={{ color: ET.mid }}>
-            Protocol complete. Claim your **Duck OS Starter Kit** (Free) to maintain this momentum.
+            Protocol complete. Claim your <strong style={{ color: ET.ink }}>Duck OS Starter Kit</strong> (Free) to maintain this momentum.
           </p>
           <input 
             type="email"
