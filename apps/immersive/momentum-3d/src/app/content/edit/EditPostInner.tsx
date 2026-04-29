@@ -135,7 +135,7 @@ export default function EditPostPage() {
           tags: tg.split(',').map(x => x.trim()).filter(Boolean),
           category: cat, featuredImage: img, imageAlt: alt || undefined,
           scene: sc, mood: md, status: st,
-          scheduledAt: schAt || undefined,
+          scheduledAt: schAt ? new Date(schAt).toISOString() : undefined,
         }),
       })
       savedAtRef.current = Date.now()
@@ -184,7 +184,7 @@ export default function EditPostPage() {
           tags: tags.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean),
           category, featuredImage, imageAlt: imageAlt || undefined,
           scene, mood, status,
-          scheduledAt: scheduledAt || undefined,
+          scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
         }),
       })
       savedAtRef.current = Date.now()
