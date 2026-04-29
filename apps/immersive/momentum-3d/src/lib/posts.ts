@@ -72,7 +72,7 @@ export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[]): Pro
     if (post.status !== 'scheduled' || !post.scheduledAt) return post
     const t = new Date(post.scheduledAt)
     if (isNaN(t.getTime()) || t > now) return post
-    const promoted = { ...post, status: 'published' as const, scheduledAt: undefined }
+    const promoted = { ...post, status: 'published' as const, scheduledAt: undefined, date: now.toISOString().split('T')[0] }
     try { await kv.put(`post:${post.slug}`, JSON.stringify(promoted)) } catch { /* non-fatal */ }
     return promoted
   }))
@@ -97,7 +97,7 @@ export async function savePost(
   const post: Post = {
     slug:         merged.slug,
     title:        merged.title,
-    date:         merged.date         || now,
+    date:         (merged.status === 'published' && existing?.status !== 'published') ? now : (merged.date || now),
     category:     merged.category     || 'uncategorized',
     scene:        merged.scene        || 'default',
     mood:         merged.mood         || 'neutral',
