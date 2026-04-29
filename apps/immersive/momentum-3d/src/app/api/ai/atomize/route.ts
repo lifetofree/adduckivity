@@ -4,12 +4,13 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: NextRequest) {
-  const { task } = await req.json();
+  const body = await req.json() as { task?: string };
+  const { task } = body;
   if (!task) return NextResponse.json({ error: 'Task required' }, { status: 400 });
 
   const env = getRequestContext<CloudflareEnv>().env;
   const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const prompt = `
     Act as a "Task Atomizer" for a user with ADHD/Executive Dysfunction.
