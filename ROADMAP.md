@@ -1,7 +1,7 @@
 # 🦆 Duck OS Project Roadmap
 
-**Last Updated:** 2026-04-22  
-**Current Status:** MVP LIVE - https://aa5f8c22.immersive-adduckivity.pages.dev  
+**Last Updated:** 2026-04-30  
+**Current Status:** CMS & Interactive Protocols LIVE - https://immersive.adduckivity.com  
 **Energy Level at Last Session:** 9/10 (Peak performance state)
 
 ---
@@ -16,201 +16,69 @@
 
 ---
 
-## ✅ COMPLETED (Phase 0: Foundation)
+## ✅ COMPLETED (Phase 0-1: Foundation & Content System)
 
-### 🚀 Major Achievement: 3D Content Studio MVP
-**Session Date:** 2026-04-22  
-**Energy Level:** 9/10  
-**Time Investment:** One session  
-**Status:** ✅ LIVE
+### 🚀 Major Achievement: 3D Content Studio & Interactive CMS
+**Status:** ✅ LIVE & FUNCTIONAL
 
 **What Was Built:**
-- ✅ Interactive 3D flywheel that responds to scroll
-- ✅ Complete Momentum Protocol content beautifully presented
-- ✅ React Three Fiber scene with UDO duck character
-- ✅ Professional branding with Adduckivity logo
-- ✅ Monorepo structure for scalable content empire
-- ✅ GitHub repository with comprehensive documentation
-- ✅ LIVE deployment on Cloudflare Pages
+- ✅ **Interactive 3D Protocols**: Momentum Flywheel (ACT-04) and Emergency Recovery (FAIL-SAFE).
+- ✅ **Dynamic CMS Dashboard**: Custom-built Next.js admin UI for managing posts (`/content`).
+- ✅ **AI Writing Assistant**: Integrated Gemini 2.0 Flash for titles, excerpts, and outlines.
+- ✅ **Robust Scheduling**: Automated promotion of scheduled posts with secret-protected maintenance API.
+- ✅ **Social Integration**: Automated Facebook Page sharing with duplicate prevention.
+- ✅ **Asset Pipeline**: Unsplash integration and R2-backed image uploads.
+- ✅ **Privacy Analytics**: Minimal tracking for engagement without compromising user data.
+- ✅ **Lead Gen**: SendFox email integration on the Momentum page.
 
-**Live URL:** https://aa5f8c22.immersive-adduckivity.pages.dev  
-**GitHub:** https://github.com/lifetofree/adduckivity
-
-**Technical Stack:**
-- Frontend: Next.js 14 + React + TypeScript
-- 3D: Three.js + React Three Fiber + Drei
-- Styling: Tailwind CSS
-- Deployment: Cloudflare Pages
-- Repository: Monorepo structure
-
-**Key Files Created:**
-- `UDO-SYSTEM.md` - AI co-founder system instruction
-- `AGENTS.md` - Project specifications and philosophy
-- `README.md` - Monorepo architecture documentation
-- `apps/immersive/momentum-3d/` - 3D content studio
-
-**Monetization Foundation:**
-- Email capture integrated (ready for connection)
-- Duck OS Starter Kit strategy defined
-- Content-to-product funnel designed
+**Live URL:** https://immersive.adduckivity.com  
 
 ---
 
-## 🎯 CURRENT FOCUS (Phase 1: Content System)
+## 🎯 CURRENT FOCUS (Phase 2: Executive Function Tools)
 
-### Objective: Replace WordPress with Git-Based Content System
+### Objective: Lower the Activation Energy for "Scary" Tasks
 
 **Timeline:** 1-2 weeks  
 **Complexity:** Medium  
-**Energy Required:** 6-8/10
+**Energy Required:** 7-8/10
 
-**Why Git-Based (JAMstack)?**
-- Zero monthly costs (Duck OS principle: minimize overhead)
-- Blazing fast (static files = performance)
-- Version control (content history is free)
-- AI-friendly (easy to automate content creation)
-- Fits your 3D content vision
-
----
-
-## 📋 IMMEDIATE NEXT STEPS
-
-### Step 1: Landing Page Theme Redesign
-**Priority:** HIGH  
-**Estimated Time:** 2-3 hours  
-**Energy Required:** 7/10
-
-**Current State:**
-- Landing page functional but not minimal/clean
-- Needs feature image inspiration from WordPress
-- User wants minimal, clean, easy-to-use design
-
+#### Feature: "The Atomizer" (Task-Breaking Utility)
+**Why?** Neurodivergent creators often get stuck at the "Wall of Awful" when a task feels too big or vague. 
 **Action Items:**
-- [ ] Analyze WordPress site for minimal design inspiration
-- [ ] Design new landing page with minimal/clean aesthetic
-- [ ] Implement feature image section
-- [ ] Optimize for mobile and desktop
-- [ ] Test and deploy
-
-**Reference:** User likes minimal, clean, easy-to-use tone with feature images like WordPress
+- [ ] Design "The Atomizer" interactive UI (Minimal, focused, calming).
+- [ ] Integrate Gemini AI to break user input into 2-minute "Atomic Steps."
+- [ ] Implement "Fastest Start" mode (just show the first step).
+- [ ] Add persistence (Local Storage or KV) so users can return to their broken-down tasks.
+- [ ] Link from the Emergency Recovery protocol as a "Tiny Action" generator.
 
 ---
 
-### Step 2: Design Git-Based Content Architecture
-**Priority:** HIGH  
-**Estimated Time:** 3-4 hours  
-**Energy Required:** 7/10
+## 📋 NEXT STEPS
 
-**Content Structure to Design:**
-```
-apps/immersive/
-├── content/
-│   ├── posts/
-│   │   ├── momentum-protocol.md
-│   │   ├── flow-state.md
-│   │   ├── digital-declutter.md
-│   │   └── system-awareness.md
-│   ├── protocols/
-│   │   ├── act-04-momentum.md
-│   │   ├── surv-01-declutter.md
-│   │   └── flow-state-architecture.md
-│   └── assets/
-│       ├── images/
-│       └── 3d-scenes/
-```
+### Step 1: Design "The Atomizer" Interface
+- [ ] Create a minimalist, distraction-free input area.
+- [ ] Use 3D elements (bubbles or fragments) to visualize the breaking down of a task.
+- [ ] Focus on "One Step at a Time" visibility.
 
-**Frontmatter Format:**
-```yaml
----
-title: "Momentum Protocol"
-slug: "momentum-protocol"
-date: 2026-04-22
-category: "protocol"
-scene: "momentum-flywheel"
-mood: "energetic"
-excerpt: "Action over motivation. How to build momentum when you don't feel like it."
-tags: ["momentum", "action", "adhd", "protocols"]
----
-```
-
-**Action Items:**
-- [ ] Design content folder structure
-- [ ] Define frontmatter schema
-- [ ] Plan content migration from WordPress
-- [ ] Design content routing in Next.js
-- [ ] Plan 3D scene assignment system
-
----
-
-### Step 3: Build Content Management Pipeline
-**Priority:** MEDIUM  
-**Estimated Time:** 4-6 hours  
-**Energy Required:** 8/10
-
-**What to Build:**
-1. **Markdown Processing System**
-   - Install: `contentlayer` or `next-mdx-remote`
-   - Parse frontmatter and content
-   - Generate static pages
-
-2. **Content Routing**
-   - Dynamic routes: `/content/[slug]`
-   - Category pages: `/protocols`, `/articles`
-   - Tag filtering system
-
-3. **3D Scene Assignment**
-   - Frontmatter determines which 3D scene
-   - Reusable scene components
-   - Fallback to default scene
-
-**Action Items:**
-- [ ] Choose Markdown processing library
-- [ ] Set up content routing
-- [ ] Build 3D scene assignment system
-- [ ] Create content templates
-- [ ] Test with existing Momentum Protocol content
+### Step 2: Build the AI Breakdown Pipeline
+- [ ] Create `/api/ai/atomize` route.
+- [ ] Craft prompt for Gemini to ensure steps are truly "atomic" (2 mins or less).
+- [ ] Handle "too big" tasks by suggesting sub-projects.
 
 ---
 
 ## 🚀 FUTURE PHASES
 
-### Phase 2: Content Production (Month 2)
-**Goal:** 10+ articles with 3D experiences
+### Phase 3: Sensory & Energy Management (Month 3)
+**Goal:** Prevent stealth burnout by checking in with the biological system.
+- **Sensory Sync**: Pre-flight checklist for light, water, and noise.
+- **Energy-Match Selector**: Dashboard to match tasks to current energy levels.
 
-**Content Pipeline:**
-1. Write content (Markdown + frontmatter)
-2. AI suggests 3D scene based on content
-3. Build/reuse 3D components
-4. Deploy automatically
-
-**Target Articles:**
-- Flow State Architecture
-- Digital Declutter (SURV-01)
-- System Awareness
-- Single-Tasking Protocol
-- Weekly Calibration
-- + 5 more
-
----
-
-### Phase 3: Lead Generation (Month 3)
-**Goal:** 500-1,000 email subscribers
-
-**What to Build:**
-- Email capture integration (ConvertKit/Mailerlite)
-- Duck OS Starter Kit (PDF + Notion template)
-- Lead magnet delivery system
-- Email nurture sequence (5 emails)
-
----
-
-### Phase 4: First Digital Product (Month 4)
-**Goal:** Launch paid product ($29-49)
-
-**Product Options:**
-- Duck OS System Blueprint ($29)
-- Complete Protocol Library ($49)
-- Notion System Templates ($39)
+### Phase 4: Lead Generation & First Product (Month 4)
+**Goal:** 500-1,000 email subscribers + Launch paid product ($29-49).
+- Duck OS Starter Kit (PDF + Notion template).
+- Duck OS Recovery Protocol (Paid Pre-Order fulfillment).
 
 ---
 

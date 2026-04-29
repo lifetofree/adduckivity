@@ -48,6 +48,7 @@
 | `/api/posts` | GET | List all posts or fetch by `?slug=` |
 | `/api/posts` | PUT | Update post — triggers Facebook auto-post on first publish |
 | `/api/posts` | DELETE | Delete post |
+| `/api/posts/maintenance` | GET | Trigger promotion of overdue scheduled posts (protected by key) |
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
 | `/api/ai` | POST | Gemini proxy — titles, excerpt, outline, seo, tags |
 | `/api/unsplash` | GET | Unsplash search proxy |
@@ -60,13 +61,12 @@
 ## Integrations
 
 ### Facebook Auto-Post
-- Triggers on first publish of a post (`draft → published`)
+- Triggers on transition to `published` status (manual or scheduled)
+- Implements `facebookPosted` flag and KV-based locking to prevent duplicate posts
 - Posts to Facebook Page feed with title, excerpt, link, hashtags
 - Cover image served via OG meta tags on blog post page — Facebook scrapes automatically
-- Use [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug) to force re-scrape after first publish
 - Response includes `facebook: { ok, error }` field visible in publish toast
 - **Env vars:** `FACEBOOK_PAGE_ACCESS_TOKEN`, `FACEBOOK_PAGE_ID`, `SITE_URL`
-- Token expires periodically — refresh via Graph API Explorer with `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` permissions
 
 ### SendFox Newsletter
 - `/api/subscribe` accepts `{ email }` → adds to SendFox list
@@ -96,8 +96,8 @@ FACEBOOK_PAGE_ID
 SITE_URL=https://immersive.adduckivity.com
 SENDFOX_API_TOKEN
 SENDFOX_LIST_ID
+MAINTENANCE_KEY              — Secret for triggering /api/posts/maintenance
 ```
-
 ### Cloudflare Bindings (wrangler.toml)
 ```
 POSTS_KV       — KV namespace: a07209b5ad9a4972aa82a30d0af3071e
@@ -123,6 +123,7 @@ interface Post {
   readingTime: string        // auto-calculated
   status: 'draft' | 'published' | 'scheduled'
   scheduledAt?: string       // ISO datetime — only used when status is 'scheduled'
+  facebookPosted?: boolean   // tracks if the post has been shared to Facebook
   content: string            // markdown
 }
 ```
@@ -139,8 +140,9 @@ interface Post {
 | `src/lib/posts.test.ts` | toSlug, readingTime (legacy) |
 | `src/__tests__/posts.pure.test.ts` | readingTime (5), toSlug (7) |
 | `src/__tests__/posts.kv.test.ts` | savePost, getPostBySlug, getAllPosts, getPublishedPosts, updatePost, deletePost, slugExists |
+| `src/__tests__/posts.schedule.test.ts`| hides future, promotes past, facebookPosted flag, race condition lock |
 
-**Total:** 32 tests passing
+**Total:** 36 tests passing
 
 ---
 
@@ -229,9 +231,9 @@ adduckivity/
 
 Posts support `status: 'scheduled'` with a `scheduledAt` ISO datetime field.
 
-- Blog pages use `isPostLive(post)` from `lib/posts.ts` — returns `true` for `published` posts or `scheduled` posts where `scheduledAt <= now`
-- No background job needed — liveness is checked at request time
-- CMS editor shows **Schedule** button (yellow badge) alongside Publish
-- Facebook auto-post does NOT fire at scheduled time — only fires when manually Published
+- **Promotion:** Overdue posts are automatically promoted to `published` status during list fetches (`GET /api/posts`) or when hitting the `/api/posts/maintenance` endpoint.
+- **Social Sharing:** When a post is promoted (or manually published for the first time), it triggers a Facebook post. The `facebookPosted` flag ensures it only happens once.
+- **Automation:** The `/api/posts/maintenance` endpoint (protected by `MAINTENANCE_KEY`) should be hit periodically by an external CRON job.
+- **Lazy Fallback:** Blog list and post pages also trigger promotion as a fallback if no background job has run yet.
 
-*Last updated: 2026-04-29*
+*Last updated: 2026-04-30*

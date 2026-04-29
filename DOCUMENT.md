@@ -27,16 +27,16 @@ KV-backed post CRUD. All functions accept `KVNamespace` as first arg.
 
 | Function | Description |
 |---|---|
-| `readingTime(content)` | Returns `"< 1 min read"` for <200 words, else `"N min read"`. Strips markdown syntax before counting. |
+| `readingTime(content)` | Returns `"< 1 min read"` for <200 words, else `"N min read"`. Strips markdown syntax before counting words. |
 | `toSlug(title)` | Lowercase, trim, strip non-alphanumeric, collapse hyphens, remove leading/trailing hyphens. Max 60 chars. |
-| `isPostLive(post)` | Returns `true` if `published`, or `scheduled` with `scheduledAt <= now` |
-| `getAllPosts(kv)` | All posts sorted newest-first |
-| `getPublishedPosts(kv)` | Filtered to `status === 'published'` |
-| `getPostBySlug(kv, slug)` | Returns `Post \| null` |
-| `savePost(kv, input)` | Upsert — merges with existing, auto-fills defaults |
-| `updatePost(kv, slug, input)` | Patch — handles slug rename (deletes old key) |
-| `deletePost(kv, slug)` | Returns `boolean` |
-| `slugExists(kv, slug)` | Returns `boolean` |
+| `isPostLive(post)` | Returns `true` if `published`, or `scheduled` with `scheduledAt <= now`. |
+| `postToFacebook(env, post)` | Centralized utility to share posts to Facebook. Uses `facebookPosted` flag and KV-lock to prevent duplicates. |
+| `getAllPosts(kv)` | All posts sorted newest-first. |
+| `getPublishedPosts(kv, env?)` | Filtered to `status === 'published'`. Triggers promotion of overdue posts if `env` is provided. |
+| `promoteScheduledPosts(kv, posts, env?)` | Promotes overdue `scheduled` posts to `published`. Triggers `postToFacebook` if `env` is provided. |
+| `getPostBySlug(kv, slug)` | Returns `Post \| null`. |
+| `savePost(kv, input)` | Upsert — merges with existing, auto-fills defaults, preserves `facebookPosted` flag. |
+| `updatePost(kv, slug, input)` | Patch — handles slug rename (deletes old key). |
 
 ### `src/lib/content.ts`
 Build-time file-system loader (reads `public/content/*.md` via gray-matter). Used for static pages only.
@@ -80,12 +80,18 @@ Subscribe email to SendFox list.
 **Notes:** 422 from SendFox (already subscribed) returns `{ success: true }`
 
 ### `PUT /api/posts?slug=`
-Upsert post (creates if not found in KV). Triggers Facebook auto-post on first publish.
+Upsert post. Triggers Facebook auto-post on transition to `published` if not already posted.
 
 **Response includes:** `{ ...post, facebook?: { ok: boolean, error?: string } }`
 
+### `GET /api/posts/maintenance`
+Maintenance endpoint to trigger promotion of overdue scheduled posts.
+
+**Header:** `x-maintenance-key` (Must match `MAINTENANCE_KEY` in env).  
+**Response:** `{ success: true, publishedCount: number }`
+
 ### `POST /api/posts/save`
-Upsert for new post auto-save and publish. Also returns `facebook` field on first publish.
+Upsert for new post auto-save and publish. Also triggers Facebook post if applicable.
 
 ### `POST /api/upload`
 Upload image to R2. Returns `{ url }` as absolute `https://` URL.
@@ -146,6 +152,7 @@ FACEBOOK_PAGE_ID
 SITE_URL=https://immersive.adduckivity.com
 SENDFOX_API_TOKEN
 SENDFOX_LIST_ID
+MAINTENANCE_KEY
 ```
 
 > After adding new env vars, always redeploy — Cloudflare loads env at deploy time, not at runtime.
@@ -161,12 +168,15 @@ id = "a07209b5ad9a4972aa82a30d0af3071e"
 
 ## 6. Known Behaviours
 
-- **Facebook auto-post** fires only on first publish (`draft → published`). Re-saving a published post does not re-post. Facebook image comes from OG meta tags on the blog post page — use Facebook Sharing Debugger to force re-scrape after first publish.
+- **Facebook auto-post** fires on transition to `published` (manual or scheduled). The `facebookPosted` flag and a 10-minute KV-based lock prevent duplicate posts during concurrent requests.
 - **`toSlug`** strips leading/trailing hyphens AFTER `.slice(0, 60)` — prevents trailing `-` on long titles.
-- **Tags** — `#` prefix is stripped on save. Blog renders tags as `#tag` so storing raw tag names (no `#`) is required.
-- **Image uploads** — stored in Cloudflare R2 (`immersive-assets` bucket), served via `/api/assets/`. Dev environment falls back to base64 data URL.
+- **Tags** — `#` prefix is stripped on save. Blog renders tags as `#tag`.
+- **Image uploads** — stored in Cloudflare R2 (`immersive-assets` bucket), served via `/api/assets/`.
 - **OG meta tags** — generated dynamically in `blog/[slug]/page.tsx` via `generateMetadata`. Only `https://` image URLs are included (not data: URLs).
-- **Scheduled posts** — `status: 'scheduled'` + `scheduledAt` ISO datetime. `isPostLive()` checks time at request; no cron/background job needed. Facebook auto-post does not fire at scheduled time.
+- **Scheduled posts** — `status: 'scheduled'` + `scheduledAt` ISO datetime. Promotion and automated social sharing are triggered by:
+    1.  The `/api/posts/maintenance` API (best for CRON).
+    2.  Admin dashboard views (`/content`).
+    3.  Direct visitor access to the blog or post (lazy fallback).
 - **`readingTime`** strips `# * \` [ ]` markdown chars before counting words.
 - **Dev KV** is in-memory and resets on server restart.
 - **`/content` routes** have no authentication — unlinked from public nav only.
@@ -185,5 +195,6 @@ npm run test:watch  # watch mode
 | `src/lib/posts.test.ts` | 6 — toSlug, readingTime (legacy) |
 | `src/__tests__/posts.pure.test.ts` | 12 — readingTime, toSlug |
 | `src/__tests__/posts.kv.test.ts` | 14 — full KV CRUD |
+| `src/__tests__/posts.schedule.test.ts` | 4 — scheduling & sharing logic |
 
-**Total: 32 passing**
+**Total: 36 passing**
