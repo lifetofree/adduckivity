@@ -361,7 +361,7 @@ const Checkout = () => (
 
     <div className="space-y-4">
       <a 
-        href="https://www.facebook.com/messages/t/adduckivity" // Robust link for desktop and mobile
+        href="https://www.facebook.com/messages/t/61583198784543" // Direct link using Page ID
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full py-4 rounded-xl font-bold text-center flex items-center justify-center gap-2 transition-all hover:opacity-90"
