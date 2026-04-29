@@ -74,15 +74,15 @@ const Step2 = ({ onNext }: StepProps) => {
   const [isActive, setIsActive] = useState(false)
 
   useEffect(() => {
-    let interval: any = null
+    let interval: ReturnType<typeof setInterval> | null = null
     if (isActive && seconds > 0) {
       interval = setInterval(() => {
         setSeconds((s) => s - 1)
       }, 1000)
-    } else if (seconds === 0) {
+    } else if (seconds === 0 && interval) {
       clearInterval(interval)
     }
-    return () => clearInterval(interval)
+    return () => { if (interval) clearInterval(interval) }
   }, [isActive, seconds])
 
   const formatTime = (s: number) => {
@@ -268,8 +268,12 @@ const Success = ({ onNext }: StepProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-      if (res.ok) setStatus('success')
-      else setStatus('error')
+      if (res.ok) {
+        setStatus('success')
+        trackEvent('emergency_subscribe')
+      } else {
+        setStatus('error')
+      }
     } catch {
       setStatus('error')
     }
@@ -365,6 +369,7 @@ const Checkout = () => (
         href="https://www.messenger.com/t/61583198784543" // Most reliable direct link for numeric IDs
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackEvent('emergency_facebook_click')}
         className="block w-full py-4 rounded-xl font-bold text-center flex items-center justify-center gap-2 transition-all hover:opacity-90"
         style={{ backgroundColor: '#0084FF', color: '#fff' }}
       >
@@ -385,16 +390,47 @@ const Checkout = () => (
   </motion.div>
 )
 
+const trackEvent = async (event: string) => {
+  try {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event }),
+    })
+  } catch (err) {
+    // Non-blocking error
+    console.error('Tracking failed', err)
+  }
+}
+
 export default function EmergencyProtocol() {
   const [step, setStep] = useState(0)
 
   const steps = [
-    <Step0 key="0" onNext={() => setStep(1)} />,
-    <Step1 key="1" onNext={() => setStep(2)} />,
-    <Step2 key="2" onNext={() => setStep(3)} />,
-    <Step3 key="3" onNext={() => setStep(4)} />,
-    <Step4 key="4" onNext={() => setStep(5)} />,
-    <Step5 key="5" onNext={() => setStep(6)} />,
+    <Step0 key="0" onNext={() => {
+      trackEvent('emergency_start')
+      setStep(1)
+    }} />,
+    <Step1 key="1" onNext={() => {
+      trackEvent('emergency_step_1_complete')
+      setStep(2)
+    }} />,
+    <Step2 key="2" onNext={() => {
+      trackEvent('emergency_step_2_complete')
+      setStep(3)
+    }} />,
+    <Step3 key="3" onNext={() => {
+      trackEvent('emergency_step_3_complete')
+      setStep(4)
+    }} />,
+    <Step4 key="4" onNext={() => {
+      trackEvent('emergency_step_4_complete')
+      setStep(5)
+    }} />,
+    <Step5 key="5" onNext={() => {
+      trackEvent('emergency_step_5_complete')
+      setStep(6)
+    }} />,
     <Success key="6" onNext={() => setStep(7)} />,
     <Checkout key="7" />
   ]
