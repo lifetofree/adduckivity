@@ -68,7 +68,20 @@ export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
 
 export async function getPublishedPosts(kv: KVNamespace): Promise<Post[]> {
   const all = await getAllPosts(kv)
-  return all.filter(isPostLive)
+  const now = new Date()
+  const live: Post[] = []
+
+  await Promise.all(all.map(async post => {
+    if (post.status === 'published') {
+      live.push(post)
+    } else if (post.status === 'scheduled' && post.scheduledAt && new Date(post.scheduledAt) <= now) {
+      const promoted = { ...post, status: 'published' as const, scheduledAt: undefined }
+      await kv.put(`post:${post.slug}`, JSON.stringify(promoted))
+      live.push(promoted)
+    }
+  }))
+
+  return live.sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
 export async function getPostBySlug(kv: KVNamespace, slug: string): Promise<Post | null> {
