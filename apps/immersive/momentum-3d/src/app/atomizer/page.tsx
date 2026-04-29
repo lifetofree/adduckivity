@@ -27,7 +27,12 @@ export default function AtomizerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task: input }),
       });
-      const data = await res.json();
+      const data = await res.json() as { steps?: string[]; error?: string };
+      
+      if (!data.steps || data.error) {
+        throw new Error(data.error || 'No steps returned');
+      }
+      
       const newTask: AtomizerTask = {
         originalTask: input,
         steps: data.steps.map((text: string, i: number) => ({
