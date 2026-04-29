@@ -74,10 +74,15 @@ export async function getPublishedPosts(kv: KVNamespace): Promise<Post[]> {
   await Promise.all(all.map(async post => {
     if (post.status === 'published') {
       live.push(post)
-    } else if (post.status === 'scheduled' && post.scheduledAt && new Date(post.scheduledAt) <= now) {
-      const promoted = { ...post, status: 'published' as const, scheduledAt: undefined }
-      await kv.put(`post:${post.slug}`, JSON.stringify(promoted))
-      live.push(promoted)
+      return
+    }
+    if (post.status === 'scheduled' && post.scheduledAt) {
+      const scheduledTime = new Date(post.scheduledAt)
+      if (!isNaN(scheduledTime.getTime()) && scheduledTime <= now) {
+        const promoted = { ...post, status: 'published' as const, scheduledAt: undefined }
+        try { await kv.put(`post:${post.slug}`, JSON.stringify(promoted)) } catch { /* non-fatal */ }
+        live.push(promoted)
+      }
     }
   }))
 
