@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getPostBySlug, getAllPosts, isPostLive } from '@/lib/posts'
+import { getPostBySlug, getAllPosts, isPostLive, promoteScheduledPosts } from '@/lib/posts'
 import { renderMarkdown, extractHeadings } from '@/lib/markdown'
 import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
@@ -54,9 +54,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const kv = getKV()
-  const post = await getPostBySlug(kv, slug)
+  const raw = await getPostBySlug(kv, slug)
+  if (!raw || !isPostLive(raw)) notFound()
 
-  if (!post || !isPostLive(post)) notFound()
+  const [post] = await promoteScheduledPosts(kv, [raw])
 
   const allPosts = await getAllPosts(kv)
   const related = allPosts

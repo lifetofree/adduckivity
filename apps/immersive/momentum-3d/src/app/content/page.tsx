@@ -3,7 +3,7 @@ export const runtime = 'edge'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getAllPosts } from '@/lib/posts'
+import { getAllPosts, promoteScheduledPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
 
@@ -12,7 +12,7 @@ export default async function ContentDashboard() {
   const kv = process.env.NODE_ENV === 'development'
     ? getMockKV()
     : getRequestContext<CloudflareEnv>().env.POSTS_KV
-  const allPosts  = await getAllPosts(kv)
+  const allPosts  = await promoteScheduledPosts(kv, await getAllPosts(kv))
   const statusOrder = { draft: 0, scheduled: 1, published: 2 } as const
   const posts = [...allPosts].sort((a, b) => {
     const sd = statusOrder[a.status] - statusOrder[b.status]
