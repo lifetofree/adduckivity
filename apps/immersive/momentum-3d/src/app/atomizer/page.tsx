@@ -45,10 +45,13 @@ export default function AtomizerPage() {
         energyCheckCount: 0,
         createdAt: new Date().toISOString(),
       };
-      setTask(newTask);
-      saveAtomizerTask(newTask);
+      
       setShatter(true);
-      setTimeout(() => setShatter(false), 2000);
+      setTimeout(() => {
+        setTask(newTask);
+        saveAtomizerTask(newTask);
+        setShatter(false);
+      }, 1000);
     } catch (err) {
       console.error(err);
     } finally {
@@ -64,8 +67,10 @@ export default function AtomizerPage() {
     
     setTask(updatedTask);
     saveAtomizerTask(updatedTask);
+    
+    // Quick burst on completion
     setShatter(true);
-    setTimeout(() => setShatter(false), 1000);
+    setTimeout(() => setShatter(false), 500);
 
     // Law 3: Energy check every 6 steps
     if (completedCount % 6 === 0) {
@@ -74,7 +79,7 @@ export default function AtomizerPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: ET.bg, color: ET.ink }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: ET.bg }}>
       {/* Navigation Header */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b px-6 py-4 flex items-center justify-between" style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -102,6 +107,7 @@ export default function AtomizerPage() {
         </div>
       </nav>
 
+      {/* 3D Background */}
       <AtomizerScene shatter={shatter} />
       
       <AnimatePresence>
@@ -118,39 +124,47 @@ export default function AtomizerPage() {
 
       <main className="flex-1 z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 py-32">
         {!task ? (
-          <div className="w-full text-center">
-            <h1 className="text-4xl font-bold mb-4">What's the <span style={{ color: ET.accent }}>scary task</span>?</h1>
-            <p className="text-sm mb-8" style={{ color: ET.sub }}>We'll atomize it into 2-minute steps. Law 1: System {'>'} Emotion.</p>
-            <div className="flex gap-2 text-left">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full text-center"
+          >
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight" style={{ color: ET.ink }}>
+              The <span style={{ color: ET.accent }}>Atomizer</span>
+            </h1>
+            <p className="text-lg mb-12 max-w-md mx-auto" style={{ color: ET.mid }}>
+              Break intimidating projects into tiny, 2-minute steps. Law 1: System &gt; Emotion.
+            </p>
+            <div className="flex flex-col md:flex-row gap-3">
               <input 
                 type="text" 
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAtomize()}
-                placeholder="e.g., Do my taxes..."
-                className="flex-1 bg-transparent border-b-2 text-2xl py-2 px-1 focus:outline-none transition-all"
-                style={{ borderColor: ET.border }}
+                placeholder="What is the scary task?"
+                className="flex-1 bg-black/40 border p-4 rounded-xl text-lg outline-none transition-all focus:ring-1 ring-cyan-500"
+                style={{ borderColor: ET.border, color: ET.ink }}
               />
               <button 
                 onClick={handleAtomize}
                 disabled={loading || !input}
-                className="px-6 py-2 rounded-xl font-bold transition-all disabled:opacity-50"
-                style={{ backgroundColor: ET.accent, color: ET.surface }}
+                className="px-8 py-4 rounded-xl font-bold transition-all disabled:opacity-50 hover:scale-105 active:scale-95"
+                style={{ backgroundColor: ET.accent, color: ET.bg }}
               >
-                {loading ? 'Atomizing...' : 'Atomize'}
+                {loading ? 'Atomizing...' : 'Initialize'}
               </button>
             </div>
-          </div>
+          </motion.div>
         ) : (
           <div className="w-full flex flex-col items-center">
             <header className="mb-12 text-center">
-                <h2 className="text-sm font-bold uppercase tracking-widest mb-2" style={{ color: ET.sub }}>Project</h2>
-                <h1 className="text-2xl font-bold">{task.originalTask}</h1>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] mb-3" style={{ color: ET.accent }}>Project Atomized</p>
+                <h1 className="text-3xl font-bold mb-4">{task.originalTask}</h1>
                 <button 
                     onClick={() => { setTask(null); saveAtomizerTask(null); }}
-                    className="mt-4 text-[10px] uppercase font-bold tracking-tighter opacity-50 hover:opacity-100"
+                    className="text-xs font-medium opacity-50 hover:opacity-100 transition-opacity flex items-center gap-2 mx-auto"
                 >
-                    Abandon & Start New →
+                    Abandon System & Restart <span>↺</span>
                 </button>
             </header>
             <AtomizerList steps={task.steps} onComplete={handleComplete} />
@@ -158,18 +172,16 @@ export default function AtomizerPage() {
         )}
       </main>
 
-      {/* ── Footer ── */}
-      <footer className="z-10 border-t py-10 px-6 mt-20" style={{ borderColor: ET.border, backgroundColor: 'rgba(10,15,30,0.8)', backdropFilter: 'blur(10px)' }}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Adduckivity" width={28} height={28} className="rounded-md" />
+      {/* Footer (Emergency Style) */}
+      <footer className="z-10 py-12 px-6 border-t" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <Image src="/logo.png" alt="Adduckivity Logo" width={28} height={28} className="rounded-md" />
             <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
           </div>
-          <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
-            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
-            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
-          </div>
-          <p className="text-xs" style={{ color: ET.sub }}>Powered by Duck OS Systems</p>
+          <p className="text-sm mb-1" style={{ color: ET.sub }}>
+            Part of the <strong style={{ color: ET.ink }}>Duck OS</strong> — Life Architecture for Neurodivergent Creators
+          </p>
         </div>
       </footer>
     </div>
