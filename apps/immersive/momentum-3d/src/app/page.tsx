@@ -170,7 +170,7 @@ export default async function Home() {
             {features.map((f, i) => (
               <Link key={i} href={f.href} className="group block">
                 <article
-                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1"
+                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 flex flex-col h-full"
                   style={{ backgroundColor: ET.surface, borderColor: ET.border }}
                 >
                   {/* 16:9 image */}
@@ -196,15 +196,15 @@ export default async function Home() {
                     </div>
                   </div>
 
-                  <div className="p-5 flex items-start justify-between gap-3">
-                    <div>
+                  <div className="p-5 flex items-start justify-between gap-3 flex-1 min-h-0">
+                    <div className="min-w-0">
                       <h3
-                        className="font-semibold text-base leading-snug mb-1.5"
+                        className="font-semibold text-base leading-snug mb-1.5 line-clamp-1"
                         style={{ color: ET.ink }}
                       >
                         {f.title}
                       </h3>
-                      <p className="text-xs leading-relaxed" style={{ color: ET.sub }}>
+                      <p className="text-xs leading-relaxed line-clamp-2" style={{ color: ET.sub }}>
                         {f.description}
                       </p>
                     </div>

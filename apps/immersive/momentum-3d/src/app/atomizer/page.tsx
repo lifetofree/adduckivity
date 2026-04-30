@@ -1,5 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask } from '@/lib/atomizer';
 import AtomizerList from '@/components/AtomizerList';
 import AtomizerScene from '@/components/AtomizerScene';
@@ -73,6 +75,33 @@ export default function AtomizerPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ color: ET.ink }}>
+      {/* Navigation Header */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b px-6 py-4 flex items-center justify-between" style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}>
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Image
+              src="/logo.png"
+              alt="Adduckivity Logo"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
+            <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+              Home
+            </Link>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+              Blog
+            </a>
+            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
+              Tools
+            </a>
+          </div>
+        </div>
+      </nav>
+
       <AtomizerScene shatter={shatter} />
       
       <AnimatePresence>
