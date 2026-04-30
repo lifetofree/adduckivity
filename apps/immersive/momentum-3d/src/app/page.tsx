@@ -9,13 +9,22 @@ import { getMockKV } from '@/lib/dev-kv'
 import { ET } from '@/lib/theme'
 import EmailCTA from '@/components/EmailCTA'
 
-const pinnedFeature = {
-  title: 'Emergency Recovery',
-  description: 'A 5-step fail-safe for when burnout spirals begin.',
-  image: '/uploads/emergency-recovery-cover.svg',
-  href: '/momentum',
-  badge: 'Fail-Safe',
-}
+const pinnedFeatures = [
+  {
+    title: 'Emergency Recovery',
+    description: 'A 5-step fail-safe for when burnout spirals begin.',
+    image: '/uploads/emergency-recovery-cover.svg',
+    href: '/momentum',
+    badge: 'Fail-Safe',
+  },
+  {
+    title: 'The Atomizer',
+    description: 'Break intimidating projects into 2-minute atomic steps with AI.',
+    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260409-img-dec-01-binary-decision-1776944641044.webp?fit=768%2C432&ssl=1',
+    href: '/atomizer',
+    badge: 'Executive Tool',
+  }
+]
 
 const principles = [
   {
