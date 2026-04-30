@@ -23,7 +23,7 @@ export interface ProtocolGraph {
   edges: ProtocolEdge[];
 }
 
-const STORAGE_KEY = 'momentum-protocol';
+export const STORAGE_KEY = 'duckos:protocol:graph';
 
 /**
  * Saves the protocol graph to localStorage

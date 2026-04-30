@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { saveProtocol, loadProtocol } from '../lib/protocol-store';
+import { saveProtocol, loadProtocol, STORAGE_KEY } from '../lib/protocol-store';
 import type { ProtocolGraph } from '../lib/protocol-store';
 
 describe('Protocol Store', () => {
@@ -54,7 +54,18 @@ describe('Protocol Store', () => {
     };
 
     saveProtocol(mockGraph);
-    const storedValue = localStorage.getItem('momentum-protocol');
+    const storedValue = localStorage.getItem(STORAGE_KEY);
     expect(storedValue).toBe(JSON.stringify(mockGraph));
+  });
+
+  it('should handle invalid JSON in localStorage gracefully', () => {
+    localStorage.setItem(STORAGE_KEY, '{ invalid json');
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    const loadedGraph = loadProtocol();
+    
+    expect(loadedGraph).toEqual({ nodes: [], edges: [] });
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 });
