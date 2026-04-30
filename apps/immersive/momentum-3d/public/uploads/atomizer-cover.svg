@@ -1,76 +1,180 @@
 <svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
   <rect width="800" height="450" fill="#0a0f1e"/>
 
   <defs>
     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
       <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a253a" stroke-width="1"/>
     </pattern>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.12"/>
+
+    <!-- Orb outer glow -->
+    <filter id="orbGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Particle glow -->
+    <filter id="pGlow" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Soft glow for electrons -->
+    <filter id="eGlow" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <radialGradient id="bgGlow" cx="50%" cy="44%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.18"/>
       <stop offset="100%" stop-color="#0a0f1e" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="orbFill" cx="38%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#00ccee"/>
+      <stop offset="60%" stop-color="#003a4d"/>
+      <stop offset="100%" stop-color="#001a28"/>
+    </radialGradient>
+
+    <!-- Orbit paths for electron motion -->
+    <path id="path0" d="M 565 195 A 165 55 0 1 0 235 195 A 165 55 0 1 0 565 195"/>
   </defs>
 
   <rect width="800" height="450" fill="url(#grid)"/>
-  <ellipse cx="400" cy="190" rx="280" ry="190" fill="url(#glow)"/>
+  <ellipse cx="400" cy="200" rx="340" ry="220" fill="url(#bgGlow)"/>
 
-  <!-- Orbital rings at 0°, 60°, 120° -->
-  <ellipse cx="400" cy="190" rx="75" ry="26" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
-  <ellipse cx="400" cy="190" rx="75" ry="26" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5" transform="rotate(60 400 190)"/>
-  <ellipse cx="400" cy="190" rx="75" ry="26" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5" transform="rotate(120 400 190)"/>
+  <!-- ── Orbital rings ── -->
+  <ellipse cx="400" cy="195" rx="165" ry="55" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.4"/>
+  <g transform="rotate(60 400 195)">
+    <ellipse cx="400" cy="195" rx="165" ry="55" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.4"/>
+  </g>
+  <g transform="rotate(120 400 195)">
+    <ellipse cx="400" cy="195" rx="165" ry="55" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.4"/>
+  </g>
 
-  <!-- Nucleus -->
-  <circle cx="400" cy="190" r="22" fill="#001a22" stroke="#00e5ff" stroke-width="2.5">
-    <animate attributeName="r" values="22;25;22" dur="2.5s" repeatCount="indefinite"/>
+  <!-- ── Electrons orbiting ── -->
+  <!-- Electron on orbit 0 (unrotated) -->
+  <circle r="6" fill="#00e5ff" filter="url(#eGlow)">
+    <animateMotion dur="4s" repeatCount="indefinite">
+      <mpath href="#path0"/>
+    </animateMotion>
   </circle>
-  <circle cx="400" cy="190" r="9" fill="#00e5ff" opacity="0.9"/>
+  <!-- Electron on orbit 60° — rotated group -->
+  <g transform="rotate(60 400 195)">
+    <circle r="5" fill="#00e5ff" filter="url(#eGlow)" opacity="0.85">
+      <animateMotion dur="5.5s" repeatCount="indefinite" keyPoints="0.33;1;0.33" keyTimes="0;1;1" calcMode="linear">
+        <mpath href="#path0"/>
+      </animateMotion>
+    </circle>
+  </g>
+  <!-- Electron on orbit 120° — rotated group -->
+  <g transform="rotate(120 400 195)">
+    <circle r="5" fill="#00e5ff" filter="url(#eGlow)" opacity="0.75">
+      <animateMotion dur="7s" repeatCount="indefinite" keyPoints="0.66;1;0.66" keyTimes="0;1;1" calcMode="linear">
+        <mpath href="#path0"/>
+      </animateMotion>
+    </circle>
+  </g>
 
-  <!-- Step nodes — 6 atomic task boxes radiating outward -->
-  <!-- Top -->
-  <line x1="400" y1="158" x2="400" y2="104" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
-  <rect x="372" y="82" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
-  <text x="400" y="97" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+  <!-- ── Central orb ── -->
+  <!-- Outer pulse ring -->
+  <circle cx="400" cy="195" r="82" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.25" filter="url(#orbGlow)">
+    <animate attributeName="r" values="82;92;82" dur="2.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.25;0.05;0.25" dur="2.8s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Mid ring -->
+  <circle cx="400" cy="195" r="70" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5" filter="url(#orbGlow)">
+    <animate attributeName="r" values="70;75;70" dur="2.8s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Orb body -->
+  <circle cx="400" cy="195" r="58" fill="url(#orbFill)" stroke="#00e5ff" stroke-width="2" filter="url(#orbGlow)"/>
+  <!-- Core bright dot -->
+  <circle cx="400" cy="195" r="22" fill="#00e5ff" opacity="0.92">
+    <animate attributeName="r" values="22;27;22" dur="2.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.92;0.55;0.92" dur="2.8s" repeatCount="indefinite"/>
+  </circle>
 
-  <!-- Top-right -->
-  <line x1="460" y1="166" x2="526" y2="118" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
-  <rect x="498" y="96" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
-  <text x="526" y="111" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+  <!-- ── Floating particles ── -->
+  <circle cx="130" cy="90"  r="2.5" fill="#00e5ff" filter="url(#pGlow)" opacity="0.55">
+    <animate attributeName="cy" values="90;74;90"   dur="3.2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.55;0.15;0.55" dur="3.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="220" cy="60"  r="2"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.4">
+    <animate attributeName="cy" values="60;44;60"   dur="4.1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="4.1s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="640" cy="75"  r="3"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.5">
+    <animate attributeName="cy" values="75;58;75"   dur="3.7s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;0.12;0.5" dur="3.7s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="700" cy="115" r="2"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.35">
+    <animate attributeName="cy" values="115;100;115" dur="5.0s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.35;0.08;0.35" dur="5.0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="200" r="2.5" fill="#00e5ff" filter="url(#pGlow)" opacity="0.45">
+    <animate attributeName="cy" values="200;183;200" dur="4.4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.45;0.1;0.45" dur="4.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="690" cy="230" r="3"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.5">
+    <animate attributeName="cy" values="230;215;230" dur="3.9s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;0.12;0.5" dur="3.9s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="160" cy="320" r="2"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.35">
+    <animate attributeName="cy" values="320;305;320" dur="4.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.35;0.08;0.35" dur="4.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="620" cy="340" r="2.5" fill="#00e5ff" filter="url(#pGlow)" opacity="0.4">
+    <animate attributeName="cy" values="340;324;340" dur="3.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="340" cy="55"  r="2"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.3">
+    <animate attributeName="cy" values="55;42;55"   dur="5.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.07;0.3" dur="5.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="480" cy="48"  r="3"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.45">
+    <animate attributeName="cy" values="48;33;48"   dur="4.0s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.45;0.1;0.45" dur="4.0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="755" cy="170" r="2"   fill="#00e5ff" filter="url(#pGlow)" opacity="0.35">
+    <animate attributeName="cy" values="170;155;170" dur="6.0s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.35;0.08;0.35" dur="6.0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="55"  cy="290" r="2.5" fill="#00e5ff" filter="url(#pGlow)" opacity="0.4">
+    <animate attributeName="cy" values="290;275;290" dur="4.6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="4.6s" repeatCount="indefinite"/>
+  </circle>
 
-  <!-- Bottom-right -->
-  <line x1="460" y1="214" x2="526" y2="262" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
-  <rect x="498" y="262" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
-  <text x="526" y="277" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+  <!-- ── Step node labels (compact, 4 corners) ── -->
+  <!-- Top-left node -->
+  <line x1="262" y1="148" x2="218" y2="112" stroke="#00e5ff" stroke-width="1" opacity="0.3" stroke-dasharray="4 3"/>
+  <rect x="180" y="92" width="60" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.75"/>
+  <text x="210" y="107" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.9">STEP · 2m</text>
 
-  <!-- Bottom -->
-  <line x1="400" y1="222" x2="400" y2="276" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
-  <rect x="372" y="276" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
-  <text x="400" y="291" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+  <!-- Top-right node -->
+  <line x1="538" y1="148" x2="582" y2="112" stroke="#00e5ff" stroke-width="1" opacity="0.3" stroke-dasharray="4 3"/>
+  <rect x="560" y="92" width="60" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.75"/>
+  <text x="590" y="107" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.9">STEP · 2m</text>
 
-  <!-- Bottom-left -->
-  <line x1="340" y1="214" x2="274" y2="262" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
-  <rect x="246" y="262" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
-  <text x="274" y="277" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+  <!-- Bottom-left node -->
+  <line x1="262" y1="242" x2="218" y2="278" stroke="#00e5ff" stroke-width="1" opacity="0.3" stroke-dasharray="4 3"/>
+  <rect x="180" y="278" width="60" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.75"/>
+  <text x="210" y="293" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.9">STEP · 2m</text>
 
-  <!-- Top-left -->
-  <line x1="340" y1="166" x2="274" y2="118" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
-  <rect x="246" y="96" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
-  <text x="274" y="111" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+  <!-- Bottom-right node -->
+  <line x1="538" y1="242" x2="582" y2="278" stroke="#00e5ff" stroke-width="1" opacity="0.3" stroke-dasharray="4 3"/>
+  <rect x="560" y="278" width="60" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.75"/>
+  <text x="590" y="293" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.9">STEP · 2m</text>
 
-  <!-- Typography -->
-  <text x="400" y="338" font-family="monospace" font-size="30" font-weight="bold" fill="#00e5ff" text-anchor="middle" letter-spacing="5">
+  <!-- ── Typography ── -->
+  <text x="400" y="348" font-family="monospace" font-size="30" font-weight="bold" fill="#00e5ff" text-anchor="middle" letter-spacing="5">
     THE ATOMIZER
   </text>
-  <text x="400" y="371" font-family="monospace" font-size="12" font-weight="bold" fill="#ff4444" text-anchor="middle" letter-spacing="7" opacity="0.8">
+  <text x="400" y="380" font-family="monospace" font-size="12" font-weight="bold" fill="#ff4444" text-anchor="middle" letter-spacing="7" opacity="0.8">
     EXECUTIVE TOOL // ACT-01
   </text>
 
-  <!-- Scanning Line -->
-  <rect width="800" height="2" fill="#00e5ff" opacity="0.1">
-    <animate attributeName="y" values="0;450;0" dur="4s" repeatCount="indefinite"/>
+  <!-- Scanning line -->
+  <rect width="800" height="2" fill="#00e5ff" opacity="0.08">
+    <animate attributeName="y" values="0;450;0" dur="5s" repeatCount="indefinite"/>
   </rect>
 
-  <!-- Corner Accents -->
+  <!-- Corner accents -->
   <path d="M 20 60 L 20 20 L 60 20" fill="none" stroke="#1a253a" stroke-width="2"/>
   <path d="M 740 20 L 780 20 L 780 60" fill="none" stroke="#1a253a" stroke-width="2"/>
   <path d="M 780 390 L 780 430 L 740 430" fill="none" stroke="#1a253a" stroke-width="2"/>
