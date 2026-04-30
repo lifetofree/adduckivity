@@ -20,7 +20,7 @@ const pinnedFeatures = [
   {
     title: 'The Atomizer',
     description: 'Break intimidating projects into 2-minute atomic steps with AI.',
-    image: 'https://i0.wp.com/wp.adduckivity.com/wp-content/uploads/2026/04/20260409-img-dec-01-binary-decision-1776944641044.webp?fit=768%2C432&ssl=1',
+    image: '/uploads/atomizer-cover.svg',
     href: '/atomizer',
     badge: 'Executive Tool',
   }
@@ -62,7 +62,7 @@ export default async function Home() {
     }))
 
   // Final features: Pinned first, then CMS posts, limit to 12 total
-  const features = [pinnedFeature, ...mappedFeatures].slice(0, 12)
+  const features = [...pinnedFeatures, ...mappedFeatures].slice(0, 12)
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>

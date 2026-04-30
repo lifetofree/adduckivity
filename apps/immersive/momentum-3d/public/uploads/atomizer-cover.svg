@@ -1,0 +1,78 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#0a0f1e"/>
+
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a253a" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0a0f1e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#grid)"/>
+  <ellipse cx="400" cy="190" rx="280" ry="190" fill="url(#glow)"/>
+
+  <!-- Orbital rings at 0°, 60°, 120° -->
+  <ellipse cx="400" cy="190" rx="75" ry="26" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
+  <ellipse cx="400" cy="190" rx="75" ry="26" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5" transform="rotate(60 400 190)"/>
+  <ellipse cx="400" cy="190" rx="75" ry="26" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5" transform="rotate(120 400 190)"/>
+
+  <!-- Nucleus -->
+  <circle cx="400" cy="190" r="22" fill="#001a22" stroke="#00e5ff" stroke-width="2.5">
+    <animate attributeName="r" values="22;25;22" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="400" cy="190" r="9" fill="#00e5ff" opacity="0.9"/>
+
+  <!-- Step nodes — 6 atomic task boxes radiating outward -->
+  <!-- Top -->
+  <line x1="400" y1="158" x2="400" y2="104" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
+  <rect x="372" y="82" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+  <text x="400" y="97" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+
+  <!-- Top-right -->
+  <line x1="460" y1="166" x2="526" y2="118" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
+  <rect x="498" y="96" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+  <text x="526" y="111" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+
+  <!-- Bottom-right -->
+  <line x1="460" y1="214" x2="526" y2="262" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
+  <rect x="498" y="262" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+  <text x="526" y="277" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+
+  <!-- Bottom -->
+  <line x1="400" y1="222" x2="400" y2="276" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
+  <rect x="372" y="276" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+  <text x="400" y="291" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+
+  <!-- Bottom-left -->
+  <line x1="340" y1="214" x2="274" y2="262" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
+  <rect x="246" y="262" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+  <text x="274" y="277" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+
+  <!-- Top-left -->
+  <line x1="340" y1="166" x2="274" y2="118" stroke="#00e5ff" stroke-width="1" opacity="0.35" stroke-dasharray="4 3"/>
+  <rect x="246" y="96" width="56" height="22" rx="5" fill="#0d1f2d" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+  <text x="274" y="111" font-family="monospace" font-size="9" fill="#00e5ff" text-anchor="middle" opacity="0.95">STEP · 2m</text>
+
+  <!-- Typography -->
+  <text x="400" y="338" font-family="monospace" font-size="30" font-weight="bold" fill="#00e5ff" text-anchor="middle" letter-spacing="5">
+    THE ATOMIZER
+  </text>
+  <text x="400" y="371" font-family="monospace" font-size="12" font-weight="bold" fill="#ff4444" text-anchor="middle" letter-spacing="7" opacity="0.8">
+    EXECUTIVE TOOL // ACT-01
+  </text>
+
+  <!-- Scanning Line -->
+  <rect width="800" height="2" fill="#00e5ff" opacity="0.1">
+    <animate attributeName="y" values="0;450;0" dur="4s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Corner Accents -->
+  <path d="M 20 60 L 20 20 L 60 20" fill="none" stroke="#1a253a" stroke-width="2"/>
+  <path d="M 740 20 L 780 20 L 780 60" fill="none" stroke="#1a253a" stroke-width="2"/>
+  <path d="M 780 390 L 780 430 L 740 430" fill="none" stroke="#1a253a" stroke-width="2"/>
+  <path d="M 60 430 L 20 430 L 20 390" fill="none" stroke="#1a253a" stroke-width="2"/>
+</svg>
