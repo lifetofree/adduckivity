@@ -21,7 +21,7 @@ export default function ProtocolBuilderPage() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
-      <ProtocolScene nodes={graph.nodes} />
+      <ProtocolScene nodes={graph.nodes} edges={graph.edges} />
       <div className="absolute top-8 left-8 z-10">
         <h1 className="text-2xl font-bold tracking-tighter text-white uppercase">System Architect</h1>
         <p className="text-[10px] text-cyan-500 font-mono">Status: Build Mode Active</p>

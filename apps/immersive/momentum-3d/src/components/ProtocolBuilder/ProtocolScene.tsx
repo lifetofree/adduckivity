@@ -1,11 +1,21 @@
 'use client'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stars } from '@react-three/drei'
-import { ProtocolNode } from '@/lib/protocol-store'
+import { OrbitControls, Stars, Line } from '@react-three/drei'
+import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
 
 interface NodeProps {
   node: ProtocolNode;
 }
+
+const Connection = ({ start, end }: { start: [number, number, number], end: [number, number, number] }) => (
+  <Line
+    points={[start, end]}
+    color="#00f3ff"
+    lineWidth={1}
+    transparent
+    opacity={0.3}
+  />
+)
 
 const Node = ({ node }: NodeProps) => (
   <mesh position={node.position}>
@@ -18,7 +28,7 @@ const Node = ({ node }: NodeProps) => (
   </mesh>
 )
 
-export default function ProtocolScene({ nodes }: { nodes: ProtocolNode[] }) {
+export default function ProtocolScene({ nodes, edges }: { nodes: ProtocolNode[], edges: ProtocolEdge[] }) {
   return (
     <div className="w-full h-screen bg-[#0a0f1e]">
       <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
@@ -27,6 +37,12 @@ export default function ProtocolScene({ nodes }: { nodes: ProtocolNode[] }) {
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
         {nodes.map(node => <Node key={node.id} node={node} />)}
+        {edges.map(edge => {
+          const source = nodes.find(n => n.id === edge.source);
+          const target = nodes.find(n => n.id === edge.target);
+          if (!source || !target) return null;
+          return <Connection key={edge.id} start={source.position} end={target.position} />;
+        })}
         <OrbitControls makeDefault />
       </Canvas>
     </div>
