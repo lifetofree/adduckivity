@@ -34,6 +34,13 @@ export default function ProtocolBuilderPage() {
     }
   }
 
+  const nextNode = () => {
+    if (graph.nodes.length === 0) return
+    const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
+    const nextIndex = (currentIndex + 1) % graph.nodes.length
+    setActiveNodeId(graph.nodes[nextIndex].id)
+  }
+
   return (
     <main className="relative w-full h-screen overflow-hidden">
       <ProtocolScene 
@@ -41,17 +48,31 @@ export default function ProtocolBuilderPage() {
         edges={graph.edges} 
         activeNode={activeNode} 
       />
-      <div className="absolute top-8 left-8 z-10">
-        <h1 className="text-2xl font-bold tracking-tighter text-white uppercase">System Architect</h1>
-        <p className="text-[10px] text-cyan-500 font-mono">
-          Status: {mode === 'build' ? 'Build Mode Active' : 'Flow Mode Active'}
-        </p>
-        <button 
-          onClick={toggleMode}
-          className="mt-4 px-4 py-2 bg-cyan-900/50 border border-cyan-500 text-cyan-500 text-xs font-mono uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-colors"
-        >
-          Switch to {mode === 'build' ? 'Flow' : 'Build'}
-        </button>
+      <div className="absolute top-8 left-8 z-10 flex flex-col gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tighter text-white uppercase">System Architect</h1>
+          <p className="text-[10px] text-cyan-500 font-mono">
+            Status: {mode === 'build' ? 'Build Mode Active' : 'Flow Mode Active'}
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <button 
+            onClick={toggleMode}
+            className="px-4 py-2 bg-cyan-900/50 border border-cyan-500 text-cyan-500 text-xs font-mono uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-colors"
+          >
+            Switch to {mode === 'build' ? 'Flow' : 'Build'}
+          </button>
+
+          {mode === 'flow' && (
+            <button 
+              onClick={nextNode}
+              className="px-4 py-2 bg-white border border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
+            >
+              Next Node →
+            </button>
+          )}
+        </div>
       </div>
     </main>
   )

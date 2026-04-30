@@ -19,13 +19,13 @@ const Connection = ({ start, end }: { start: [number, number, number], end: [num
   />
 )
 
-const Node = ({ node }: NodeProps) => (
+const Node = ({ node, isActive = false }: NodeProps & { isActive?: boolean }) => (
   <mesh position={node.position}>
-    <sphereGeometry args={[0.5, 32, 32]} />
+    <sphereGeometry args={[isActive ? 0.6 : 0.5, 32, 32]} />
     <meshStandardMaterial 
-      color={node.type === 'tool' ? '#00f3ff' : '#ffffff'} 
-      emissive={node.type === 'tool' ? '#00f3ff' : '#000000'}
-      emissiveIntensity={0.5}
+      color={isActive ? '#00f3ff' : (node.type === 'tool' ? '#00f3ff' : '#ffffff')} 
+      emissive={isActive ? '#00f3ff' : (node.type === 'tool' ? '#00f3ff' : '#000000')}
+      emissiveIntensity={isActive ? 2 : 0.5}
     />
   </mesh>
 )
@@ -49,7 +49,13 @@ export default function ProtocolScene({
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
         <CameraController activeNode={activeNode} />
-        {nodes.map(node => <Node key={node.id} node={node} />)}
+        {nodes.map(node => (
+          <Node 
+            key={node.id} 
+            node={node} 
+            isActive={activeNode?.id === node.id} 
+          />
+        ))}
         {edges.map(edge => {
           const start = nodeMap.get(edge.source);
           const end = nodeMap.get(edge.target);
