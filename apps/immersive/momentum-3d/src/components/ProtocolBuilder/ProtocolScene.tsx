@@ -62,7 +62,7 @@ export default function ProtocolScene({
           if (!start || !end) return null;
           return <Connection key={edge.id} start={start} end={end} />;
         })}
-        <OrbitControls makeDefault disabled={!!activeNode} />
+        <OrbitControls makeDefault enabled={!activeNode} />
       </Canvas>
     </div>
   )
