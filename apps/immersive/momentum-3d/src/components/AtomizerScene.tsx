@@ -10,11 +10,11 @@ function TaskOrb({ shatter = false }) {
   const particlesRef = useRef<THREE.Points>(null!);
   const glowRef = useRef<THREE.Mesh>(null!);
   
-  const count = 1500;
+  const count = 2500;
   const points = useMemo(() => {
     const p = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const radius = 2.5;
+      const radius = 3.0 + Math.random() * 2.0;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       p[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
@@ -66,19 +66,19 @@ function TaskOrb({ shatter = false }) {
       if (orbRef.current) {
         orbRef.current.scale.set(pulse, pulse, pulse);
         if (orbRef.current.material instanceof THREE.Material) {
-          orbRef.current.material.opacity = 0.4;
+          orbRef.current.material.opacity = 0.85;
         }
       }
       if (glowRef.current) {
         glowRef.current.scale.set(pulse * 1.1, pulse * 1.1, pulse * 1.1);
         if (glowRef.current.material instanceof THREE.Material) {
-          glowRef.current.material.opacity = 0.15;
+          glowRef.current.material.opacity = 0.35 + Math.sin(t * 1.5) * 0.1;
         }
       }
       if (particlesRef.current) {
         particlesRef.current.scale.set(1, 1, 1);
         if (particlesRef.current.material instanceof THREE.Material) {
-          particlesRef.current.material.opacity = 0.3;
+          particlesRef.current.material.opacity = 0.75;
         }
       }
     }
@@ -87,7 +87,7 @@ function TaskOrb({ shatter = false }) {
   return (
     <group>
       {/* Outer Glow */}
-      <Sphere ref={glowRef} args={[2.8, 32, 32]}>
+      <Sphere ref={glowRef} args={[3.2, 32, 32]}>
         <meshBasicMaterial 
           color={ET.accent} 
           transparent 
@@ -112,7 +112,7 @@ function TaskOrb({ shatter = false }) {
         <PointMaterial
           transparent
           color={ET.accent}
-          size={0.05}
+          size={0.09}
           sizeAttenuation={true}
           depthWrite={false}
           opacity={0.3}

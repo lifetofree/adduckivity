@@ -79,7 +79,7 @@ export default function AtomizerPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: ET.bg }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'transparent' }}>
       {/* Navigation Header */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b px-6 py-4 flex items-center justify-between" style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
