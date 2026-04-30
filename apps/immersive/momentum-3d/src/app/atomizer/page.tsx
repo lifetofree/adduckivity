@@ -74,7 +74,7 @@ export default function AtomizerPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ color: ET.ink }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: ET.bg, color: ET.ink }}>
       {/* Navigation Header */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b px-6 py-4 flex items-center justify-between" style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -116,12 +116,12 @@ export default function AtomizerPage() {
         )}
       </AnimatePresence>
 
-      <main className="z-10 w-full max-w-2xl flex flex-col items-center">
+      <main className="flex-1 z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 py-32">
         {!task ? (
           <div className="w-full text-center">
             <h1 className="text-4xl font-bold mb-4">What's the <span style={{ color: ET.accent }}>scary task</span>?</h1>
             <p className="text-sm mb-8" style={{ color: ET.sub }}>We'll atomize it into 2-minute steps. Law 1: System {'>'} Emotion.</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 text-left">
               <input 
                 type="text" 
                 value={input}
@@ -157,6 +157,21 @@ export default function AtomizerPage() {
           </div>
         )}
       </main>
+
+      {/* ── Footer ── */}
+      <footer className="z-10 border-t py-10 px-6 mt-20" style={{ borderColor: ET.border, backgroundColor: 'rgba(10,15,30,0.8)', backdropFilter: 'blur(10px)' }}>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <Image src="/logo.png" alt="Adduckivity" width={28} height={28} className="rounded-md" />
+            <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
+          </div>
+          <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
+            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
+          </div>
+          <p className="text-xs" style={{ color: ET.sub }}>Powered by Duck OS Systems</p>
+        </div>
+      </footer>
     </div>
   );
 }
