@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Duck OS: The Recovery Protocol V1</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --ink: #0d1b2a;
+    --mid: #2c4a6e;
+    --sub: #5a7fa0;
+    --accent: #00bcd4;
+    --accent-light: #e0f7fa;
+    --surface: #f4f8fb;
+    --border: #d0e4f0;
+    --white: #ffffff;
+    --warn: #f59e0b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 10.5pt;
+    line-height: 1.7;
+  }
+
+  /* ── Cover page ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--ink);
+    color: var(--white);
+    text-align: center;
+    padding: 60px 40px;
+    page-break-after: always;
+  }
+  .cover-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 14px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    display: inline-block;
+  }
+  .cover h1 {
+    font-size: 36pt;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: #a0c4d8;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .cover .edition {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    color: #5a7fa0;
+    letter-spacing: 0.1em;
+    margin-top: 40px;
+  }
+  .cover-logo { margin-bottom: 32px; }
+
+  /* ── Emergency block ── */
+  .emergency {
+    background: var(--ink);
+    color: var(--white);
+    border-left: 5px solid var(--accent);
+    padding: 28px 32px;
+    margin: 40px 48px;
+    border-radius: 0 12px 12px 0;
+    page-break-after: always;
+  }
+  .emergency h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11pt;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+  .emergency .cmd {
+    font-size: 13pt;
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .emergency p { color: #a0c4d8; font-size: 9pt; }
+
+  /* ── Page layout ── */
+  .page {
+    padding: 44px 52px;
+    page-break-inside: avoid;
+  }
+  .section {
+    margin-bottom: 48px;
+    page-break-inside: avoid;
+  }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    background: var(--accent-light);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .section h2 {
+    font-size: 15pt;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+  .section h2 .phase-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    font-weight: 400;
+    color: var(--sub);
+    margin-left: 8px;
+  }
+
+  /* ── Illustration container ── */
+  .illustration {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 8px;
+    margin: 16px 0 20px;
+  }
+  .illustration svg { display: block; width: 100%; }
+
+  /* ── Body text ── */
+  p { margin-bottom: 10px; color: var(--mid); }
+  .lead { font-size: 11pt; color: var(--ink); font-weight: 500; margin-bottom: 14px; }
+
+  /* ── Bullet lists ── */
+  ul { padding-left: 0; list-style: none; margin-bottom: 10px; }
+  ul li {
+    padding: 6px 0 6px 22px;
+    position: relative;
+    color: var(--mid);
+    border-bottom: 1px solid var(--border);
+  }
+  ul li:last-child { border-bottom: none; }
+  ul li::before {
+    content: '›';
+    position: absolute;
+    left: 6px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 11pt;
+  }
+  ul li strong { color: var(--ink); }
+
+  ol { padding-left: 24px; margin-bottom: 10px; }
+  ol li { color: var(--mid); padding: 4px 0; }
+  ol li strong { color: var(--ink); }
+
+  /* ── Callout / blockquote ── */
+  .callout {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 10px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5pt;
+    color: var(--mid);
+    line-height: 1.6;
+  }
+  .callout strong { color: var(--ink); }
+
+  /* ── Example block ── */
+  .example {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+  }
+  .example .bad { color: #dc2626; }
+  .example .good { color: #16a34a; }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ── Footer ── */
+  .doc-footer {
+    background: var(--ink);
+    color: #5a7fa0;
+    text-align: center;
+    padding: 28px;
+    font-size: 8pt;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  .doc-footer strong { color: var(--accent); }
+
+  /* ── Next steps ── */
+  .next-steps {
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+  .next-steps h3 { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 9pt; letter-spacing: 0.1em; margin-bottom: 14px; }
+  .next-steps ol { padding-left: 24px; }
+  .next-steps ol li { color: #a0c4d8; padding: 5px 0; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cover { min-height: 100vh; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">
+    <img src="file:///Users/lifetofree/Documents/Projects/adduckivity/apps/immersive/momentum-3d/public/logo.png"
+         width="96" height="96" style="border-radius:22px; display:block;" alt="Adduckivity" />
+  </div>
+  <div class="cover-badge">Duck OS · System Manual</div>
+  <h1>The <span>Recovery</span><br/>Protocol</h1>
+  <div class="subtitle">V1 — Founding Architect Edition</div>
+  <p style="color:#5a7fa0; margin-top:12px; font-size:10pt;">System Architecture for Neurodivergent Creators</p>
+  <p style="color:#5a7fa0; margin-top:6px; font-size:9pt;">By Adduckivity</p>
+  <div class="edition">© 2026 ADDUCKIVITY · ALL RIGHTS RESERVED</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     EMERGENCY BOOT
+═══════════════════════════════════════════════════════ -->
+<div class="emergency">
+  <h2>⚡ EMERGENCY_BOOT.exe</h2>
+  <div class="cmd">If opening this document already feels like too much, run this single command:</div>
+  <div style="background:#1a2840; border-left:3px solid #00bcd4; padding:12px 18px; border-radius:0 8px 8px 0; font-family:'JetBrains Mono',monospace; font-size:11pt; color:#00bcd4; margin:14px 0;">
+    Change your socks · Drink water · Step outside 60 seconds
+  </div>
+  <p>That's it. Come back to the full protocol when the system stabilizes.</p>
+</div>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════════════════
+     00 OVERVIEW
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">00</span>
+    <h2>System Overview: Why Your Brain Is Crashing</h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 480 160" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Server rack left -->
+      <rect x="20" y="20" width="110" height="90" rx="6" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <text x="75" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#0d1b2a" font-weight="600">BRAIN SERVER</text>
+      <rect x="30" y="44" width="90" height="12" rx="3" fill="#00bcd4" fill-opacity="0.3" stroke="#00bcd4" stroke-width="1"/>
+      <text x="75" y="53.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#0d1b2a">PREFRONTAL CORTEX</text>
+      <rect x="30" y="60" width="90" height="12" rx="3" fill="#f59e0b" fill-opacity="0.25" stroke="#f59e0b" stroke-width="1"/>
+      <text x="75" y="69.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#0d1b2a">WORKING MEMORY</text>
+      <rect x="30" y="76" width="90" height="12" rx="3" fill="#dc2626" fill-opacity="0.2" stroke="#dc2626" stroke-width="1"/>
+      <text x="75" y="85.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#dc2626">⚠ EMOTIONAL LOOP</text>
+      <text x="75" y="104" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#5a7fa0">STATUS: CRASHED</text>
+
+      <!-- Arrow -->
+      <path d="M140 65 L185 65" stroke="#0d1b2a" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <polygon points="185,61 195,65 185,69" fill="#0d1b2a"/>
+      <text x="167" y="60" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#5a7fa0">PROTOCOL</text>
+
+      <!-- Recovery server right -->
+      <rect x="200" y="20" width="110" height="90" rx="6" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <text x="255" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#0d1b2a" font-weight="600">BRAIN SERVER</text>
+      <rect x="210" y="44" width="90" height="12" rx="3" fill="#00bcd4" fill-opacity="0.5" stroke="#00bcd4" stroke-width="1"/>
+      <text x="255" y="53.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#0d1b2a">PREFRONTAL CORTEX</text>
+      <rect x="210" y="60" width="90" height="12" rx="3" fill="#00bcd4" fill-opacity="0.3" stroke="#00bcd4" stroke-width="1"/>
+      <text x="255" y="69.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#0d1b2a">WORKING MEMORY</text>
+      <rect x="210" y="76" width="90" height="12" rx="3" fill="#16a34a" fill-opacity="0.2" stroke="#16a34a" stroke-width="1"/>
+      <text x="255" y="85.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#16a34a">✓ STABLE</text>
+      <text x="255" y="104" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#16a34a">STATUS: ONLINE</text>
+
+      <!-- Energy flow diagram -->
+      <rect x="340" y="30" width="120" height="70" rx="6" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1"/>
+      <text x="400" y="46" text-anchor="middle" font-family="Inter" font-size="7" fill="#0d1b2a" font-weight="600">ENERGY ALLOCATION</text>
+      <rect x="350" y="52" width="72" height="8" rx="3" fill="#dc2626" fill-opacity="0.3"/>
+      <rect x="350" y="52" width="72" height="8" rx="3" fill="#dc2626" fill-opacity="0.5" clip-path="inset(0 57% 0 0 round 3px)"/>
+      <text x="350" y="69" font-family="JetBrains Mono" font-size="5.5" fill="#dc2626">40% → fighting the crash</text>
+      <rect x="350" y="74" width="72" height="8" rx="3" fill="#00bcd4" fill-opacity="0.3"/>
+      <rect x="350" y="74" width="72" height="8" rx="3" fill="#00bcd4" fill-opacity="0.5" clip-path="inset(0 40% 0 0 round 3px)"/>
+      <text x="350" y="91" font-family="JetBrains Mono" font-size="5.5" fill="#00bcd4">60% → protocol recovery</text>
+    </svg>
+  </div>
+
+  <p class="lead">This is not a self-help book. This is a <strong>technical recovery manual</strong> for your brain.</p>
+  <p>As a creator, your brain is your primary server. When you experience "burnout," it's not a character flaw — it's a <strong>System Crash.</strong> Traditional productivity advice (push harder, be more disciplined) is like trying to reboot a crashed server by hitting it with a hammer.</p>
+  <p>The Recovery Protocol is the diagnostic tool and the patch script.</p>
+  <div class="callout"><strong>System Log:</strong> Most ADHD/MDD creators spend 40% of their energy fighting the crash instead of recovering from it. This protocol redirects that energy to the reboot sequence.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     01 THREE LAWS
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>The 3 Laws of Duck OS Baseline Firmware</h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 150" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Three stacked firmware layers -->
+      <rect x="15" y="15" width="120" height="38" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <text x="75" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#00bcd4" font-weight="600">LAW 01</text>
+      <text x="75" y="44" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#0d1b2a" font-weight="600">System &gt; Emotion</text>
+
+      <rect x="150" y="15" width="120" height="38" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <text x="210" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#00bcd4" font-weight="600">LAW 02</text>
+      <text x="210" y="44" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#0d1b2a" font-weight="600">Action → Motivation</text>
+
+      <rect x="285" y="15" width="120" height="38" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <text x="345" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#00bcd4" font-weight="600">LAW 03</text>
+      <text x="345" y="44" text-anchor="middle" font-family="Inter" font-size="7.5" fill="#0d1b2a" font-weight="600">Protect System</text>
+
+      <!-- Stack base -->
+      <rect x="50" y="60" width="320" height="14" rx="4" fill="#0d1b2a" fill-opacity="0.08"/>
+      <rect x="70" y="76" width="280" height="10" rx="4" fill="#0d1b2a" fill-opacity="0.05"/>
+      <text x="210" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#5a7fa0">DUCK OS BASELINE FIRMWARE · REQUIRED BEFORE BOOT</text>
+      <text x="210" y="97" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#5a7fa0">Trust protocol · Start to feel it · Maintenance is mandatory</text>
+    </svg>
+  </div>
+
+  <p>Before running any phase, accept the baseline firmware:</p>
+  <ul>
+    <li><strong>System &gt; Emotion —</strong> Your feelings are unreliable data during a crash. Trust the protocol, not your mood.</li>
+    <li><strong>Action Precedes Motivation —</strong> You don't need to "feel like it" to start. You start to "feel like it."</li>
+    <li><strong>Protect the System —</strong> If the hardware (you) breaks, the output stops. Maintenance is not optional.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     02 CIRCUIT BREAKER
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>Phase 1: The Circuit Breaker <span class="phase-time">0–5 min</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 152" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Panel 1: Brain in loop state -->
+      <circle cx="72" cy="72" r="46" fill="#dc2626" fill-opacity="0.07"/>
+      <path d="M50 76 C50 56 61 44 72 44 C83 44 94 56 94 76 C94 89 87 96 80 98 L64 98 C57 96 50 89 50 76Z" fill="white" fill-opacity="0.8" stroke="#dc2626" stroke-width="1.8"/>
+      <path d="M58 61 C58 53 64 50 72 50 C80 50 86 53 86 61" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+      <line x1="72" y1="50" x2="72" y2="96" stroke="#dc2626" stroke-width="1" opacity="0.25"/>
+      <path d="M72 72 C72 64 79 60 83 65 C87 70 82 78 75 75 C68 72 70 63 75 62" stroke="#dc2626" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M92 50 L98 42 L94 50 L102 46" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M44 50 L38 42 L42 50 L34 46" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="72" cy="122" r="11" fill="#dc2626" fill-opacity="0.12" stroke="#dc2626" stroke-width="1.2"/>
+      <line x1="67" y1="117" x2="77" y2="127" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+      <line x1="77" y1="117" x2="67" y2="127" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Arrow L→C -->
+      <path d="M124 72 L155 72" stroke="#5a7fa0" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <polygon points="155,68 165,72 155,76" fill="#5a7fa0"/>
+
+      <!-- Panel 2: Circuit breaker panel -->
+      <rect x="168" y="22" width="84" height="108" rx="13" fill="#0d1b2a" stroke="#00bcd4" stroke-width="2"/>
+      <rect x="176" y="30" width="68" height="6" rx="3" fill="#1a3050"/>
+      <rect x="196" y="42" width="28" height="56" rx="14" fill="#152235"/>
+      <rect x="196" y="42" width="28" height="28" rx="14" fill="#f59e0b"/>
+      <circle cx="210" cy="56" r="8" fill="#0d1b2a"/>
+      <circle cx="210" cy="56" r="4" fill="#f59e0b"/>
+      <circle cx="197" cy="110" r="4" fill="#dc2626"/>
+      <circle cx="210" cy="110" r="4" fill="#f59e0b"/>
+      <circle cx="223" cy="110" r="4" fill="#16a34a" opacity="0.35"/>
+
+      <!-- Arrow C→R -->
+      <path d="M260 72 L290 72" stroke="#00bcd4" stroke-width="2"/>
+      <polygon points="290,68 300,72 290,76" fill="#00bcd4"/>
+
+      <!-- Panel 3: Three action tiles -->
+      <rect x="302" y="22" width="104" height="30" rx="7" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <rect x="315" y="29" width="7" height="16" rx="3" fill="#00bcd4"/>
+      <rect x="325" y="29" width="7" height="16" rx="3" fill="#00bcd4"/>
+      <text x="346" y="41" font-family="Inter" font-size="10" fill="#0d1b2a" font-weight="600">30-sec freeze</text>
+
+      <rect x="302" y="58" width="104" height="30" rx="7" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <path d="M325 75 C323 67 314 61 314 69 C314 75 319 79 325 79 C331 79 336 75 336 69 C336 61 327 67 325 75Z" fill="#00bcd4"/>
+      <text x="346" y="77" font-family="Inter" font-size="10" fill="#0d1b2a" font-weight="600">Sensory reset</text>
+
+      <rect x="302" y="94" width="104" height="30" rx="7" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <rect x="314" y="100" width="14" height="18" rx="2" fill="none" stroke="#5a7fa0" stroke-width="1.5"/>
+      <circle cx="323" cy="110" r="1.5" fill="#5a7fa0"/>
+      <path d="M332 109 L344 109" stroke="#00bcd4" stroke-width="2.5" stroke-linecap="round"/>
+      <polygon points="342,106 348,109 342,112" fill="#00bcd4"/>
+      <text x="352" y="112" font-family="Inter" font-size="10" fill="#0d1b2a" font-weight="600">Env. swap</text>
+    </svg>
+  </div>
+
+  <p>When the spiral starts, your prefrontal cortex goes offline. You are running on the Old Brain — fear, stress, freeze.</p>
+  <ul>
+    <li><strong>The 30-Second Freeze —</strong> Stop moving entirely for 30 seconds. This interrupts the Busywork Loop.</li>
+    <li><strong>Sensory Reset —</strong> Wash your face with cold water, or hold an ice cube for 10 seconds.</li>
+    <li><strong>Environment Swap —</strong> If you're at your desk, move to the floor. If you're in the bedroom, move to another room entirely.</li>
+  </ul>
+  <p><strong>Why it works:</strong> Sensory input forces a data refresh. The loop of negative thoughts cannot survive a new physical state.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     03 INPUT ZERO
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Phase 2: Input Zero <span class="phase-time">5–15 min</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 140" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Left: Multiple input sources (colored blocks) -->
+      <rect x="10" y="16" width="74" height="16" rx="4" fill="#f59e0b" fill-opacity="0.25" stroke="#f59e0b" stroke-width="1"/>
+      <rect x="15" y="20" width="16" height="8" rx="2" fill="#f59e0b" fill-opacity="0.7"/>
+      <rect x="35" y="20" width="16" height="8" rx="2" fill="#f59e0b" fill-opacity="0.5"/>
+      <rect x="55" y="20" width="16" height="8" rx="2" fill="#f59e0b" fill-opacity="0.3"/>
+
+      <rect x="10" y="38" width="74" height="16" rx="4" fill="#dc2626" fill-opacity="0.2" stroke="#dc2626" stroke-width="1"/>
+      <path d="M26 50 C26 44 29 41 34 41 C39 41 42 44 42 50 L42 51 L26 51 Z" fill="#dc2626" fill-opacity="0.7"/>
+      <circle cx="43" cy="40" r="3" fill="#dc2626"/>
+
+      <rect x="10" y="60" width="74" height="16" rx="4" fill="#8b5cf6" fill-opacity="0.2" stroke="#8b5cf6" stroke-width="1"/>
+      <rect x="22" y="63" width="22" height="10" rx="2" fill="none" stroke="#8b5cf6" stroke-width="1.2"/>
+      <path d="M22 63 L33 70 L44 63" stroke="#8b5cf6" stroke-width="1.2" fill="none"/>
+
+      <rect x="10" y="82" width="74" height="16" rx="4" fill="#16a34a" fill-opacity="0.2" stroke="#16a34a" stroke-width="1"/>
+      <rect x="20" y="86" width="20" height="8" rx="3" fill="#16a34a" fill-opacity="0.5"/>
+
+      <rect x="10" y="104" width="74" height="16" rx="4" fill="#e11d48" fill-opacity="0.2" stroke="#e11d48" stroke-width="1"/>
+      <rect x="20" y="107" width="14" height="10" rx="2" fill="none" stroke="#e11d48" stroke-width="1.2"/>
+      <path d="M34 109 L42 112 L34 115 Z" fill="#e11d48" fill-opacity="0.7"/>
+
+      <!-- Converging lines -->
+      <path d="M86 24 L130 65" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.6"/>
+      <path d="M86 46 L130 66" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.6"/>
+      <path d="M86 68 L130 67" stroke="#8b5cf6" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.6"/>
+      <path d="M86 90 L130 68" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.6"/>
+      <path d="M86 112 L130 69" stroke="#e11d48" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.6"/>
+
+      <!-- Funnel (center) -->
+      <path d="M130 44 L202 44 L192 78 L177 112 L167 112 L152 78 Z" fill="#0d1b2a"/>
+      <path d="M130 44 L202 44 L192 78 L177 112 L167 112 L152 78 Z" stroke="#00bcd4" stroke-width="1.8" fill="none"/>
+      <line x1="150" y1="57" x2="182" y2="57" stroke="#00bcd4" stroke-width="1" opacity="0.4"/>
+      <line x1="156" y1="69" x2="176" y2="69" stroke="#00bcd4" stroke-width="1" opacity="0.3"/>
+
+      <!-- Output arrow -->
+      <path d="M172 112 L212 112" stroke="#00bcd4" stroke-width="3" stroke-linecap="round"/>
+      <polygon points="210,108 220,112 210,116" fill="#00bcd4"/>
+
+      <!-- Right: DND phone -->
+      <rect x="230" y="18" width="74" height="48" rx="8" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.5"/>
+      <rect x="246" y="24" width="24" height="36" rx="5" fill="none" stroke="#5a7fa0" stroke-width="1.5"/>
+      <path d="M252 36 C252 31 258 31 258 36 C258 41 252 41 252 36Z" fill="#5a7fa0" fill-opacity="0.25"/>
+      <line x1="236" y1="58" x2="272" y2="26" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
+
+      <!-- Headphones -->
+      <rect x="230" y="74" width="74" height="48" rx="8" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.5"/>
+      <path d="M250 98 C250 89 258 85 267 85 C276 85 284 89 284 98" stroke="#00bcd4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="244" y="95" width="12" height="20" rx="6" fill="#00bcd4" fill-opacity="0.3" stroke="#00bcd4" stroke-width="1.5"/>
+      <rect x="278" y="95" width="12" height="20" rx="6" fill="#00bcd4" fill-opacity="0.3" stroke="#00bcd4" stroke-width="1.5"/>
+
+      <!-- ONE goal box -->
+      <rect x="318" y="44" width="90" height="54" rx="9" fill="#0d1b2a"/>
+      <text x="363" y="69" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#00bcd4" font-weight="700">ONE</text>
+      <text x="363" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#a0c4d8">FOCUS</text>
+      <circle cx="363" cy="100" r="7" fill="#16a34a" fill-opacity="0.25"/>
+      <path d="M358 100 L362 104 L369 97" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <p>The neurodivergent brain often crashes from <strong>Input Overload</strong>, not lack of effort.</p>
+  <ul>
+    <li><strong>Browser Flush —</strong> Close every tab not related to your single current goal.</li>
+    <li><strong>Digital Isolation —</strong> Phone on Do Not Disturb, placed in another room.</li>
+    <li><strong>Audio Shield —</strong> Noise-cancelling headphones with white noise or silence. No headphones? Close the door, roll a towel against the gap, and face away from windows.</li>
+  </ul>
+  <p><strong>Goal:</strong> Lower internal system pressure by removing external data noise. You cannot debug a process while more errors keep flooding in.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     04 BRAIN DUMP
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Phase 3: The Brain Dump <span class="phase-time">Memory Flush</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 145" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- RAM chip: overloaded -->
+      <rect x="12" y="16" width="120" height="84" rx="8" fill="#fff8e0" stroke="#f59e0b" stroke-width="2"/>
+      <text x="72" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#f59e0b" font-weight="700">RAM: FULL</text>
+      <rect x="22" y="42" width="100" height="9" rx="3" fill="#f59e0b" fill-opacity="0.6"/>
+      <rect x="22" y="55" width="100" height="9" rx="3" fill="#f59e0b" fill-opacity="0.55"/>
+      <rect x="22" y="68" width="100" height="9" rx="3" fill="#f59e0b" fill-opacity="0.5"/>
+      <rect x="22" y="81" width="74" height="9" rx="3" fill="#f59e0b" fill-opacity="0.3"/>
+      <text x="72" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#dc2626">50+ tasks tracked</text>
+
+      <!-- Arrow -->
+      <path d="M138 58 L172 58" stroke="#0d1b2a" stroke-width="1.8"/>
+      <polygon points="172,54 182,58 172,62" fill="#0d1b2a"/>
+      <text x="160" y="48" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5a7fa0">WRITE</text>
+      <text x="160" y="76" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5a7fa0">IT OUT</text>
+
+      <!-- Paper / external storage -->
+      <rect x="186" y="16" width="92" height="84" rx="6" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.8"/>
+      <text x="232" y="35" text-anchor="middle" font-family="Inter" font-size="9" fill="#5a7fa0">PAPER</text>
+      <line x1="198" y1="44" x2="268" y2="44" stroke="#d0e4f0" stroke-width="1.2"/>
+      <line x1="198" y1="56" x2="268" y2="56" stroke="#d0e4f0" stroke-width="1.2"/>
+      <line x1="198" y1="68" x2="268" y2="68" stroke="#d0e4f0" stroke-width="1.2"/>
+      <line x1="198" y1="80" x2="268" y2="80" stroke="#d0e4f0" stroke-width="1.2"/>
+      <line x1="198" y1="92" x2="248" y2="92" stroke="#d0e4f0" stroke-width="1.2"/>
+      <text x="232" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5a7fa0">external storage</text>
+
+      <!-- Arrow -->
+      <path d="M284 58 L312 58" stroke="#0d1b2a" stroke-width="1.8"/>
+      <polygon points="312,54 322,58 312,62" fill="#0d1b2a"/>
+
+      <!-- RAM after: free -->
+      <rect x="324" y="16" width="86" height="84" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2"/>
+      <text x="367" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#00bcd4" font-weight="700">RAM: FREE</text>
+      <rect x="334" y="42" width="66" height="9" rx="3" fill="#00bcd4" fill-opacity="0.25"/>
+      <rect x="334" y="55" width="30" height="9" rx="3" fill="#00bcd4" fill-opacity="0.15"/>
+      <text x="367" y="76" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#16a34a">ready</text>
+      <text x="367" y="89" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#16a34a">to focus</text>
+      <text x="367" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#16a34a">PARTIALLY FREE</text>
+    </svg>
+  </div>
+
+  <p>Executive dysfunction is often a <strong>full RAM problem</strong>. You're trying to track 50 things simultaneously with working memory built for 4.</p>
+  <ul>
+    <li><strong>The Protocol —</strong> Take a physical piece of paper (not digital — the act of writing matters).</li>
+    <li><strong>The Action —</strong> Write down everything you're holding. Bills, emails, conversations, worries, ideas. All of it.</li>
+    <li><strong>The Rule —</strong> Do not organize it. Do not prioritize it. The goal is to get it out of your head, not into a system.</li>
+  </ul>
+  <p><strong>Outcome:</strong> You have offloaded your mental burden to external storage. Your RAM is now partially free.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     05 BINARY DECISION
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Phase 4: Binary Decision Logic <span class="phase-time">50/50 Rule</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 148" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Chaos list -->
+      <rect x="8" y="18" width="84" height="88" rx="7" fill="#fff8e0" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="50" y="37" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#f59e0b" font-weight="600">LIST</text>
+      <text x="50" y="54" text-anchor="middle" font-family="Inter" font-size="10" fill="#5a7fa0">Task A</text>
+      <text x="50" y="69" text-anchor="middle" font-family="Inter" font-size="10" fill="#5a7fa0">Task B</text>
+      <text x="50" y="84" text-anchor="middle" font-family="Inter" font-size="10" fill="#5a7fa0">Task C</text>
+      <text x="50" y="99" text-anchor="middle" font-family="Inter" font-size="10" fill="#5a7fa0">Task D …</text>
+
+      <!-- Arrow 1 -->
+      <path d="M94 62 L116 62" stroke="#0d1b2a" stroke-width="1.5"/>
+      <polygon points="116,58 126,62 116,66" fill="#0d1b2a"/>
+
+      <!-- Pick 2 box -->
+      <rect x="128" y="30" width="80" height="66" rx="7" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.5"/>
+      <text x="168" y="48" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#5a7fa0" font-weight="600">PICK 2</text>
+      <rect x="140" y="54" width="56" height="14" rx="4" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1"/>
+      <text x="168" y="65" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a">Task A</text>
+      <rect x="140" y="72" width="56" height="14" rx="4" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1"/>
+      <text x="168" y="83" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a">Task B</text>
+
+      <!-- Arrow 2 -->
+      <path d="M210 62 L230 62" stroke="#0d1b2a" stroke-width="1.5"/>
+      <polygon points="230,58 240,62 230,66" fill="#0d1b2a"/>
+
+      <!-- Question box -->
+      <rect x="242" y="18" width="106" height="88" rx="7" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.8"/>
+      <text x="295" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00bcd4" font-weight="600">"IF ONLY ONE…"</text>
+      <text x="295" y="55" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a">which makes the</text>
+      <text x="295" y="69" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a">other irrelevant?</text>
+      <line x1="252" y1="82" x2="338" y2="82" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+      <text x="295" y="97" text-anchor="middle" font-family="Inter" font-size="10" fill="#dc2626">cross out the loser</text>
+
+      <!-- ONE box -->
+      <rect x="358" y="34" width="56" height="56" rx="8" fill="#0d1b2a"/>
+      <text x="386" y="60" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#00bcd4" font-weight="700">ONE</text>
+      <text x="386" y="76" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#a0c4d8">TARGET</text>
+      <text x="386" y="108" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#16a34a">LOOP BROKEN</text>
+    </svg>
+  </div>
+
+  <p>Choice paralysis is an <strong>Infinite Loop error.</strong> The fix is Binary Search Logic — eliminate until one item remains.</p>
+  <ul>
+    <li><strong>Step 1 —</strong> Look at your list. Pick any two items.</li>
+    <li><strong>Step 2 —</strong> Ask: <em>"If I could only complete ONE of these today, which one makes the other irrelevant?"</em></li>
+    <li><strong>Step 3 —</strong> Cross out the other one. Repeat until one item remains.</li>
+  </ul>
+  <p>You now have <strong>ONE objective.</strong> You are not permitted to think about anything else until this task reaches a defined stopping point.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     06 FASTEST FINISH
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>Phase 5: The Fastest Finish <span class="phase-time">Dopamine Bridge</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 138" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Big task: error -->
+      <rect x="10" y="16" width="130" height="80" rx="8" fill="#fff0f0" stroke="#dc2626" stroke-width="2"/>
+      <text x="75" y="36" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#dc2626" font-weight="600">ERROR: TOO LARGE</text>
+      <text x="75" y="54" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#0d1b2a" font-weight="600">"Write a blog post"</text>
+      <text x="75" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#dc2626">no dopamine signal</text>
+      <text x="75" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#dc2626">system stalls</text>
+
+      <!-- Arrow + label -->
+      <path d="M144 56 L170 56" stroke="#0d1b2a" stroke-width="1.8"/>
+      <polygon points="170,52 180,56 170,60" fill="#0d1b2a"/>
+      <text x="162" y="46" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5a7fa0">BREAK</text>
+      <text x="162" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5a7fa0">DOWN</text>
+
+      <!-- 120s task: success -->
+      <rect x="182" y="16" width="130" height="80" rx="8" fill="#f0fff4" stroke="#16a34a" stroke-width="2"/>
+      <text x="247" y="36" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#16a34a" font-weight="600">SUCCESS: &lt;120s</text>
+      <text x="247" y="53" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a" font-weight="600">"Write first sentence</text>
+      <text x="247" y="67" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a" font-weight="600">of outline"</text>
+      <text x="247" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#16a34a">completion triggered</text>
+
+      <!-- Arrow -->
+      <path d="M316 56 L342 56" stroke="#0d1b2a" stroke-width="1.8"/>
+      <polygon points="342,52 352,56 342,60" fill="#0d1b2a"/>
+
+      <!-- Dopamine box -->
+      <rect x="354" y="16" width="58" height="80" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2"/>
+      <text x="383" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00bcd4" font-weight="600">DOPA</text>
+      <text x="383" y="51" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00bcd4" font-weight="600">MINE</text>
+      <text x="383" y="68" text-anchor="middle" font-size="18">⚡</text>
+      <text x="383" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#16a34a">MOMENTUM</text>
+    </svg>
+  </div>
+
+  <p>The ADHD brain runs on <strong>Dopamine.</strong> Dopamine comes from <strong>Completion</strong>, not from progress, effort, or intention.</p>
+  <div class="example">
+    <div class="bad">❌ "Write a blog post" — Too large. No completion signal. No dopamine. System stalls.</div>
+    <div class="good" style="margin-top:6px">✅ "Write the first sentence of the outline" — Under 2 minutes. Completion triggered. Momentum begins.</div>
+  </div>
+  <p>Break your ONE objective into a subtask completable in under 120 seconds. The Success Signal fires. The system is no longer in full-stop mode.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     07 DEEP REST
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Phase 6: Deep Rest Architecture</h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 138" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Large timer circle -->
+      <circle cx="78" cy="66" r="54" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2.5"/>
+      <circle cx="78" cy="66" r="46" fill="none" stroke="#00bcd4" stroke-width="6" stroke-dasharray="96 194" stroke-dashoffset="24" stroke-linecap="round"/>
+      <circle cx="78" cy="66" r="34" fill="white"/>
+      <text x="78" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="20" fill="#0d1b2a" font-weight="800">30</text>
+      <text x="78" y="74" text-anchor="middle" font-family="Inter" font-size="9.5" fill="#5a7fa0" font-weight="600">minutes</text>
+      <!-- Tick marks -->
+      <line x1="78" y1="12" x2="78" y2="22" stroke="#00bcd4" stroke-width="2"/>
+      <line x1="78" y1="110" x2="78" y2="120" stroke="#00bcd4" stroke-width="2"/>
+      <line x1="24" y1="66" x2="34" y2="66" stroke="#00bcd4" stroke-width="2"/>
+      <line x1="122" y1="66" x2="132" y2="66" stroke="#00bcd4" stroke-width="2"/>
+
+      <!-- Center: Big X over phone -->
+      <rect x="158" y="24" width="106" height="90" rx="10" fill="#fff0f0" stroke="#dc2626" stroke-width="1.5"/>
+      <!-- Phone body -->
+      <rect x="184" y="30" width="54" height="78" rx="8" fill="#f0f0f0" stroke="#d0d0d0" stroke-width="1.5"/>
+      <rect x="190" y="36" width="42" height="58" rx="3" fill="#e8e8e8"/>
+      <!-- App icons on screen -->
+      <rect x="194" y="40" width="10" height="10" rx="2" fill="#f59e0b" fill-opacity="0.8"/>
+      <rect x="208" y="40" width="10" height="10" rx="2" fill="#dc2626" fill-opacity="0.8"/>
+      <rect x="222" y="40" width="10" height="10" rx="2" fill="#8b5cf6" fill-opacity="0.8"/>
+      <rect x="194" y="54" width="10" height="10" rx="2" fill="#16a34a" fill-opacity="0.8"/>
+      <!-- Big red X -->
+      <line x1="164" y1="26" x2="258" y2="112" stroke="#dc2626" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
+      <line x1="258" y1="26" x2="164" y2="112" stroke="#dc2626" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
+
+      <!-- Right: Rest imagery -->
+      <!-- Crescent moon -->
+      <circle cx="328" cy="40" r="24" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <circle cx="340" cy="34" r="19" fill="#f4f8fb"/>
+      <!-- Stars -->
+      <circle cx="356" cy="24" r="3" fill="#00bcd4" fill-opacity="0.7"/>
+      <circle cx="366" cy="38" r="2" fill="#00bcd4" fill-opacity="0.5"/>
+      <circle cx="352" cy="48" r="2.5" fill="#00bcd4" fill-opacity="0.45"/>
+
+      <!-- Person lying down -->
+      <rect x="294" y="82" width="116" height="30" rx="10" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <circle cx="318" cy="97" r="9" fill="#5a7fa0" fill-opacity="0.5"/>
+      <rect x="327" y="92" width="68" height="10" rx="5" fill="#5a7fa0" fill-opacity="0.35"/>
+      <text x="360" y="80" font-family="Inter" font-size="11" fill="#5a7fa0" opacity="0.55" font-weight="700">z z z</text>
+    </svg>
+  </div>
+
+  <p>Rest is not doing nothing. Rest is <strong>System Re-indexing.</strong></p>
+  <ul>
+    <li><strong>The 30-Minute Isolation Timer —</strong> Set a timer. Commit to the full window.</li>
+    <li><strong>The Rule —</strong> No productivity. No junk input (social media, news, short-form video).</li>
+    <li><strong>Permitted —</strong> Lie down, stare at a wall, walk without headphones, sit with a hot drink.</li>
+  </ul>
+  <p><strong>The Result:</strong> Your subconscious (the background process) organizes what your conscious mind cannot. Most of your best ideas arrive here.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     08 DEBUGGING MDD
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>Debugging MDD: The Socks Level</h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 148" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- System health gauge (left panel) -->
+      <rect x="10" y="14" width="150" height="96" rx="9" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.8"/>
+      <text x="85" y="33" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" fill="#0d1b2a" font-weight="700">SYSTEM HEALTH</text>
+      <!-- Gauge bar -->
+      <rect x="20" y="42" width="130" height="14" rx="7" fill="#e0e0e0"/>
+      <rect x="20" y="42" width="14" height="14" rx="7" fill="#dc2626"/>
+      <!-- Scale numbers -->
+      <text x="20" y="70" font-family="JetBrains Mono" font-size="9.5" fill="#dc2626">0</text>
+      <text x="52" y="70" font-family="JetBrains Mono" font-size="9.5" fill="#f59e0b">3</text>
+      <text x="82" y="70" font-family="JetBrains Mono" font-size="9.5" fill="#16a34a">5</text>
+      <text x="112" y="70" font-family="JetBrains Mono" font-size="9.5" fill="#00bcd4">8</text>
+      <text x="133" y="70" font-family="JetBrains Mono" font-size="9.5" fill="#00bcd4">10</text>
+      <text x="85" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#dc2626">CURRENT: CRASH</text>
+      <text x="85" y="102" text-anchor="middle" font-family="Inter" font-size="9.5" fill="#5a7fa0">target: any upward movement</text>
+
+      <!-- 4 action boxes (right) -->
+      <rect x="172" y="14" width="114" height="28" rx="5" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <text x="229" y="32" text-anchor="middle" font-family="Inter" font-size="11" fill="#0d1b2a">🧦 Change your socks</text>
+
+      <rect x="172" y="48" width="114" height="28" rx="5" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <text x="229" y="66" text-anchor="middle" font-family="Inter" font-size="11" fill="#0d1b2a">💧 Drink 200ml water</text>
+
+      <rect x="172" y="82" width="114" height="28" rx="5" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <text x="229" y="100" text-anchor="middle" font-family="Inter" font-size="11" fill="#0d1b2a">☀️ Outside 60 seconds</text>
+
+      <rect x="294" y="14" width="120" height="28" rx="5" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.2"/>
+      <text x="354" y="32" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#0d1b2a">🚿 Cold water · wrists · 30s</text>
+
+      <!-- Logic box -->
+      <rect x="294" y="50" width="120" height="60" rx="5" fill="#f0fff4" stroke="#16a34a" stroke-width="1.2"/>
+      <text x="354" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#16a34a" font-weight="600">LOGIC:</text>
+      <text x="354" y="86" text-anchor="middle" font-family="Inter" font-size="10" fill="#0d1b2a">physical state change</text>
+      <text x="354" y="101" text-anchor="middle" font-family="Inter" font-size="10" fill="#5a7fa0">= mental state change</text>
+    </svg>
+  </div>
+
+  <p>When the crash is deep — MDD, major depressive episode, complete system failure — Phase 5 is still too complex. You need <strong>Level 0 actions.</strong> Actions that require zero creative willpower.</p>
+  <ul>
+    <li><strong>The Socks Protocol —</strong> Change your socks.</li>
+    <li><strong>The Hydration Patch —</strong> Drink 200ml of water.</li>
+    <li><strong>The Sun Hack —</strong> Step outside for exactly 60 seconds. No destination required.</li>
+    <li><strong>The Shower Override —</strong> Run cold water over your wrists for 30 seconds.</li>
+  </ul>
+  <p><strong>Why it works:</strong> A changed physical state is a changed mental state. If you can change your socks, you have demonstrated that the system can still execute commands. That is the entire goal.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     09 ANCHOR PROTOCOL
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2>The Anchor Protocol <span class="phase-time">Audio Engineering</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 132" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Large headphone arc -->
+      <path d="M84 80 C84 42 108 22 140 22 C172 22 196 42 196 80" stroke="#00bcd4" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- Left ear cup -->
+      <rect x="68" y="76" width="28" height="44" rx="14" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2.5"/>
+      <circle cx="82" cy="98" r="8" fill="#00bcd4" fill-opacity="0.4"/>
+      <!-- Right ear cup -->
+      <rect x="184" y="76" width="28" height="44" rx="14" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2.5"/>
+      <circle cx="198" cy="98" r="8" fill="#00bcd4" fill-opacity="0.4"/>
+      <!-- Anchor/play symbol in center of arc -->
+      <circle cx="140" cy="58" r="16" fill="#0d1b2a" fill-opacity="0.75"/>
+      <text x="140" y="64" text-anchor="middle" font-size="16" fill="#00bcd4">⚓</text>
+
+      <!-- Waveform label -->
+      <text x="272" y="26" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#5a7fa0">WORK MODE ONLY</text>
+      <!-- Waveform -->
+      <polyline points="218,72 228,54 238,84 248,46 258,88 268,60 278,76 288,50 298,80 308,58 318,72 328,62 338,68" stroke="#00bcd4" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- Arrow trigger -->
+      <path d="M342 68 L364 68" stroke="#0d1b2a" stroke-width="1.8"/>
+      <polygon points="364,64 374,68 364,72" fill="#0d1b2a"/>
+
+      <!-- Focus mode box -->
+      <rect x="376" y="46" width="40" height="44" rx="8" fill="#0d1b2a"/>
+      <text x="396" y="64" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00bcd4" font-weight="700">FOCUS</text>
+      <text x="396" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00bcd4" font-weight="700">MODE</text>
+    </svg>
+  </div>
+
+  <p>Music is a legitimate cheat code for the ADHD brain. You can exploit it deliberately.</p>
+  <ul>
+    <li><strong>The Anchor —</strong> Choose one specific song, playlist, or genre used <em>only</em> during deep work. Never for relaxing. Never for background. Only for this.</li>
+    <li><strong>Conditioning —</strong> Over time, your brain associates that frequency with Focus Mode. The song becomes a trigger.</li>
+    <li><strong>Activation —</strong> When you feel the drift starting, play the anchor. Don't wait until you're already lost.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     10 WEEKLY CALIBRATION
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2>Weekly Calibration <span class="phase-time">System Maintenance</span></h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 132" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Calendar (image) -->
+      <rect x="12" y="14" width="96" height="84" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.8"/>
+      <rect x="12" y="14" width="96" height="28" rx="8" fill="#00bcd4"/>
+      <rect x="12" y="33" width="96" height="9" fill="#00bcd4"/>
+      <text x="60" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="white" font-weight="700">SUNDAY</text>
+      <text x="60" y="60" text-anchor="middle" font-family="JetBrains Mono" font-size="16" fill="#0d1b2a" font-weight="800">OS</text>
+      <text x="60" y="75" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5a7fa0">UPDATE</text>
+      <text x="60" y="90" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#00bcd4">weekly · required</text>
+
+      <!-- Three steps (text in image) -->
+      <rect x="122" y="14" width="136" height="26" rx="5" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.2"/>
+      <text x="136" y="25" font-family="JetBrains Mono" font-size="8.5" fill="#5a7fa0">STEP 1</text>
+      <text x="190" y="32" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#0d1b2a" font-weight="600">🔍 The Audit</text>
+
+      <rect x="122" y="46" width="136" height="26" rx="5" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.2"/>
+      <text x="136" y="57" font-family="JetBrains Mono" font-size="8.5" fill="#5a7fa0">STEP 2</text>
+      <text x="190" y="64" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#0d1b2a" font-weight="600">🔧 The Patch</text>
+
+      <rect x="122" y="78" width="136" height="26" rx="5" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.2"/>
+      <text x="136" y="89" font-family="JetBrains Mono" font-size="8.5" fill="#5a7fa0">STEP 3</text>
+      <text x="190" y="96" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#0d1b2a" font-weight="600">✅ System Check</text>
+
+      <!-- Gear (image) -->
+      <circle cx="340" cy="62" r="40" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.5"/>
+      <circle cx="340" cy="62" r="24" fill="white" stroke="#00bcd4" stroke-width="2"/>
+      <circle cx="340" cy="62" r="8" fill="#00bcd4"/>
+      <!-- Gear teeth (4 axis) -->
+      <rect x="336" y="20" width="8" height="12" rx="3" fill="#00bcd4"/>
+      <rect x="336" y="90" width="8" height="12" rx="3" fill="#00bcd4"/>
+      <rect x="298" y="58" width="12" height="8" rx="3" fill="#00bcd4"/>
+      <rect x="370" y="58" width="12" height="8" rx="3" fill="#00bcd4"/>
+      <!-- Diagonal teeth -->
+      <rect x="313" y="27" width="8" height="12" rx="3" fill="#00bcd4" transform="rotate(45 317 33)"/>
+      <rect x="361" y="83" width="8" height="12" rx="3" fill="#00bcd4" transform="rotate(45 365 89)"/>
+      <rect x="361" y="27" width="8" height="12" rx="3" fill="#00bcd4" transform="rotate(-45 365 33)"/>
+      <rect x="313" y="83" width="8" height="12" rx="3" fill="#00bcd4" transform="rotate(-45 317 89)"/>
+      <text x="340" y="120" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#5a7fa0">PREVENT · PATCH · REPEAT</text>
+    </svg>
+  </div>
+
+  <p>An unmaintained system <em>will</em> crash again. This is not a prediction — it is a guarantee.</p>
+  <p><strong>Every Sunday, run the OS update:</strong></p>
+  <ul>
+    <li><strong>The Audit —</strong> What caused the crash this week? (Too many context switches? Missed sleep? Unprocessed inputs?)</li>
+    <li><strong>The Patch —</strong> Write one rule to block that failure mode next week. <em>"No notifications before 9 AM." "One tab limit during writing sessions."</em></li>
+    <li><strong>System Check —</strong> Is your Emergency Boot accessible? Print it. Pin it. Stick it to the wall.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     11 FOUNDING ARCHITECT
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">11</span>
+    <h2>Founding Architect: The Road Ahead</h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 122" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Shield/badge (image) -->
+      <path d="M58 10 L82 19 L82 60 C82 76 58 86 58 86 C58 86 34 76 34 60 L34 19 Z" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2.5"/>
+      <!-- Star inside badge -->
+      <path d="M58 30 L62 42 L74 42 L65 49 L68 61 L58 54 L48 61 L51 49 L42 42 L54 42 Z" fill="#00bcd4" fill-opacity="0.6"/>
+      <text x="58" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#00bcd4" font-weight="700">FOUNDING</text>
+
+      <!-- Privileges (text in image) -->
+      <rect x="96" y="10" width="148" height="72" rx="8" fill="#f4f8fb" stroke="#d0e4f0" stroke-width="1.5"/>
+      <text x="170" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#0d1b2a" font-weight="700">YOUR PRIVILEGES</text>
+      <text x="106" y="47" font-family="Inter" font-size="10.5" fill="#5a7fa0">✓ All future versions · free</text>
+      <text x="106" y="62" font-family="Inter" font-size="10.5" fill="#5a7fa0">✓ PDF + interactive format</text>
+      <text x="106" y="77" font-family="Inter" font-size="10.5" fill="#5a7fa0">✓ Direct input on V2 roadmap</text>
+
+      <!-- V2 roadmap (text in image) -->
+      <rect x="256" y="10" width="156" height="72" rx="8" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+      <text x="334" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#00bcd4" font-weight="700">V2 ROADMAP</text>
+      <text x="266" y="47" font-family="Inter" font-size="10.5" fill="#0d1b2a">› Momentum Dashboard</text>
+      <text x="266" y="62" font-family="Inter" font-size="10.5" fill="#0d1b2a">› Binary Decision Tool</text>
+      <text x="266" y="77" font-family="Inter" font-size="10" fill="#5a7fa0">shaped by your feedback</text>
+    </svg>
+  </div>
+
+  <p>By holding this Early Bird edition, you are a <strong>Founding Architect of Duck OS.</strong></p>
+  <ul>
+    <li>You receive every future version of this protocol (PDF and interactive format) automatically.</li>
+    <li><strong>V2 Roadmap:</strong> The Momentum Dashboard (track system health week over week) and the Binary Decision Tool (digital Phase 4 implementation).</li>
+    <li>Your feedback directly shapes the next system update. Report bugs. Request features.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     12 CONCLUSION
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">12</span>
+    <h2>Conclusion: You Are the Architect</h2>
+  </div>
+
+  <div class="illustration">
+    <svg width="100%" viewBox="0 0 420 128" preserveAspectRatio="xMidYMid meet" fill="none">
+      <!-- Blueprint background -->
+      <rect x="10" y="10" width="400" height="108" rx="10" fill="#0d1b2a"/>
+      <!-- Grid lines -->
+      <line x1="10" y1="28" x2="410" y2="28" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="10" y1="46" x2="410" y2="46" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="10" y1="64" x2="410" y2="64" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="10" y1="82" x2="410" y2="82" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="10" y1="100" x2="410" y2="100" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="62" y1="10" x2="62" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="114" y1="10" x2="114" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="166" y1="10" x2="166" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="218" y1="10" x2="218" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="270" y1="10" x2="270" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="322" y1="10" x2="322" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <line x1="374" y1="10" x2="374" y2="118" stroke="#00bcd4" stroke-width="0.5" opacity="0.25"/>
+      <!-- Large readable text overlay -->
+      <text x="210" y="50" text-anchor="middle" font-family="Inter" font-size="17" fill="white" font-weight="800">You are not broken.</text>
+      <text x="210" y="75" text-anchor="middle" font-family="Inter" font-size="12" fill="#a0c4d8">You are an architect running a complex system</text>
+      <text x="210" y="100" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" fill="#00bcd4">Stop fixing willpower · Fix the architecture</text>
+    </svg>
+  </div>
+
+  <p>You are not a broken person trying to fix their willpower.</p>
+  <p>You are an architect running a complex system on hardware that was never designed for the current environment. The crashes are not failure. They are diagnostic data.</p>
+  <p>Every protocol you run teaches you more about your own architecture. Every reboot makes the next recovery faster.</p>
+
+  <div class="next-steps">
+    <h3>YOUR NEXT STEP</h3>
+    <ol>
+      <li>Print this manual and keep it somewhere you will actually see it during a crash.</li>
+      <li>Choose your Anchor Song <em>now</em>, before you need it.</li>
+      <li>Run Phase 1 the next time you feel the signal — before the spiral takes hold.</li>
+    </ol>
+  </div>
+
+  <p style="text-align:center; font-weight:600; font-size:11pt; color: var(--ink); margin-top:20px;">Welcome to Duck OS.</p>
+  <p style="text-align:center; color: var(--sub); font-size:9pt;">Adduckivity — Life Architecture for Neurodivergent Creators</p>
+</div>
+
+</div><!-- end .page -->
+
+<div class="doc-footer">
+  <strong>ADDUCKIVITY</strong> · THE RECOVERY PROTOCOL V1 · FOUNDING ARCHITECT EDITION<br/>
+  © 2026 Adduckivity. All rights reserved.
+</div>
+
+</body>
+</html>

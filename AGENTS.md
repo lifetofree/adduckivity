@@ -19,7 +19,8 @@
 
 #### Featured Protocols
 - **Momentum Protocol (ACT-04)**: Visualized 3D flywheel syncing action with scroll.
-- **Emergency Recovery (FAIL-SAFE)**: Interactive 5-step recovery sequence for burnout spirals (Step 01: Name, Step 02: 30m Timer, Step 03: Anchor, Step 04: Tiny Action, Step 05: Fastest Finish).
+- **Emergency Recovery (FAIL-SAFE)**: Interactive 5-step recovery sequence for burnout spirals.
+- **The Atomizer (EXEC-01)**: AI-powered task decomposition tool to break "scary" tasks into 12-15 atomic steps (each ≤2 min).
 
 ---
 
@@ -32,6 +33,7 @@
 | `/blog` | Published posts grid |
 | `/blog/[slug]` | Post reading view — drafts return 404 |
 | `/momentum` | Momentum Protocol + Interactive Emergency Recovery (Lead Gen + Sales) |
+| `/atomizer` | The Atomizer — Task decomposition tool |
 
 ### Admin Routes (owner only)
 | Route | Purpose |
@@ -48,13 +50,16 @@
 | `/api/posts` | GET | List all posts or fetch by `?slug=` |
 | `/api/posts` | PUT | Update post — triggers Facebook auto-post on first publish |
 | `/api/posts` | DELETE | Delete post |
-| `/api/posts/maintenance` | GET | Trigger promotion of overdue scheduled posts (protected by key) |
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
+| `/api/posts/maintenance` | GET | Trigger promotion of overdue scheduled posts (protected by key) |
 | `/api/ai` | POST | Gemini proxy — titles, excerpt, outline, seo, tags |
+| `/api/ai/atomize` | POST | Gemini proxy — break task into 12-15 atomic steps (2-min max) |
 | `/api/unsplash` | GET | Unsplash search proxy |
 | `/api/upload` | POST | Upload image to Cloudflare R2 — returns absolute `https://` URL |
 | `/api/assets/[...key]` | GET | Serve R2 asset by key |
 | `/api/subscribe` | POST | SendFox email subscribe |
+| `/api/stats` | GET | Retrieve aggregated analytics event counts from KV |
+| `/api/track` | GET/POST | Record analytics events (page views, CTAs, etc.) |
 
 ---
 
@@ -75,8 +80,8 @@
 - **Env vars:** `SENDFOX_API_TOKEN`, `SENDFOX_LIST_ID`
 
 ### Google Gemini AI
-- Model: `gemini-2.0-flash`
-- Used in CMS editor AI assistant panel
+- Model: `gemini-1.5-flash` (edge-optimized, better rate limits)
+- Used in CMS editor AI assistant panel and Atomizer task decomposition
 - **Env var:** `GEMINI_API_KEY`
 
 ### Unsplash
@@ -141,6 +146,7 @@ interface Post {
 | `src/__tests__/posts.pure.test.ts` | readingTime (5), toSlug (7) |
 | `src/__tests__/posts.kv.test.ts` | savePost, getPostBySlug, getAllPosts, getPublishedPosts, updatePost, deletePost, slugExists |
 | `src/__tests__/posts.schedule.test.ts`| hides future, promotes past, facebookPosted flag, race condition lock |
+| `src/lib/atomizer.test.ts` | AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask |
 
 **Total:** 36 tests passing
 
@@ -158,7 +164,25 @@ interface Post {
 | Storage | Cloudflare KV + Cloudflare R2 |
 | Deployment | Cloudflare Pages (edge runtime) |
 | Testing | Vitest 4 + jsdom |
-| AI | Google Gemini 2.0 Flash |
+| AI | Google Gemini 1.5 Flash |
+
+---
+
+## Analytics System
+
+### Events Tracking
+- `/api/track` records events to KV with format `stats:hit:{eventName}:{timestamp}-{random}`
+- `/api/stats` aggregates and returns event counts by name
+
+### Event Types
+| Event | Description |
+|---|---|
+| `hero_reset_click` | Hero CTA clicked |
+| `protocol_card_click` | Protocol card selected |
+| `email_captured` | Newsletter signup success |
+| `product_cta_click` | Product purchase CTA clicked |
+| `atomize_task_submitted` | Task submitted to Atomizer |
+| `atomize_step_completed` | Individual step completed |
 
 ---
 
@@ -195,25 +219,6 @@ Hero Reset Trigger → Interactive Protocol → In-Tool Email Capture (Free Kit)
 ...
 
 *Last updated: 2026-04-30*
-
-```
-adduckivity/
-├── apps/
-│   └── immersive/
-│       └── momentum-3d/       # Main app
-│           ├── src/
-│           │   ├── app/       # Next.js App Router
-│           │   ├── components/
-│           │   └── lib/       # posts.ts, content.ts, gemini.ts, dev-kv.ts
-│           ├── public/content/ # Static markdown posts (legacy/build-time)
-│           └── vitest.config.ts
-├── skills/                    # AI agent skill files
-├── AGENTS.md                  # This file
-├── DOCUMENT.md                # Technical documentation
-├── DEPLOYMENT.md              # Deployment guide
-├── FirstRevenueRoadmap.md     # 30-day revenue plan
-└── ORIGINDUCK.md              # Origin story post (published)
-```
 
 ---
 

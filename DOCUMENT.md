@@ -14,7 +14,7 @@ Edge-first content platform combining immersive 3D storytelling with a built-in 
 | Frontend | Next.js 16.2 App Router + React Three Fiber |
 | Runtime | Cloudflare Pages (edge, `@cloudflare/next-on-pages`) |
 | Storage | Cloudflare KV (`POSTS_KV`) + Cloudflare R2 (`ASSETS_BUCKET`) |
-| AI | Google Gemini 2.0 Flash |
+| AI | Google Gemini 1.5 Flash |
 | Newsletter | SendFox API |
 | Social | Facebook Graph API v19.0 |
 
@@ -37,6 +37,14 @@ KV-backed post CRUD. All functions accept `KVNamespace` as first arg.
 | `getPostBySlug(kv, slug)` | Returns `Post \| null`. |
 | `savePost(kv, input)` | Upsert — merges with existing, auto-fills defaults, preserves `facebookPosted` flag. |
 | `updatePost(kv, slug, input)` | Patch — handles slug rename (deletes old key). |
+
+### `src/lib/atomizer.ts`
+Types and persistence helpers for The Atomizer tool.
+
+| Function | Description |
+|---|---|
+| `saveAtomizerTask(task)` | Persists `AtomizerTask` to `localStorage`. Pass `null` to clear. |
+| `loadAtomizerTask()` | Retrieves `AtomizerTask` from `localStorage`. |
 
 ### `src/lib/content.ts`
 Build-time file-system loader (reads `public/content/*.md` via gray-matter). Used for static pages only.
@@ -100,9 +108,26 @@ Upload image to R2. Returns `{ url }` as absolute `https://` URL.
 Serve R2 asset by key path.
 
 ### `POST /api/ai`
-Gemini AI assistant proxy. Model: `gemini-2.0-flash`.
+Gemini AI assistant proxy. Model: `gemini-1.5-flash`.
 
 **Actions:** `titles | excerpt | outline | seo | tags`
+
+### `POST /api/ai/atomize`
+Specialized Gemini route to break intimidating tasks into atomic steps (≤2 min each).
+
+**Request:** `{ task: string }`  
+**Response:** `{ steps: string[] }` (12-15 steps)
+
+### `GET /api/stats`
+Returns aggregated analytics event counts from KV.
+
+**Response:** `{ summary: Record<string, number>, total_hits: number }`
+
+### `GET|POST /api/track`
+Records analytics events to KV.
+
+**Request:** `{ event: string }` (POST) or `?event=name` (GET)  
+**Response:** `{ success: true }`
 
 ---
 
@@ -177,6 +202,7 @@ id = "a07209b5ad9a4972aa82a30d0af3071e"
     1.  The `/api/posts/maintenance` API (best for CRON).
     2.  Admin dashboard views (`/content`).
     3.  Direct visitor access to the blog or post (lazy fallback).
+- **The Atomizer** — Implements a "Focus Window" strategy (Law 3). Only 3 steps are visible at a time to prevent overwhelm. Every 6 completed steps triggers a mandatory "Energy Check" interrupt.
 - **`readingTime`** strips `# * \` [ ]` markdown chars before counting words.
 - **Dev KV** is in-memory and resets on server restart.
 - **`/content` routes** have no authentication — unlinked from public nav only.
@@ -196,5 +222,6 @@ npm run test:watch  # watch mode
 | `src/__tests__/posts.pure.test.ts` | 12 — readingTime, toSlug |
 | `src/__tests__/posts.kv.test.ts` | 14 — full KV CRUD |
 | `src/__tests__/posts.schedule.test.ts` | 4 — scheduling & sharing logic |
+| `src/lib/atomizer.test.ts` | 3 — storage helpers |
 
-**Total: 36 passing**
+**Total: 40 passing**
