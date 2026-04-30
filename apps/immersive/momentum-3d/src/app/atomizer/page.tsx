@@ -107,8 +107,8 @@ export default function AtomizerPage() {
         </div>
       </nav>
 
-      {/* 3D Background */}
-      <AtomizerScene shatter={shatter} />
+      {/* 3D Background — only on first step */}
+      {!task && <AtomizerScene shatter={shatter} />}
       
       <AnimatePresence>
         {showEnergyCheck && (
@@ -124,34 +124,36 @@ export default function AtomizerPage() {
 
       <main className="flex-1 z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 py-32">
         {!task ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="w-full text-center"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight" style={{ color: ET.ink }}>
-              The <span style={{ color: ET.accent }}>Atomizer</span>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight" style={{ color: ET.ink }}>
+              What&apos;s the{' '}
+              <span style={{ color: ET.accent }}>scary task?</span>
             </h1>
-            <p className="text-lg mb-12 max-w-md mx-auto" style={{ color: ET.mid }}>
-              Break intimidating projects into tiny, 2-minute steps. Law 1: System &gt; Emotion.
+            <p className="text-sm mb-14 max-w-md mx-auto" style={{ color: ET.sub }}>
+              We&apos;ll atomize it into 2-minute steps. Law 1: System &gt; Emotion.
             </p>
-            <div className="flex flex-col md:flex-row gap-3">
-              <input 
-                type="text" 
+            <div className="flex items-center gap-4 w-full max-w-2xl mx-auto">
+              <input
+                type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAtomize()}
-                placeholder="What is the scary task?"
-                className="flex-1 bg-black/40 border p-4 rounded-xl text-lg outline-none transition-all focus:ring-1 ring-cyan-500"
+                placeholder="e.g., Do my taxes..."
+                className="flex-1 bg-transparent border-0 border-b-2 pb-3 text-lg outline-none transition-colors"
                 style={{ borderColor: ET.border, color: ET.ink }}
+                autoFocus
               />
-              <button 
+              <button
                 onClick={handleAtomize}
                 disabled={loading || !input}
-                className="px-8 py-4 rounded-xl font-bold transition-all disabled:opacity-50 hover:scale-105 active:scale-95"
-                style={{ backgroundColor: ET.accent, color: ET.bg }}
+                className="shrink-0 px-7 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 hover:scale-105 active:scale-95"
+                style={{ backgroundColor: '#1a3a4a', color: ET.accent, border: `1px solid ${ET.border}` }}
               >
-                {loading ? 'Atomizing...' : 'Initialize'}
+                {loading ? 'Atomizing...' : 'Atomize'}
               </button>
             </div>
           </motion.div>
