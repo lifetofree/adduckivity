@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
-import { loadProtocol, ProtocolNode } from '@/lib/protocol-store'
+import { loadProtocol, ProtocolGraph, ProtocolNode } from '@/lib/protocol-store'
 
 export default function ProtocolBuilderPage() {
-  const [graph, setGraph] = useState({ nodes: [] as ProtocolNode[], edges: [] })
+  const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
 
   useEffect(() => {
     const loaded = loadProtocol()

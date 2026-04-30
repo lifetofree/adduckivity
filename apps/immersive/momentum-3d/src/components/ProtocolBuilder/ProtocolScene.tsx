@@ -1,4 +1,5 @@
 'use client'
+import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars, Line } from '@react-three/drei'
 import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
@@ -29,6 +30,8 @@ const Node = ({ node }: NodeProps) => (
 )
 
 export default function ProtocolScene({ nodes, edges }: { nodes: ProtocolNode[], edges: ProtocolEdge[] }) {
+  const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node.position])), [nodes]);
+
   return (
     <div className="w-full h-screen bg-[#0a0f1e]">
       <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
@@ -38,10 +41,10 @@ export default function ProtocolScene({ nodes, edges }: { nodes: ProtocolNode[],
         <pointLight position={[10, 10, 10]} />
         {nodes.map(node => <Node key={node.id} node={node} />)}
         {edges.map(edge => {
-          const source = nodes.find(n => n.id === edge.source);
-          const target = nodes.find(n => n.id === edge.target);
-          if (!source || !target) return null;
-          return <Connection key={edge.id} start={source.position} end={target.position} />;
+          const start = nodeMap.get(edge.source);
+          const end = nodeMap.get(edge.target);
+          if (!start || !end) return null;
+          return <Connection key={edge.id} start={start} end={end} />;
         })}
         <OrbitControls makeDefault />
       </Canvas>
