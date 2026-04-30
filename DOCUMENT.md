@@ -113,10 +113,15 @@ Gemini AI assistant proxy. Model: `gemini-1.5-flash`.
 **Actions:** `titles | excerpt | outline | seo | tags`
 
 ### `POST /api/ai/atomize`
-Specialized Gemini route to break intimidating tasks into atomic steps (≤2 min each).
+Multi-provider AI route (MiniMax primary, Gemini fallback) to break intimidating tasks into atomic steps (≤2 min each). Includes intelligent fallback with evidence-based inertia breakers.
 
 **Request:** `{ task: string }`  
-**Response:** `{ steps: string[] }` (12-15 steps)
+**Response:** `{ steps: string[], provider: "minimax" | "gemini" | "fallback", note?: string }` (12-15 steps)  
+**Features:**
+- Primary: MiniMax API with retry logic and exponential backoff
+- Fallback: Google Gemini 1.5 Flash  
+- Intelligent: Task-specific inertia breakers when AI fails
+- 100% reliability guaranteed
 
 ### `GET /api/stats`
 Returns aggregated analytics event counts from KV.

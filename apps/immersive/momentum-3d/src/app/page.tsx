@@ -199,7 +199,7 @@ export default async function Home() {
                   <div className="p-5 flex items-start justify-between gap-3 flex-1 min-h-0">
                     <div className="min-w-0">
                       <h3
-                        className="font-semibold text-base leading-snug mb-1.5 line-clamp-1"
+                        className="font-semibold text-base leading-snug mb-1.5 line-clamp-2"
                         style={{ color: ET.ink }}
                       >
                         {f.title}
