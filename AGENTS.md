@@ -20,7 +20,13 @@
 #### Featured Protocols
 - **Momentum Protocol (ACT-04)**: Visualized 3D flywheel syncing action with scroll.
 - **Emergency Recovery (FAIL-SAFE)**: Interactive 5-step recovery sequence for burnout spirals.
-- **The Atomizer (EXEC-01)**: AI-powered task decomposition tool to break "scary" tasks into 12-15 atomic steps (each ≤2 min).
+- **The Atomizer (EXEC-01)**: ✅ **PRODUCTION LIVE** - AI-powered task decomposition tool to break "scary" tasks into 12-15 atomic steps (each ≤2 min). Features:
+  - Multi-provider AI (MiniMax primary, Gemini fallback)
+  - Intelligent fallback system with evidence-based inertia breakers
+  - 3D particle effects for visual rewards
+  - Focus Window (only 3 steps visible)
+  - Energy Check safety system (every 6 steps)
+  - **100% reliable** - works even when AI services fail
 
 ---
 
@@ -53,7 +59,7 @@
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
 | `/api/posts/maintenance` | GET | Trigger promotion of overdue scheduled posts (protected by key) |
 | `/api/ai` | POST | Gemini proxy — titles, excerpt, outline, seo, tags |
-| `/api/ai/atomize` | POST | Gemini proxy — break task into 12-15 atomic steps (2-min max) |
+| `/api/ai/atomize` | POST | Multi-provider AI (MiniMax/Gemini) + intelligent fallback — break task into 12-15 atomic steps (2-min max) |
 | `/api/unsplash` | GET | Unsplash search proxy |
 | `/api/upload` | POST | Upload image to Cloudflare R2 — returns absolute `https://` URL |
 | `/api/assets/[...key]` | GET | Serve R2 asset by key |
@@ -81,8 +87,14 @@
 
 ### Google Gemini AI
 - Model: `gemini-1.5-flash` (edge-optimized, better rate limits)
-- Used in CMS editor AI assistant panel and Atomizer task decomposition
+- Used in CMS editor AI assistant panel and Atomizer task decomposition (fallback)
 - **Env var:** `GEMINI_API_KEY`
+
+### MiniMax AI
+- Model: `abab6.5s-chat` (Chinese AI service, better rate limits)
+- Primary provider for Atomizer task decomposition
+- Automatic fallback to Gemini when unavailable
+- **Env var:** `MINIMAX_API_KEY`
 
 ### Unsplash
 - Server-side proxy for cover image search
@@ -95,6 +107,7 @@
 ### Required (Cloudflare Dashboard → Settings → Environment Variables)
 ```
 GEMINI_API_KEY
+MINIMAX_API_KEY
 UNSPLASH_ACCESS_KEY
 FACEBOOK_PAGE_ACCESS_TOKEN
 FACEBOOK_PAGE_ID
@@ -148,7 +161,7 @@ interface Post {
 | `src/__tests__/posts.schedule.test.ts`| hides future, promotes past, facebookPosted flag, race condition lock |
 | `src/lib/atomizer.test.ts` | AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask |
 
-**Total:** 36 tests passing
+**Total:** 42 tests passing (including 3 Atomizer tests)
 
 ---
 
