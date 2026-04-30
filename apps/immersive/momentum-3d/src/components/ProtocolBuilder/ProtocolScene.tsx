@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars, Line } from '@react-three/drei'
 import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
+import CameraController from './CameraController'
 
 interface NodeProps {
   node: ProtocolNode;
@@ -29,7 +30,15 @@ const Node = ({ node }: NodeProps) => (
   </mesh>
 )
 
-export default function ProtocolScene({ nodes, edges }: { nodes: ProtocolNode[], edges: ProtocolEdge[] }) {
+export default function ProtocolScene({ 
+  nodes, 
+  edges, 
+  activeNode = null 
+}: { 
+  nodes: ProtocolNode[], 
+  edges: ProtocolEdge[],
+  activeNode?: ProtocolNode | null
+}) {
   const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node.position])), [nodes]);
 
   return (
@@ -39,6 +48,7 @@ export default function ProtocolScene({ nodes, edges }: { nodes: ProtocolNode[],
         <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
+        <CameraController activeNode={activeNode} />
         {nodes.map(node => <Node key={node.id} node={node} />)}
         {edges.map(edge => {
           const start = nodeMap.get(edge.source);
@@ -46,7 +56,7 @@ export default function ProtocolScene({ nodes, edges }: { nodes: ProtocolNode[],
           if (!start || !end) return null;
           return <Connection key={edge.id} start={start} end={end} />;
         })}
-        <OrbitControls makeDefault />
+        <OrbitControls makeDefault disabled={!!activeNode} />
       </Canvas>
     </div>
   )
