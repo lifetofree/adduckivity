@@ -76,6 +76,10 @@ Interactive recovery tool for executive dysfunction.
 ### `src/components/editor/EditorShared.tsx`
 Shared CMS UI primitives: `SideSection`, `Field`, `AISection`, `ProgressBar`, `ToolBtn`, `CoverImagePicker`, `ConfirmModal`.
 
+**CoverImagePicker** simplified to 2 methods:
+- **Upload**: Drag & drop or click to upload image → stored in R2
+- **URL**: Paste direct image URL
+
 ---
 
 ## 3. API Reference
@@ -88,7 +92,7 @@ Subscribe email to SendFox list.
 **Notes:** 422 from SendFox (already subscribed) returns `{ success: true }`
 
 ### `PUT /api/posts?slug=`
-Upsert post. Triggers Facebook auto-post on transition to `published` if not already posted.
+Upsert post. **Automatically imports Google Drive images to R2** if content contains `drive.google.com/file/d/.../view` URLs. Triggers Facebook auto-post on transition to `published` if not already posted.
 
 **Response includes:** `{ ...post, facebook?: { ok: boolean, error?: string } }`
 
@@ -108,7 +112,7 @@ Upload image to R2. Returns `{ url }` as absolute `https://` URL.
 Serve R2 asset by key path.
 
 ### `POST /api/ai`
-Gemini AI assistant proxy. Model: `gemini-1.5-flash`.
+Multi-provider AI assistant proxy. **MiniMax primary, Gemini fallback.**
 
 **Actions:** `titles | excerpt | outline | seo | tags`
 

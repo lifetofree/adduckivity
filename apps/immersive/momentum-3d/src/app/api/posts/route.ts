@@ -2,7 +2,7 @@ export const runtime = 'edge'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getAllPosts, getPostBySlug, savePost, updatePost, deletePost, promoteScheduledPosts, postToFacebook } from '@/lib/posts'
+import { getAllPosts, getPostBySlug, savePost, updatePost, deletePost, promoteScheduledPosts, postToFacebook, importGoogleDriveImages } from '@/lib/posts'
 import { getMockKV } from '@/lib/dev-kv'
 
 function getKV(): KVNamespace {
@@ -44,13 +44,22 @@ export async function PUT(req: NextRequest) {
     const existing = await getPostBySlug(kv, slug)
     const body = await req.json() as Partial<import('@/lib/posts').Post>
     
+    // Import Google Drive images to R2 if content is provided
+    let processedContent = body.content
+    if (processedContent !== undefined && processedContent !== null) {
+      const env = process.env.NODE_ENV === 'development' ? undefined : getEnv()
+      if (env && processedContent.trim()) {
+        processedContent = await importGoogleDriveImages(env, processedContent)
+      }
+    }
+    
     // We only trigger Facebook on the VERY FIRST transition to 'published' 
     // OR if it's already published but was never posted.
     const shouldPostToFacebook = body.status === 'published' && !existing?.facebookPosted
     
     const post = existing
-      ? await updatePost(kv, slug, body)
-      : await savePost(kv, { ...body, slug, title: body.title || slug, content: body.content || '' })
+      ? await updatePost(kv, slug, { ...body, content: processedContent !== undefined ? processedContent : existing.content })
+      : await savePost(kv, { ...body, slug, title: body.title || slug, content: processedContent !== undefined ? processedContent : '' })
     
     if (!post) return NextResponse.json({ error: 'Save failed' }, { status: 500 })
 

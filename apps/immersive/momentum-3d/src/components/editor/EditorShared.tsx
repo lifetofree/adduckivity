@@ -161,12 +161,6 @@ export function CoverImagePicker({
   value: string
   onChange: (url: string) => void
 }) {
-  const [tab, setTab] = useState<'upload' | 'url' | 'unsplash'>('upload')
-  const [query, setQuery] = useState('')
-  const [photos, setPhotos] = useState<UnsplashPhoto[]>([])
-  const [searching, setSearching] = useState(false)
-  const [searchErr, setSearchErr] = useState('')
-
   // Upload state
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -211,23 +205,6 @@ export function CoverImagePicker({
     if (file) uploadFile(file)
   }
 
-  const search = async () => {
-    if (!query.trim()) return
-    setSearching(true)
-    setSearchErr('')
-    setPhotos([])
-    try {
-      const res = await fetch(`/api/unsplash?q=${encodeURIComponent(query.trim())}`)
-      const data = await res.json() as { error?: string; photos?: UnsplashPhoto[] }
-      if (!res.ok) throw new Error(data.error || 'Search failed')
-      setPhotos(data.photos || [])
-    } catch (err) {
-      setSearchErr(err instanceof Error ? err.message : 'Search failed')
-    } finally {
-      setSearching(false)
-    }
-  }
-
   return (
     <div className="space-y-2">
       {/* 16:9 Preview */}
@@ -258,125 +235,50 @@ export function CoverImagePicker({
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex rounded-lg overflow-hidden border text-[11px] font-medium" style={{ borderColor: ET.border }}>
-        {(['upload', 'url', 'unsplash'] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="flex-1 py-1.5 transition-colors capitalize"
-            style={{
-              backgroundColor: tab === t ? ET.accent : ET.bg,
-              color: tab === t ? ET.surface : ET.sub,
-            }}
-          >
-            {t === 'upload' ? 'Upload' : t === 'url' ? 'URL' : 'Unsplash'}
-          </button>
-        ))}
-      </div>
-
-      {/* Upload tab */}
-      {tab === 'upload' && (
-        <div className="space-y-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={onDrop}
-            disabled={uploading}
-            className="w-full rounded-lg border-2 border-dashed py-5 flex flex-col items-center gap-2 transition-colors disabled:opacity-50"
-            style={{
-              borderColor: dragOver ? ET.accent : ET.border,
-              backgroundColor: dragOver ? ET.accentL : ET.bg,
-              color: ET.sub,
-            }}
-          >
-            {uploading
-              ? <Loader2 size={18} className="animate-spin" style={{ color: ET.accent }} />
-              : <Upload size={18} style={{ color: ET.sub }} />
-            }
-            <span className="text-[11px] text-center leading-relaxed" style={{ color: ET.sub }}>
-              {uploading
-                ? 'Converting to WebP…'
-                : <>Click or drag an image<br />Saved as <strong>.webp</strong></>
-              }
-            </span>
-          </button>
-          {uploadErr && (
-            <p className="text-[11px]" style={{ color: '#ef4444' }}>{uploadErr}</p>
-          )}
-        </div>
+      {/* Upload area */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={onFileChange}
+        className="hidden"
+      />
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        disabled={uploading}
+        className="w-full rounded-lg border-2 border-dashed py-4 flex flex-col items-center gap-2 transition-colors disabled:opacity-50"
+        style={{
+          borderColor: dragOver ? ET.accent : ET.border,
+          backgroundColor: dragOver ? ET.accentL : ET.bg,
+          color: ET.sub,
+        }}
+      >
+        {uploading
+          ? <Loader2 size={18} className="animate-spin" style={{ color: ET.accent }} />
+          : <Upload size={18} style={{ color: ET.sub }} />
+        }
+        <span className="text-[11px] text-center leading-relaxed" style={{ color: ET.sub }}>
+          {uploading
+            ? 'Converting to WebP…'
+            : <>Click or drag an image<br />or paste URL below</>
+          }
+        </span>
+      </button>
+      {uploadErr && (
+        <p className="text-[11px]" style={{ color: '#ef4444' }}>{uploadErr}</p>
       )}
 
-      {/* URL tab */}
-      {tab === 'url' && (
-        <input
-          type="url"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="https://…"
-          className="et-input"
-        />
-      )}
-
-      {/* Unsplash tab */}
-      {tab === 'unsplash' && (
-        <div className="space-y-2">
-          <div className="flex gap-1.5">
-            <input
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && search()}
-              placeholder="Search images…"
-              className="et-input flex-1"
-            />
-            <button
-              onClick={search}
-              disabled={searching}
-              className="px-2.5 rounded-lg flex items-center transition-opacity hover:opacity-80 disabled:opacity-40"
-              style={{ backgroundColor: ET.accent, color: ET.surface }}
-            >
-              {searching ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
-            </button>
-          </div>
-
-          {searchErr && <p className="text-[11px]" style={{ color: '#ef4444' }}>{searchErr}</p>}
-
-          {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-1 max-h-48 overflow-y-auto">
-              {photos.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => onChange(p.full)}
-                  className="relative overflow-hidden rounded group"
-                  style={{ aspectRatio: '16/9', backgroundColor: ET.muted }}
-                  title={`Photo by ${p.credit}`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.thumb}
-                    alt={p.alt}
-                    className="w-full h-full object-cover transition-opacity group-hover:opacity-80"
-                  />
-                  {value === p.full && (
-                    <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `${ET.accent}aa` }}>
-                      <span className="text-white text-[10px] font-bold">✓</span>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* URL input */}
+      <input
+        type="url"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder="Or paste image URL here..."
+        className="et-input"
+      />
     </div>
   )
 }

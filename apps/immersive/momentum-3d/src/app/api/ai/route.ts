@@ -24,6 +24,67 @@ function checkRateLimit(identifier: string, maxRequests = 5, windowMs = 60000): 
   return true
 }
 
+async function askMiniMax(apiKey: string, prompt: string, retries = 2): Promise<string> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const response = await fetch('https://api.minimax.chat/v1/text/chatcompletion_v2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'abab6.5s-chat',
+          messages: [{ sender_type: 'USER', sender_name: 'User', text: prompt }],
+          stream: false,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`MiniMax API error: ${response.status} - ${errorText}`)
+      }
+
+      const data = await response.json() as {
+        choices?: Array<{ messages?: Array<{ text?: string }> }>
+      }
+      const text = data.choices?.[0]?.messages?.[0]?.text || ''
+      if (!text) throw new Error('Empty response from MiniMax')
+      return text
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('429') && i < retries) {
+        const waitTime = Math.pow(2, i) * 1000
+        await new Promise(resolve => setTimeout(resolve, waitTime))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error('Max retries exceeded')
+}
+
+async function askGemini(apiKey: string, prompt: string, retries = 2): Promise<string> {
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const result = await model.generateContent(prompt)
+      return result.response.text().trim()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('429') && i < retries) {
+        const waitTime = Math.pow(2, i) * 1000
+        await new Promise(resolve => setTimeout(resolve, waitTime))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error('Max retries exceeded')
+}
+
 async function ask(apiKey: string, prompt: string, retries = 2): Promise<string> {
   const genAI = new GoogleGenerativeAI(apiKey)
   // Use stable model with better rate limits
@@ -85,13 +146,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many AI requests - please wait a minute' }, { status: 429 })
     }
 
-    const apiKey = process.env.NODE_ENV === 'development'
-      ? process.env.GEMINI_API_KEY || ''
-      : getRequestContext<CloudflareEnv>().env.GEMINI_API_KEY
+    // Get API keys
+    let miniMaxKey: string | undefined
+    let geminiKey: string | undefined
 
-    if (!apiKey) {
-      console.error('[AI] API key not configured')
-      return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
+    try {
+      const ctx = getRequestContext<CloudflareEnv>()
+      miniMaxKey = ctx.env.MINIMAX_API_KEY
+      geminiKey = ctx.env.GEMINI_API_KEY
+    } catch {
+      miniMaxKey = process.env.MINIMAX_API_KEY
+      geminiKey = process.env.GEMINI_API_KEY
     }
 
     const body = await req.json() as {
@@ -101,98 +166,111 @@ export async function POST(req: NextRequest) {
       excerpt?: string
       tags?: string[]
     }
+    type BodyType = typeof body
     const { action } = body
     let result: unknown
+    let provider = 'gemini'
 
-    switch (action) {
-      case 'titles': {
-        try {
-          const raw = await ask(apiKey, `Suggest 5 compelling blog post titles.\nTopic/current title: "${body.title || 'unknown'}"\nContent snippet:\n${(body.content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of 5 title strings. No explanation.`)
-          result = parseJSON(raw)
-        } catch (parseErr) {
-          console.error('[AI] Titles parse error, returning fallback')
-          result = [
-            `${body.title || 'Your Topic'}: A Complete Guide`,
-            `How to Master ${body.title || 'This Topic'}`,
-            `The Ultimate ${body.title || 'Topic'} Tutorial`,
-            `${body.title || 'Your Topic'}: Tips and Strategies`,
-            `Understanding ${body.title || 'This Topic'}: A Deep Dive`
-          ]
+    // Extract body fields to avoid circular reference in closures
+    const bTitle = body.title || ''
+    const bContent = body.content || ''
+    const bExcerpt = body.excerpt || ''
+    const bTags = body.tags || []
+
+    // Helper to build prompts
+    const buildPrompt = (act: string, title: string, content: string, excerpt: string, tags: string[]) => {
+      switch (act) {
+        case 'titles':
+          return `Suggest 5 compelling blog post titles.\nTopic/current title: "${title || 'unknown'}"\nContent snippet:\n${(content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of 5 title strings. No explanation.`
+        case 'excerpt':
+          return `Write a 1–2 sentence excerpt (max 160 characters) for this post titled "${title}":\n${(content || '').slice(0, 1500)}\n\nRespond with ONLY the excerpt text. No quotes, no explanation.`
+        case 'outline':
+          return `Generate a structured outline for a blog post titled "${title}".\nContent so far:\n${(content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of heading strings (use ## or ### prefixes). No explanation.`
+        case 'seo': {
+          const tagsStr = (tags || []).join(', ') || '(none)'
+          const excerptStr = excerpt || '(none)'
+          return `Give 5 actionable, specific SEO tips for this blog post.\nTitle: "${title || 'unknown'}"\nExcerpt: "${excerptStr}"\nTags: "${tagsStr}"\n\nRespond with ONLY a JSON array of 5 tip strings. No explanation.`
         }
-        break
+        case 'tags':
+          return `Suggest 6 relevant tags for a blog post titled "${title}".\nContent:\n${(content || '').slice(0, 600)}\n\nRespond with ONLY a JSON array of lowercase tag strings (no # prefix). No explanation.`
+        default:
+          return ''
       }
-      case 'excerpt': {
-        try {
-          const raw = await ask(apiKey, `Write a 1–2 sentence excerpt (max 160 characters) for this post titled "${body.title}":\n${(body.content || '').slice(0, 1500)}\n\nRespond with ONLY the excerpt text. No quotes, no explanation.`)
-          result = raw.replace(/^["']|["']$/g, '').slice(0, 160)
-        } catch (parseErr) {
-          console.error('[AI] Excerpt error, returning fallback')
-          const contentPreview = (body.content || '').slice(0, 100).replace(/\n+/g, ' ')
-          result = `Discover ${body.title || 'this topic'} and learn practical strategies. ${contentPreview}...`
-        }
-        break
-      }
-      case 'outline': {
-        try {
-          const raw = await ask(apiKey, `Generate a structured outline for a blog post titled "${body.title}".\nContent so far:\n${(body.content || '').slice(0, 800)}\n\nRespond with ONLY a JSON array of heading strings (use ## or ### prefixes). No explanation.`)
-          result = parseJSON(raw)
-        } catch (parseErr) {
-          console.error('[AI] Outline parse error, returning fallback')
-          result = [
-            "## Introduction",
-            "## Understanding the Problem",
-            "## Key Strategies and Solutions",
-            "## Step-by-Step Implementation",
-            "## Common Mistakes to Avoid",
-            "## Conclusion and Next Steps"
-          ]
-        }
-        break
-      }
-      case 'seo': {
-        const tags = (body.tags || []).join(', ') || '(none)'
-        const excerpt = body.excerpt || '(none)'
-        const prompt = `Give 5 actionable, specific SEO tips for this blog post.\nTitle: "${body.title || 'unknown'}"\nExcerpt: "${excerpt}"\nTags: "${tags}"\n\nRespond with ONLY a JSON array of 5 tip strings. No explanation.`
-        
-        try {
-          const raw = await ask(apiKey, prompt)
-          console.log('[AI] SEO response received, length:', raw.length)
-          result = parseJSON(raw)
-        } catch (parseErr) {
-          console.error('[AI] SEO parse error, returning fallback')
-          result = [
-            "Use your target keyword in the first 100 words",
-            "Include related keywords naturally throughout the content",
-            "Write a compelling meta description under 160 characters",
-            "Use descriptive alt text for images",
-            "Build internal links to related content"
-          ]
-        }
-        break
-      }
-      case 'tags': {
-        try {
-          const raw = await ask(apiKey, `Suggest 6 relevant tags for a blog post titled "${body.title}".\nContent:\n${(body.content || '').slice(0, 600)}\n\nRespond with ONLY a JSON array of lowercase tag strings (no # prefix). No explanation.`)
-          result = parseJSON(raw)
-        } catch (parseErr) {
-          console.error('[AI] Tags parse error, returning fallback')
-          const title = body.title || 'topic'
-          result = [
-            title.toLowerCase().replace(/\s+/g, '-'),
-            'tutorial',
-            'guide',
-            'tips',
-            'strategies',
-            'how-to'
-          ]
-        }
-        break
-      }
-      default:
-        return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
     }
 
-    return NextResponse.json({ result })
+    const fallbacks: Record<string, () => string[]> = {
+      titles: () => [
+        `${bTitle || 'Your Topic'}: A Complete Guide`,
+        `How to Master ${bTitle || 'This Topic'}`,
+        `The Ultimate ${bTitle || 'Topic'} Tutorial`,
+        `${bTitle || 'Your Topic'}: Tips and Strategies`,
+        `Understanding ${bTitle || 'This Topic'}: A Deep Dive`
+      ],
+      excerpt: () => {
+        const contentPreview = (bContent || '').slice(0, 100).replace(/\n+/g, ' ')
+        return [`Discover ${bTitle || 'this topic'} and learn practical strategies. ${contentPreview}...`]
+      },
+      outline: () => [
+        "## Introduction",
+        "## Understanding the Problem",
+        "## Key Strategies and Solutions",
+        "## Step-by-Step Implementation",
+        "## Common Mistakes to Avoid",
+        "## Conclusion and Next Steps"
+      ],
+      seo: () => [
+        "Use your target keyword in the first 100 words",
+        "Include related keywords naturally throughout the content",
+        "Write a compelling meta description under 160 characters",
+        "Use descriptive alt text for images",
+        "Build internal links to related content"
+      ],
+      tags: () => {
+        const title = bTitle || 'topic'
+        return [
+          title.toLowerCase().replace(/\s+/g, '-'),
+          'tutorial', 'guide', 'tips', 'strategies', 'how-to'
+        ]
+      }
+    }
+
+    const prompt = buildPrompt(action, bTitle, bContent, bExcerpt, bTags)
+    if (!prompt) return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+
+    // Try MiniMax first
+    if (miniMaxKey) {
+      try {
+        const raw = await askMiniMax(miniMaxKey, prompt)
+        result = parseJSON(raw)
+        provider = 'minimax'
+      } catch (err) {
+        console.error('[AI] MiniMax failed, falling back to Gemini:', err)
+      }
+    }
+
+    // Fall back to Gemini if MiniMax failed or wasn't available
+    if (!result && geminiKey) {
+      try {
+        const raw = await askGemini(geminiKey, prompt)
+        result = parseJSON(raw)
+        provider = 'gemini'
+      } catch (err) {
+        console.error('[AI] Gemini failed:', err)
+      }
+    }
+
+    // Use hardcoded fallback if both AI providers failed
+    if (!result || !Array.isArray(result)) {
+      const fallbackFn = fallbacks[action]
+      if (fallbackFn) {
+        result = fallbackFn()
+        provider = 'fallback'
+      } else {
+        return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+      }
+    }
+
+    return NextResponse.json({ result, provider })
   } catch (err) {
     console.error('[AI] Request failed:', err)
     return NextResponse.json({ error: friendlyError(err) }, { status: 500 })

@@ -13,6 +13,23 @@ function stripInline(text: string): string {
     .replace(/`([^`]+)`/g, '$1')
 }
 
+function extractGoogleDriveId(url: string): string | null {
+  const ucMatch = url.match(/id=([a-zA-Z0-9_-]+)/)
+  if (ucMatch) return ucMatch[1]
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
+  if (fileMatch) return fileMatch[1]
+  const openMatch = url.match(/open\?id=([a-zA-Z0-9_-]+)/)
+  if (openMatch) return openMatch[1]
+  return null
+}
+
+function convertGoogleDriveUrl(url: string): string {
+  const fileId = extractGoogleDriveId(url)
+  if (!fileId) return url
+  if (url.includes('uc?export=view') || url.includes('drive.usercontent.google.com')) return url
+  return `https://drive.google.com/uc?export=view&id=${fileId}`
+}
+
 export function extractHeadings(md: string): Heading[] {
   const result: Heading[] = []
   const regex = /^(#{1,3}) (.+)$/gm
@@ -25,12 +42,23 @@ export function extractHeadings(md: string): Heading[] {
 }
 
 function applyInline(s: string): string {
+  // Process images - convert Google Drive sharing URLs to direct export URLs
+  s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+    if (url.includes('drive.google.com') && !url.includes('uc?export=view') && !url.includes('drive.usercontent.google.com')) {
+      const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/open\?id=([a-zA-Z0-9_-]+)/)
+      if (fileIdMatch) {
+        const convertedUrl = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`
+        return `<img src="${convertedUrl}" alt="${alt}" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" loading="lazy" />`
+      }
+    }
+    return `<img src="${url}" alt="${alt}" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" loading="lazy" />`
+  })
+  
   return s
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,         '<em>$1</em>')
     .replace(/`([^`]+)`/g,         '<code>$1</code>')
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" />')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g,  '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
 }
 

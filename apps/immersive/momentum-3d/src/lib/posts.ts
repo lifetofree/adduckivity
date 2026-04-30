@@ -52,6 +52,81 @@ export function toSlug(title: string): string {
 }
 
 /**
+ * Extracts Google Drive image URLs from markdown content and returns R2 URLs
+ */
+export async function importGoogleDriveImages(
+  env: CloudflareEnv | undefined,
+  content: string
+): Promise<string> {
+  if (!env?.ASSETS_BUCKET) return content
+
+  // Find all Google Drive image URLs in markdown
+  const driveImageRegex = /!\[([^\]]*)\]\((https?:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view)\)/g
+  const matches = [...content.matchAll(driveImageRegex)]
+
+  if (matches.length === 0) return content
+
+  const siteUrl = env.SITE_URL || 'https://immersive.adduckivity.com'
+  let processedContent = content
+
+  for (const match of matches) {
+    const alt = match[1]
+    const originalUrl = match[2]
+
+    try {
+      // Convert sharing URL to direct export URL
+      const fileIdMatch = originalUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
+      if (!fileIdMatch) continue
+
+      const directUrl = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`
+
+      // Fetch the image
+      const response = await fetch(directUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+        redirect: 'follow',
+      })
+
+      if (!response.ok) {
+        console.error('[Import] Failed to fetch image:', response.status)
+        continue
+      }
+
+      const contentType = response.headers.get('content-type') || 'image/jpeg'
+      const buffer = await response.arrayBuffer()
+
+      // Generate unique key
+      const extMap: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg',
+      }
+      const ext = extMap[contentType] || 'jpg'
+      const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+      // Upload to R2
+      await env.ASSETS_BUCKET.put(key, buffer, {
+        httpMetadata: { contentType },
+      })
+
+      const r2Url = `${siteUrl}/api/assets/${key}`
+
+      // Replace Google Drive URL with R2 URL in content
+      processedContent = processedContent.replace(originalUrl, r2Url)
+
+      console.log('[Import] Downloaded and stored image:', key)
+    } catch (err) {
+      console.error('[Import] Error importing image:', err)
+    }
+  }
+
+  return processedContent
+}
+
+/**
  * Posts to Facebook page using the Graph API.
  */
 export async function postToFacebook(

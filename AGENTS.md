@@ -61,7 +61,7 @@
 | `/api/posts` | DELETE | Delete post |
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
 | `/api/posts/maintenance` | GET | Trigger promotion of overdue scheduled posts (protected by key) |
-| `/api/ai` | POST | Gemini proxy — titles, excerpt, outline, seo, tags |
+### `/api/ai` | POST | Multi-provider AI — MiniMax primary, Gemini fallback — titles, excerpt, outline, seo, tags |
 | `/api/ai/atomize` | POST | Multi-provider AI (MiniMax/Gemini) + intelligent fallback — break task into 12-15 atomic steps (2-min max) |
 | `/api/unsplash` | GET | Unsplash search proxy |
 | `/api/upload` | POST | Upload image to Cloudflare R2 — returns absolute `https://` URL |
@@ -95,13 +95,19 @@
 
 ### MiniMax AI
 - Model: `abab6.5s-chat` (Chinese AI service, better rate limits)
-- Primary provider for Atomizer task decomposition
+- Primary provider for Atomizer task decomposition and CMS AI assistant
 - Automatic fallback to Gemini when unavailable
 - **Env var:** `MINIMAX_API_KEY`
 
 ### Unsplash
 - Server-side proxy for cover image search
 - **Env var:** `UNSPLASH_ACCESS_KEY`
+
+### Google Drive Image Import
+- When posts are saved, any Google Drive image URLs (`drive.google.com/file/d/.../view`) in content are automatically downloaded to Cloudflare R2
+- URLs are replaced with R2-based URLs to avoid CORS issues
+- Import happens on both `PUT /api/posts` and `POST /api/posts/save`
+- Works with sharing links in any format: `/file/d/`, `/uc?export=view&id=`, `/open?id=`
 
 ---
 
