@@ -36,9 +36,7 @@ export default function ProtocolBuilderPage() {
 
   // Auto-save graph to localStorage
   useEffect(() => {
-    if (graph.nodes.length > 0) {
-      saveProtocol(graph)
-    }
+    saveProtocol(graph)
   }, [graph])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
@@ -51,9 +49,9 @@ export default function ProtocolBuilderPage() {
     const newNode: ProtocolNode = {
       id: Math.random().toString(36).substr(2, 9),
       type,
-      label: type === 'tool' ? `New ${toolId} Node` : 'New Action Node',
+      label: type === 'tool' ? `New ${toolId} Node` : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
       position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
-      data: toolId ? { toolId } : {}
+      data: toolId ? { toolId } : (type === 'timer' ? { duration: 25 } : {})
     }
     setGraph(prev => ({
       ...prev,
@@ -172,6 +170,18 @@ export default function ProtocolBuilderPage() {
                 >
                   Launch Atomizer
                 </button>
+              </div>
+            )}
+
+            {activeNode.type === 'timer' && (
+              <div className="space-y-4">
+                <div className="h-px bg-cyan-500/30 w-full" />
+                <div className="text-4xl font-mono text-cyan-500 text-center py-4 bg-black/40 rounded-lg border border-white/5">
+                  {activeNode.data?.duration || 0}:00
+                </div>
+                <p className="text-[10px] text-white/40 uppercase font-mono text-center">
+                  Focus Maintenance Protocol Active
+                </p>
               </div>
             )}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box } from 'lucide-react'
+import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
 import { useState } from 'react'
 
@@ -44,7 +44,7 @@ export default function ArchitectSidebar({
           <Settings2 className="w-5 h-5 text-cyan-500" />
           Protocol Architect
         </h2>
-        <p className="text-[10px] text-cyan-500/50 font-mono mt-1">DATA_MUTATOR_V1.0</p>
+        <p className="text-[10px] text-cyan-500/50 font-mono mt-1">DATA_MUTATOR_V1.1</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
@@ -52,17 +52,24 @@ export default function ArchitectSidebar({
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Nodes</h3>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <button 
                 onClick={() => onAddNode('action')}
-                className="p-1 hover:bg-cyan-500/20 rounded transition-colors text-cyan-500 cursor-pointer"
+                className="p-1.5 hover:bg-cyan-500/20 rounded transition-colors text-cyan-500 cursor-pointer"
                 title="Add Action Node"
               >
                 <Plus className="w-4 h-4" />
               </button>
               <button 
+                onClick={() => onAddNode('timer')}
+                className="p-1.5 hover:bg-cyan-500/20 rounded transition-colors text-cyan-500 cursor-pointer"
+                title="Add Timer Node"
+              >
+                <Clock className="w-4 h-4" />
+              </button>
+              <button 
                 onClick={() => onAddNode('tool', 'atomizer')}
-                className="p-1 hover:bg-cyan-500/20 rounded transition-colors text-cyan-500 cursor-pointer"
+                className="p-1.5 hover:bg-cyan-500/20 rounded transition-colors text-cyan-500 cursor-pointer"
                 title="Add Atomizer Tool"
               >
                 <Box className="w-4 h-4" />
@@ -71,13 +78,16 @@ export default function ArchitectSidebar({
           </div>
           
           <div className="space-y-2">
+            {nodes.length === 0 && (
+              <p className="text-[10px] text-white/20 italic text-center py-4">No nodes in constellation</p>
+            )}
             {nodes.map(node => (
               <button
                 key={node.id}
                 onClick={() => setActiveNodeId(node.id)}
                 className={`w-full text-left p-3 rounded border transition-all cursor-pointer ${
                   activeNodeId === node.id 
-                    ? 'bg-cyan-500/20 border-cyan-500 text-white' 
+                    ? 'bg-cyan-500/20 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
                     : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
                 }`}
               >
@@ -106,11 +116,14 @@ export default function ArchitectSidebar({
                 <h3 className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Edit Node</h3>
                 <button 
                   onClick={() => {
-                    if (confirm('Delete this node and all its connections?')) {
+                    // Using a more reliable visual feedback for deletion if confirm is the issue
+                    // but keeping confirm for safety for now, just making it explicit
+                    if (window.confirm(`Permanently delete node "${activeNode.label}"?`)) {
                       onDeleteNode(activeNode.id)
                     }
                   }}
-                  className="text-red-500/50 hover:text-red-500 transition-colors cursor-pointer"
+                  className="p-2 -m-2 text-red-500/50 hover:text-red-500 transition-colors cursor-pointer group"
+                  title="Delete Node"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -131,7 +144,12 @@ export default function ArchitectSidebar({
                   <label className="text-[10px] text-white/40 uppercase font-mono">Type</label>
                   <select 
                     value={activeNode.type}
-                    onChange={(e) => onUpdateNode(activeNode.id, { type: e.target.value as NodeType })}
+                    onChange={(e) => {
+                      const newType = e.target.value as NodeType;
+                      const newData = { ...activeNode.data };
+                      if (newType === 'timer' && !newData.duration) newData.duration = 25;
+                      onUpdateNode(activeNode.id, { type: newType, data: newData });
+                    }}
                     className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
                   >
                     <option value="action">Action</option>
@@ -139,6 +157,22 @@ export default function ArchitectSidebar({
                     <option value="timer">Timer</option>
                   </select>
                 </div>
+
+                {activeNode.type === 'timer' && (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-white/40 uppercase font-mono">Duration (Minutes)</label>
+                    <input 
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={activeNode.data?.duration || 25}
+                      onChange={(e) => onUpdateNode(activeNode.id, { 
+                        data: { ...activeNode.data, duration: parseInt(e.target.value) || 1 } 
+                      })}
+                      className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                    />
+                  </div>
+                )}
 
                 {activeNode.type === 'tool' && (
                   <div className="space-y-1.5">
@@ -164,6 +198,9 @@ export default function ArchitectSidebar({
                   
                   {/* Current Edges */}
                   <div className="space-y-1 mb-4">
+                    {edges.filter(e => e.source === activeNode.id).length === 0 && (
+                      <p className="text-[10px] text-white/20 italic">No outgoing connections</p>
+                    )}
                     {edges.filter(e => e.source === activeNode.id).map(edge => (
                       <div key={edge.id} className="flex items-center justify-between bg-white/5 rounded px-2 py-1.5 group">
                         <span className="text-[10px] text-white/70">
@@ -171,7 +208,8 @@ export default function ArchitectSidebar({
                         </span>
                         <button 
                           onClick={() => onDeleteEdge(edge.id)}
-                          className="opacity-0 group-hover:opacity-100 text-red-500 transition-opacity cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 text-red-500 transition-opacity cursor-pointer p-1"
+                          title="Delete Connection"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
