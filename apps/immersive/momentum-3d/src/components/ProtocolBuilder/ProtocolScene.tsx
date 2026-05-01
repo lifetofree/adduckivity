@@ -4,9 +4,12 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars, Line } from '@react-three/drei'
 import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
 import CameraController from './CameraController'
+import ForceGraphController from './ForceGraphController'
 
 interface NodeProps {
   node: ProtocolNode;
+  isActive?: boolean;
+  onSelect: (id: string) => void;
 }
 
 const Connection = ({ start, end }: { start: [number, number, number], end: [number, number, number] }) => (
@@ -19,8 +22,20 @@ const Connection = ({ start, end }: { start: [number, number, number], end: [num
   />
 )
 
-const Node = ({ node, isActive = false }: NodeProps & { isActive?: boolean }) => (
-  <mesh position={node.position}>
+const Node = ({ node, isActive = false, onSelect }: NodeProps) => (
+  <mesh 
+    position={node.position}
+    onClick={(e) => {
+      e.stopPropagation();
+      onSelect(node.id);
+    }}
+    onPointerOver={() => {
+      document.body.style.cursor = 'pointer';
+    }}
+    onPointerOut={() => {
+      document.body.style.cursor = 'auto';
+    }}
+  >
     <sphereGeometry args={[isActive ? 0.6 : 0.5, 32, 32]} />
     <meshStandardMaterial 
       color={isActive ? '#00f3ff' : (node.type === 'tool' ? '#00f3ff' : '#ffffff')} 
@@ -33,11 +48,17 @@ const Node = ({ node, isActive = false }: NodeProps & { isActive?: boolean }) =>
 export default function ProtocolScene({ 
   nodes, 
   edges, 
-  activeNode = null 
+  activeNode = null,
+  onSelectNode,
+  updateNodes,
+  mode = 'build'
 }: { 
   nodes: ProtocolNode[], 
   edges: ProtocolEdge[],
-  activeNode?: ProtocolNode | null
+  activeNode?: ProtocolNode | null,
+  onSelectNode: (id: string) => void,
+  updateNodes: (nodes: ProtocolNode[]) => void,
+  mode?: 'build' | 'flow'
 }) {
   const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node.position])), [nodes]);
 
@@ -49,11 +70,20 @@ export default function ProtocolScene({
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
         <CameraController activeNode={activeNode} />
+        
+        <ForceGraphController 
+          nodes={nodes} 
+          edges={edges} 
+          updateNodes={updateNodes} 
+          enabled={mode === 'build'} 
+        />
+
         {nodes.map(node => (
           <Node 
             key={node.id} 
             node={node} 
-            isActive={activeNode?.id === node.id} 
+            isActive={activeNode?.id === node.id}
+            onSelect={onSelectNode}
           />
         ))}
         {edges.map(edge => {

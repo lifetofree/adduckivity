@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
-import { loadProtocol, ProtocolGraph, ProtocolNode } from '@/lib/protocol-store'
+import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
+import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 
 export default function ProtocolBuilderPage() {
   const router = useRouter()
@@ -12,25 +13,84 @@ export default function ProtocolBuilderPage() {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
 
   useEffect(() => {
-    const loaded = loadProtocol()
-    if (loaded.nodes.length === 0) {
-      // Seed initial nodes if none exist
-      const nodes: ProtocolNode[] = [
-        { id: '1', type: 'action', label: 'Morning Ritual', position: [0, 0, 0], data: {} },
-        { id: '2', type: 'tool', label: 'Deep Work Session', position: [5, 2, -5], data: { toolId: 'atomizer' } },
-        { id: '3', type: 'action', label: 'Recovery Walk', position: [2, -3, -10], data: {} },
-      ];
-      const edges = [
-        { id: 'e1-2', source: '1', target: '2' },
-        { id: 'e2-3', source: '2', target: '3' },
-      ];
-      setGraph({ nodes, edges })
-    } else {
-      setGraph(loaded)
+    const initGraph = async () => {
+      const loaded = loadProtocol()
+      if (loaded.nodes.length === 0) {
+        // Seed initial nodes if none exist
+        const nodes: ProtocolNode[] = [
+          { id: '1', type: 'action', label: 'Morning Ritual', position: [0, 0, 0], data: {} },
+          { id: '2', type: 'tool', label: 'Deep Work Session', position: [5, 2, -5], data: { toolId: 'atomizer' } },
+          { id: '3', type: 'action', label: 'Recovery Walk', position: [2, -3, -10], data: {} },
+        ];
+        const edges = [
+          { id: 'e1-2', source: '1', target: '2' },
+          { id: 'e2-3', source: '2', target: '3' },
+        ];
+        setGraph({ nodes, edges })
+      } else {
+        setGraph(loaded)
+      }
     }
+    initGraph()
   }, [])
 
+  // Auto-save graph to localStorage
+  useEffect(() => {
+    if (graph.nodes.length > 0) {
+      saveProtocol(graph)
+    }
+  }, [graph])
+
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
+
+  const updateNodes = (nodes: ProtocolNode[]) => {
+    setGraph(prev => ({ ...prev, nodes }))
+  }
+
+  const addNode = (type: NodeType, toolId?: 'atomizer' | 'emergency') => {
+    const newNode: ProtocolNode = {
+      id: Math.random().toString(36).substr(2, 9),
+      type,
+      label: type === 'tool' ? `New ${toolId} Node` : 'New Action Node',
+      position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
+      data: toolId ? { toolId } : {}
+    }
+    setGraph(prev => ({
+      ...prev,
+      nodes: [...prev.nodes, newNode]
+    }))
+    setActiveNodeId(newNode.id)
+  }
+
+  const updateNode = (id: string, updates: Partial<ProtocolNode>) => {
+    setGraph(prev => ({
+      ...prev,
+      nodes: prev.nodes.map(n => n.id === id ? { ...n, ...updates } : n)
+    }))
+  }
+
+  const deleteNode = (id: string) => {
+    setGraph(prev => ({
+      nodes: prev.nodes.filter(n => n.id !== id),
+      edges: prev.edges.filter(e => e.source !== id && e.target !== id)
+    }))
+    if (activeNodeId === id) setActiveNodeId(null)
+  }
+
+  const addEdge = (source: string, target: string) => {
+    const newEdge = { id: `e-${source}-${target}-${Date.now()}`, source, target }
+    setGraph(prev => ({
+      ...prev,
+      edges: [...prev.edges, newEdge]
+    }))
+  }
+
+  const deleteEdge = (id: string) => {
+    setGraph(prev => ({
+      ...prev,
+      edges: prev.edges.filter(e => e.id !== id)
+    }))
+  }
 
   const toggleMode = () => {
     const newMode = mode === 'build' ? 'flow' : 'build'
@@ -55,6 +115,9 @@ export default function ProtocolBuilderPage() {
         nodes={graph.nodes} 
         edges={graph.edges} 
         activeNode={activeNode} 
+        onSelectNode={setActiveNodeId}
+        updateNodes={updateNodes}
+        mode={mode}
       />
       
       {/* HUD: Status and Navigation */}
@@ -120,6 +183,21 @@ export default function ProtocolBuilderPage() {
           </div>
         )}
       </div>
+
+      {/* Architect Sidebar */}
+      {mode === 'build' && (
+        <ArchitectSidebar 
+          nodes={graph.nodes}
+          edges={graph.edges}
+          activeNodeId={activeNodeId}
+          setActiveNodeId={setActiveNodeId}
+          onAddNode={addNode}
+          onUpdateNode={updateNode}
+          onDeleteNode={deleteNode}
+          onAddEdge={addEdge}
+          onDeleteEdge={deleteEdge}
+        />
+      )}
 
       {/* Legend / Help */}
       <div className="absolute bottom-8 right-8 z-10 text-right pointer-events-none opacity-30">
