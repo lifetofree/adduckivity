@@ -5,6 +5,7 @@ import Link from 'next/link'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
+import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
