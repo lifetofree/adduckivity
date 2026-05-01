@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask } from '@/lib/atomizer';
 import AtomizerList from '@/components/AtomizerList';
 import AtomizerScene from '@/components/AtomizerScene';
@@ -10,11 +11,16 @@ import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AtomizerPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
+  
   const [input, setInput] = useState('');
   const [task, setTask] = useState<AtomizerTask | null>(null);
   const [loading, setLoading] = useState(false);
   const [shatter, setShatter] = useState(false);
   const [showEnergyCheck, setShowEnergyCheck] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     setTask(loadAtomizerTask());
@@ -72,8 +78,16 @@ export default function AtomizerPage() {
     setShatter(true);
     setTimeout(() => setShatter(false), 500);
 
-    // Law 3: Energy check every 6 steps
-    if (completedCount % 6 === 0) {
+    // Check if all steps completed
+    if (newSteps.every(s => s.completed)) {
+        setShowSuccess(true);
+        if (returnTo) {
+            setTimeout(() => {
+                router.push(returnTo);
+            }, 2000);
+        }
+    } else if (completedCount % 6 === 0) {
+        // Law 3: Energy check every 6 steps (only if not finished)
         setShowEnergyCheck(true);
     }
   };
@@ -123,7 +137,29 @@ export default function AtomizerPage() {
       </AnimatePresence>
 
       <main className="flex-1 z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 py-32">
-        {!task ? (
+        {showSuccess ? (
+            <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-center space-y-6"
+            >
+                <div className="w-20 h-20 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+                    <span className="text-4xl text-green-500 font-bold">✓</span>
+                </div>
+                <h1 className="text-4xl font-bold uppercase tracking-tighter" style={{ color: ET.ink }}>Task Eradicated</h1>
+                <p className="text-sm uppercase tracking-widest font-mono" style={{ color: ET.mid }}>
+                    {returnTo ? 'Initiating system return protocol...' : 'Momentum sustained. Ready for next load.'}
+                </p>
+                {!returnTo && (
+                    <button 
+                        onClick={() => { setTask(null); setShowSuccess(false); saveAtomizerTask(null); }}
+                        className="px-8 py-3 bg-white text-black font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-opacity-80 transition-all"
+                    >
+                        New Atomization
+                    </button>
+                )}
+            </motion.div>
+        ) : !task ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

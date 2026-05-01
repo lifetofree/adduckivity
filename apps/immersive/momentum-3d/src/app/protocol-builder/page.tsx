@@ -255,7 +255,7 @@ export default function ProtocolBuilderPage() {
                   &quot;Law 1: System &gt; Emotion. Break the resistance.&quot;
                 </p>
                 <button 
-                  onClick={() => router.push('/atomizer')}
+                  onClick={() => router.push('/atomizer?returnTo=/protocol-builder')}
                   className="w-full px-4 py-3 bg-cyan-500 text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white transition-all transform hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
                 >
                   Launch Atomizer
