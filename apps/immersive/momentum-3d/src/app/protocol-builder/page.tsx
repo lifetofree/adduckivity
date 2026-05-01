@@ -174,7 +174,13 @@ export default function ProtocolBuilderPage() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
-      <SystemBar mode={mode} setMode={setMode} isSyncing={isSyncing} />
+      <SystemBar 
+        title="Architect" 
+        mode={mode} 
+        setMode={setMode} 
+        isSyncing={isSyncing} 
+        showModeSwitcher={true}
+      />
 
       <ProtocolScene 
         nodes={graph.nodes} 
@@ -303,6 +309,11 @@ export default function ProtocolBuilderPage() {
       <div className="absolute bottom-8 right-8 z-10 text-right pointer-events-none opacity-30">
         <p className="text-[10px] text-white font-mono uppercase tracking-widest">Protocol Visualization Engine v1.1</p>
         <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-widest">Constellation Mapping Active</p>
+      </div>
+
+      {/* System Footer (Hidden in Flow Mode for full immersion) */}
+      <div className={`mt-auto transition-opacity duration-700 ${mode === 'flow' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <SystemFooter />
       </div>
     </main>
   )

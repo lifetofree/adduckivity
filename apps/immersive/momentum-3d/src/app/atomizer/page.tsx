@@ -7,6 +7,8 @@ import { AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask } from '@/
 import AtomizerList from '@/components/AtomizerList';
 import AtomizerScene from '@/components/AtomizerScene';
 import EnergyCheck from '@/components/EnergyCheck';
+import SystemBar from '@/components/ProtocolBuilder/SystemBar';
+import SystemFooter from '@/components/ProtocolBuilder/SystemFooter';
 import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -100,33 +102,8 @@ function AtomizerContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'transparent' }}>
-      {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b px-6 py-4 flex items-center justify-between" style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}>
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Image
-              src="/logo.png"
-              alt="Adduckivity Logo"
-              width={32}
-              height={32}
-              className="rounded-lg"
-            />
-            <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-              Home
-            </Link>
-            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-              Blog
-            </a>
-            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-              Tools
-            </a>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen flex flex-col bg-[#0a0f1e]">
+      <SystemBar title="Atomizer" />
 
       {/* 3D Background — only on first step */}
       {!task && <AtomizerScene shatter={shatter} />}
@@ -143,7 +120,7 @@ function AtomizerContent() {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 py-32">
+      <main className="flex-1 z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 py-40">
         {showSuccess ? (
             <motion.div 
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -153,8 +130,8 @@ function AtomizerContent() {
                 <div className="w-20 h-20 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(34,197,94,0.4)]">
                     <span className="text-4xl text-green-500 font-bold">✓</span>
                 </div>
-                <h1 className="text-4xl font-bold uppercase tracking-tighter" style={{ color: ET.ink }}>Task Eradicated</h1>
-                <p className="text-sm uppercase tracking-widest font-mono" style={{ color: ET.mid }}>
+                <h1 className="text-4xl font-bold uppercase tracking-tighter text-white">Task Eradicated</h1>
+                <p className="text-sm uppercase tracking-widest font-mono text-white/50">
                     {returnTo ? 'Initiating system return protocol...' : 'Momentum sustained. Ready for next load.'}
                 </p>
                 
@@ -182,11 +159,11 @@ function AtomizerContent() {
             animate={{ opacity: 1, y: 0 }}
             className="w-full text-center"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight" style={{ color: ET.ink }}>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight text-white">
               What&apos;s the{' '}
-              <span style={{ color: ET.accent }}>scary task?</span>
+              <span className="text-cyan-500">scary task?</span>
             </h1>
-            <p className="text-sm mb-14 max-w-md mx-auto" style={{ color: ET.sub }}>
+            <p className="text-sm mb-14 max-w-md mx-auto text-white/40">
               We&apos;ll atomize it into 2-minute steps. Law 1: System &gt; Emotion.
             </p>
             <div className="flex items-center gap-4 w-full max-w-2xl mx-auto">
@@ -196,15 +173,13 @@ function AtomizerContent() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAtomize()}
                 placeholder="e.g., Do my taxes..."
-                className="flex-1 bg-transparent border-0 border-b-2 pb-3 text-lg outline-none transition-colors"
-                style={{ borderColor: ET.border, color: ET.ink }}
+                className="flex-1 bg-transparent border-0 border-b-2 border-white/10 pb-3 text-lg outline-none transition-colors focus:border-cyan-500 text-white"
                 autoFocus
               />
               <button
                 onClick={handleAtomize}
                 disabled={loading || !input}
-                className="shrink-0 px-7 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 hover:scale-105 active:scale-95"
-                style={{ backgroundColor: '#1a3a4a', color: ET.accent, border: `1px solid ${ET.border}` }}
+                className="shrink-0 px-7 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 hover:scale-105 active:scale-95 bg-cyan-900/30 text-cyan-400 border border-cyan-500/20"
               >
                 {loading ? 'Atomizing...' : 'Atomize'}
               </button>
@@ -213,11 +188,11 @@ function AtomizerContent() {
         ) : (
           <div className="w-full flex flex-col items-center">
             <header className="mb-12 text-center">
-                <p className="text-xs font-bold uppercase tracking-[0.3em] mb-3" style={{ color: ET.accent }}>Project Atomized</p>
-                <h1 className="text-3xl font-bold mb-4">{task.originalTask}</h1>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] mb-3 text-cyan-500">Project Atomized</p>
+                <h1 className="text-3xl font-bold mb-4 text-white uppercase tracking-tight">{task.originalTask}</h1>
                 <button 
                     onClick={() => { setTask(null); saveAtomizerTask(null); }}
-                    className="text-xs font-medium opacity-50 hover:opacity-100 transition-opacity flex items-center gap-2 mx-auto"
+                    className="text-xs font-medium opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 mx-auto text-white"
                 >
                     Abandon System & Restart <span>↺</span>
                 </button>
@@ -227,25 +202,14 @@ function AtomizerContent() {
         )}
       </main>
 
-      {/* Footer (Emergency Style) */}
-      <footer className="z-10 py-12 px-6 border-t" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Image src="/logo.png" alt="Adduckivity Logo" width={28} height={28} className="rounded-md" />
-            <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
-          </div>
-          <p className="text-sm mb-1" style={{ color: ET.sub }}>
-            Part of the <strong style={{ color: ET.ink }}>Duck OS</strong> — Life Architecture for Neurodivergent Creators
-          </p>
-        </div>
-      </footer>
+      <SystemFooter />
     </div>
   );
 }
 
 export default function AtomizerPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center text-cyan-500 font-mono">Initializing Neural Path...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">Initializing Neural Path...</div>}>
       <AtomizerContent />
     </Suspense>
   )
