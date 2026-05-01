@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Adduckivity — Immersive 3D Studio
 
-## Getting Started
+Duck OS tools and content platform for neurodivergent creators.
 
-First, run the development server:
+**Live:** https://immersive.adduckivity.com  
+**Stack:** Next.js 16 · React Three Fiber · Cloudflare Pages + KV + R2
+
+---
+
+## Tools
+
+| Tool | Route | Status |
+|---|---|---|
+| Momentum Protocol | `/momentum` | ✅ Live |
+| The Atomizer | `/atomizer` | ✅ Live |
+| Protocol Builder | `/protocol-builder` | ✅ Live |
+
+---
+
+## Commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev       # localhost:3000
+npm run test      # Vitest (42 tests)
+npm run deploy    # build via next-on-pages → Cloudflare Pages
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Key Directories
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/
+    page.tsx               # Homepage — pinned cards, hero, CTA, footer
+    atomizer/page.tsx      # Atomizer tool
+    protocol-builder/      # Protocol Builder tool
+    blog/                  # Blog list + post pages
+    content/               # CMS (admin only)
+    api/                   # Edge API routes
+  components/
+    ProtocolBuilder/
+      SystemBar.tsx         # Shared fixed top bar for tools
+      SystemFooter.tsx      # Shared compact bottom bar for tools
+    AtomizerScene.tsx       # Three.js particle orb background
+    AtomizerList.tsx        # Step checklist
+    EmailCTA.tsx            # Newsletter capture
+  lib/
+    theme.ts                # ET color palette (single source of truth)
+    posts.ts                # KV post CRUD
+    atomizer.ts             # localStorage task persistence
+public/
+  uploads/
+    emergency-recovery-cover.svg   # SVG card cover
+    atomizer-cover.svg             # SVG card cover
+    protocol-builder-cover.svg     # SVG card cover
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Theme
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All colors flow from `src/lib/theme.ts` (`ET` object). Edit there to retheme the entire site.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```ts
+ET.bg      // #0A0F1E  page background
+ET.surface // #0F1829  cards, nav
+ET.accent  // #00E5FF  cyan neon — primary brand
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Cloudflare Pages via `@cloudflare/next-on-pages`. All routes run as edge functions.  
+See `AGENTS.md` in the repo root for full env vars, bindings, and integration specs.
