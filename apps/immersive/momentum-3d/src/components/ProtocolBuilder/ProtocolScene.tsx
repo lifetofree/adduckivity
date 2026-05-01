@@ -1,7 +1,7 @@
 'use client'
 import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stars, Line } from '@react-three/drei'
+import { OrbitControls, Stars, Line, Html } from '@react-three/drei'
 import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
 import CameraController from './CameraController'
 import ForceGraphController from './ForceGraphController'
@@ -42,6 +42,28 @@ const Node = ({ node, isActive = false, onSelect }: NodeProps) => (
       emissive={isActive ? '#00f3ff' : (node.type === 'tool' ? '#00f3ff' : '#000000')}
       emissiveIntensity={isActive ? 2 : 0.5}
     />
+    
+    <Html 
+      position={[0, 1.2, 0]} 
+      center 
+      distanceFactor={15}
+      className="pointer-events-none select-none"
+    >
+      <div 
+        className={`px-2 py-1 rounded border whitespace-nowrap transition-all duration-300 ${
+          isActive 
+            ? 'bg-cyan-500 text-black border-cyan-400 font-bold scale-110 shadow-[0_0_15px_rgba(6,182,212,0.5)]' 
+            : 'bg-black/60 text-white/70 border-white/10 backdrop-blur-sm'
+        }`}
+      >
+        <p className="text-[10px] uppercase font-mono tracking-widest">{node.label}</p>
+        {node.type === 'timer' && node.data?.duration && (
+          <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-black' : 'text-cyan-500'}`}>
+            {node.data.duration} MIN
+          </p>
+        )}
+      </div>
+    </Html>
   </mesh>
 )
 
