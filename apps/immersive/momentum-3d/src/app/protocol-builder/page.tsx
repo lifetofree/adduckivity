@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
@@ -11,6 +11,10 @@ export default function ProtocolBuilderPage() {
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
+  
+  // Timer State
+  const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
 
   useEffect(() => {
     const initGraph = async () => {
@@ -40,6 +44,47 @@ export default function ProtocolBuilderPage() {
   }, [graph])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
+
+  // Handle Timer Initialization when node changes
+  useEffect(() => {
+    if (activeNode?.type === 'timer') {
+      setTimeLeft((activeNode.data?.duration || 25) * 60)
+      setIsTimerRunning(false)
+    } else {
+      setTimeLeft(null)
+      setIsTimerRunning(false)
+    }
+  }, [activeNodeId, activeNode?.type, activeNode?.data?.duration])
+
+  const nextNode = useCallback(() => {
+    if (graph.nodes.length === 0) return
+    const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
+    const nextIndex = (currentIndex + 1) % graph.nodes.length
+    setActiveNodeId(graph.nodes[nextIndex].id)
+  }, [graph.nodes, activeNodeId])
+
+  // Countdown Effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (isTimerRunning && timeLeft !== null && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => (prev !== null ? prev - 1 : null))
+      }, 1000)
+    } else if (timeLeft === 0) {
+      setIsTimerRunning(false)
+      // Auto-advance
+      setTimeout(() => {
+        nextNode()
+      }, 1500) // Brief pause to show 00:00
+    }
+    return () => clearInterval(interval)
+  }, [isTimerRunning, timeLeft, nextNode])
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 
   const updateNodes = (nodes: ProtocolNode[]) => {
     setGraph(prev => ({ ...prev, nodes }))
@@ -98,13 +143,6 @@ export default function ProtocolBuilderPage() {
     } else {
       setActiveNodeId(null)
     }
-  }
-
-  const nextNode = () => {
-    if (graph.nodes.length === 0) return
-    const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
-    const nextIndex = (currentIndex + 1) % graph.nodes.length
-    setActiveNodeId(graph.nodes[nextIndex].id)
   }
 
   return (
@@ -177,10 +215,20 @@ export default function ProtocolBuilderPage() {
               <div className="space-y-4">
                 <div className="h-px bg-cyan-500/30 w-full" />
                 <div className="text-4xl font-mono text-cyan-500 text-center py-4 bg-black/40 rounded-lg border border-white/5">
-                  {activeNode.data?.duration || 0}:00
+                  {timeLeft !== null ? formatTime(timeLeft) : '00:00'}
                 </div>
+                <button 
+                  onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    isTimerRunning 
+                      ? 'bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
+                      : 'bg-cyan-500/20 border border-cyan-500 text-cyan-500 hover:bg-cyan-500 hover:text-black'
+                  }`}
+                >
+                  {isTimerRunning ? 'Pause Protocol' : 'Initialize Countdown'}
+                </button>
                 <p className="text-[10px] text-white/40 uppercase font-mono text-center">
-                  Focus Maintenance Protocol Active
+                  Focus Maintenance Protocol {isTimerRunning ? 'Running' : 'Paused'}
                 </p>
               </div>
             )}
