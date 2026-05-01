@@ -6,6 +6,8 @@ import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 
+const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
+
 export default function ProtocolBuilderPage() {
   const router = useRouter()
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
@@ -16,8 +18,9 @@ export default function ProtocolBuilderPage() {
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
 
+  // Initialize Graph and Execution State
   useEffect(() => {
-    const initGraph = async () => {
+    const init = async () => {
       const loaded = loadProtocol()
       if (loaded.nodes.length === 0) {
         // Seed initial nodes if none exist
@@ -34,8 +37,20 @@ export default function ProtocolBuilderPage() {
       } else {
         setGraph(loaded)
       }
+
+      // Load Execution State
+      const savedExecution = localStorage.getItem(EXECUTION_STORAGE_KEY)
+      if (savedExecution) {
+        try {
+          const { mode: savedMode, activeNodeId: savedId } = JSON.parse(savedExecution)
+          setMode(savedMode)
+          setActiveNodeId(savedId)
+        } catch (e) {
+          console.error('Failed to load execution state', e)
+        }
+      }
     }
-    initGraph()
+    init()
   }, [])
 
   // Auto-save graph to localStorage
@@ -43,7 +58,13 @@ export default function ProtocolBuilderPage() {
     saveProtocol(graph)
   }, [graph])
 
+  // Auto-save execution state
+  useEffect(() => {
+    localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
+  }, [mode, activeNodeId])
+
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
+  const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
 
   // Handle Timer Initialization when node changes
   useEffect(() => {
@@ -59,36 +80,37 @@ export default function ProtocolBuilderPage() {
   const nextNode = useCallback(() => {
     if (graph.nodes.length === 0) return
     
-    // Find edges starting from current node
-    const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
-    
-    if (outgoingEdges.length > 0) {
-      // Follow the first connection found
+    if (outgoingEdges.length === 1) {
+      // Follow the single connection
       setActiveNodeId(outgoingEdges[0].target)
-    } else {
+    } else if (outgoingEdges.length === 0) {
       // Fallback: cycle through nodes linearly if no outgoing connections
       const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
       const nextIndex = (currentIndex + 1) % graph.nodes.length
       setActiveNodeId(graph.nodes[nextIndex].id)
     }
-  }, [graph.nodes, graph.edges, activeNodeId])
+    // If outgoingEdges.length > 1, the user must choose via HUD
+  }, [graph.nodes, outgoingEdges, activeNodeId])
 
   // Countdown Effect
   useEffect(() => {
     let interval: NodeJS.Timeout
+    // Only auto-advance if it's actually a timer node and the timer finished
     if (isTimerRunning && timeLeft !== null && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(prev => (prev !== null ? prev - 1 : null))
       }, 1000)
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && activeNode?.type === 'timer') {
       setIsTimerRunning(false)
-      // Auto-advance
-      setTimeout(() => {
-        nextNode()
-      }, 1500) // Brief pause to show 00:00
+      // Auto-advance only if there's a clear next path (0 or 1 edge)
+      if (outgoingEdges.length <= 1) {
+        setTimeout(() => {
+          nextNode()
+        }, 1500)
+      }
     }
     return () => clearInterval(interval)
-  }, [isTimerRunning, timeLeft, nextNode])
+  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -148,10 +170,8 @@ export default function ProtocolBuilderPage() {
   const toggleMode = () => {
     const newMode = mode === 'build' ? 'flow' : 'build'
     setMode(newMode)
-    if (newMode === 'flow' && graph.nodes.length > 0) {
+    if (newMode === 'flow' && graph.nodes.length > 0 && !activeNodeId) {
       setActiveNodeId(graph.nodes[0].id)
-    } else {
-      setActiveNodeId(null)
     }
   }
 
@@ -186,7 +206,7 @@ export default function ProtocolBuilderPage() {
             {mode === 'build' ? 'Initialize Flow' : 'Abort Flow'}
           </button>
 
-          {mode === 'flow' && (
+          {mode === 'flow' && outgoingEdges.length <= 1 && (
             <button 
               onClick={nextNode}
               className="px-4 py-2 bg-white border border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
@@ -195,6 +215,28 @@ export default function ProtocolBuilderPage() {
             </button>
           )}
         </div>
+
+        {/* Branching Options */}
+        {mode === 'flow' && outgoingEdges.length > 1 && (
+          <div className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-300">
+            <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest">Select Next Path:</p>
+            <div className="grid grid-cols-1 gap-2">
+              {outgoingEdges.map(edge => {
+                const targetNode = graph.nodes.find(n => n.id === edge.target)
+                return (
+                  <button
+                    key={edge.id}
+                    onClick={() => setActiveNodeId(edge.target)}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white text-xs font-mono text-left uppercase hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all group flex items-center justify-between"
+                  >
+                    <span>{targetNode?.label || 'Unknown Node'}</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Node Information Panel */}
         {activeNode && (
