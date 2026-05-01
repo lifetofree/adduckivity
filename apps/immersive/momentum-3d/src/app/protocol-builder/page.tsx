@@ -58,10 +58,20 @@ export default function ProtocolBuilderPage() {
 
   const nextNode = useCallback(() => {
     if (graph.nodes.length === 0) return
-    const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
-    const nextIndex = (currentIndex + 1) % graph.nodes.length
-    setActiveNodeId(graph.nodes[nextIndex].id)
-  }, [graph.nodes, activeNodeId])
+    
+    // Find edges starting from current node
+    const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+    
+    if (outgoingEdges.length > 0) {
+      // Follow the first connection found
+      setActiveNodeId(outgoingEdges[0].target)
+    } else {
+      // Fallback: cycle through nodes linearly if no outgoing connections
+      const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
+      const nextIndex = (currentIndex + 1) % graph.nodes.length
+      setActiveNodeId(graph.nodes[nextIndex].id)
+    }
+  }, [graph.nodes, graph.edges, activeNodeId])
 
   // Countdown Effect
   useEffect(() => {
