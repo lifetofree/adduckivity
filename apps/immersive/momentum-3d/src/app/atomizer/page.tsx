@@ -26,6 +26,16 @@ function AtomizerContent() {
     setTask(loadAtomizerTask());
   }, []);
 
+  // Reliable Auto-Redirect Protocol
+  useEffect(() => {
+    if (showSuccess && returnTo) {
+      const timer = setTimeout(() => {
+        router.push(returnTo);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess, returnTo, router]);
+
   const handleAtomize = async () => {
     if (!input.trim()) return;
     setLoading(true);
@@ -81,11 +91,6 @@ function AtomizerContent() {
     // Check if all steps completed
     if (newSteps.every(s => s.completed)) {
         setShowSuccess(true);
-        if (returnTo) {
-            setTimeout(() => {
-                router.push(returnTo);
-            }, 2000);
-        }
     } else if (completedCount % 6 === 0) {
         // Law 3: Energy check every 6 steps (only if not finished)
         setShowEnergyCheck(true);
@@ -150,14 +155,24 @@ function AtomizerContent() {
                 <p className="text-sm uppercase tracking-widest font-mono" style={{ color: ET.mid }}>
                     {returnTo ? 'Initiating system return protocol...' : 'Momentum sustained. Ready for next load.'}
                 </p>
-                {!returnTo && (
-                    <button 
-                        onClick={() => { setTask(null); setShowSuccess(false); saveAtomizerTask(null); }}
-                        className="px-8 py-3 bg-white text-black font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-opacity-80 transition-all"
-                    >
-                        New Atomization
-                    </button>
-                )}
+                
+                <div className="flex flex-col gap-3 pt-4">
+                    {returnTo ? (
+                        <button 
+                            onClick={() => router.push(returnTo)}
+                            className="px-8 py-4 bg-cyan-500 text-black font-bold uppercase text-xs tracking-[0.2em] rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                        >
+                            Return to Protocol Now →
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => { setTask(null); setShowSuccess(false); saveAtomizerTask(null); }}
+                            className="px-8 py-3 bg-white text-black font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-opacity-80 transition-all"
+                        >
+                            New Atomization
+                        </button>
+                    )}
+                </div>
             </motion.div>
         ) : !task ? (
           <motion.div
