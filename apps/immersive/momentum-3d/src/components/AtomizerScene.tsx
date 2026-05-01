@@ -37,7 +37,7 @@ function TaskOrb({ shatter = false }) {
       particlesRef.current.rotation.x = t * 0.03;
       particlesRef.current.scale.set(pulse, pulse, pulse);
       if (particlesRef.current.material instanceof THREE.Material) {
-        particlesRef.current.material.opacity = 0.15 + Math.sin(t * 1.2) * 0.04;
+        particlesRef.current.material.opacity = 0.20 + Math.sin(t * 1.2) * 0.04;
       }
     }
   });
@@ -50,7 +50,7 @@ function TaskOrb({ shatter = false }) {
         size={0.06}
         sizeAttenuation={true}
         depthWrite={false}
-        opacity={0.15}
+        opacity={0.20}
         blending={THREE.AdditiveBlending}
       />
     </Points>

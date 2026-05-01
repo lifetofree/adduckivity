@@ -101,7 +101,7 @@ function AtomizerContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0f1e]">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <SystemBar title="Atomizer" />
 
       {/* 3D Background — now always visible for atmosphere */}
@@ -200,6 +200,11 @@ function AtomizerContent() {
           </div>
         )}
       </main>
+
+      {/* System Footer (Hidden when task is active for focus) */}
+      <div className={`mt-auto transition-opacity duration-700 ${task ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <SystemFooter />
+      </div>
     </div>
   );
 }
