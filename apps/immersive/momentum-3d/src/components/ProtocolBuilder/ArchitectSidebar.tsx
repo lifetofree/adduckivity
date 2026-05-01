@@ -186,12 +186,11 @@ export default function ArchitectSidebar({
                     <select 
                       value={activeNode.data?.toolId || ''}
                       onChange={(e) => onUpdateNode(activeNode.id, { 
-                        data: { ...activeNode.data, toolId: e.target.value as 'atomizer' | 'emergency' } 
+                        data: { ...activeNode.data, toolId: e.target.value as 'atomizer' } 
                       })}
                       className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
                     >
                       <option value="atomizer">Atomizer</option>
-                      <option value="emergency">Emergency</option>
                     </select>
                   </div>
                 )}

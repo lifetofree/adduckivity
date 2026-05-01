@@ -30,6 +30,8 @@ function AtomizerContent() {
   useEffect(() => {
     if (showSuccess && returnTo) {
       const timer = setTimeout(() => {
+        // Clear task before returning so it's fresh next time
+        saveAtomizerTask(null);
         router.push(returnTo);
       }, 2500);
       return () => clearTimeout(timer);
