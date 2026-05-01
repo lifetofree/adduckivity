@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface ArchitectSidebarProps {
   nodes: ProtocolNode[];
@@ -30,6 +30,14 @@ export default function ArchitectSidebar({
 }: ArchitectSidebarProps) {
   const activeNode = nodes.find(n => n.id === activeNodeId)
   const [targetNodeId, setTargetNodeId] = useState<string>('')
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  // Trigger brief "Syncing" state when data changes
+  useEffect(() => {
+    setIsSyncing(true)
+    const timer = setTimeout(() => setIsSyncing(false), 800)
+    return () => clearTimeout(timer)
+  }, [nodes, edges])
 
   return (
     <motion.div
@@ -116,8 +124,6 @@ export default function ArchitectSidebar({
                 <h3 className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Edit Node</h3>
                 <button 
                   onClick={() => {
-                    // Using a more reliable visual feedback for deletion if confirm is the issue
-                    // but keeping confirm for safety for now, just making it explicit
                     if (window.confirm(`Permanently delete node "${activeNode.label}"?`)) {
                       onDeleteNode(activeNode.id)
                     }
@@ -262,9 +268,13 @@ export default function ArchitectSidebar({
       </div>
       
       <div className="p-6 border-t border-white/10 bg-black/40">
-        <div className="flex items-center justify-between text-[8px] font-mono text-white/30 uppercase tracking-[0.2em]">
-          <span>System Status</span>
-          <span className="text-cyan-500 animate-pulse">Syncing...</span>
+        <div className="flex items-center justify-between text-[8px] font-mono uppercase tracking-[0.2em]">
+          <span className="text-white/30">System Status</span>
+          {isSyncing ? (
+            <span className="text-cyan-500 animate-pulse font-bold tracking-[0.3em]">Syncing...</span>
+          ) : (
+            <span className="text-white/20">Stable</span>
+          )}
         </div>
       </div>
     </motion.div>
