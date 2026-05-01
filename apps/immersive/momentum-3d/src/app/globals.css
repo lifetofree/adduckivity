@@ -20,3 +20,37 @@ body {
 .prose-et ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
 .prose-et ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
 .prose-et li { display: list-item; margin-bottom: 0.4rem; line-height: 1.7; }
+
+/* Landing page animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 50%, rgba(0,229,255,0.9) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow effect */
+.glow-cyan {
+  text-shadow: 0 0 40px rgba(0,229,255,0.5);
+}
+
+/* Button hover effects */
+.button-glow {
+  box-shadow: 0 8px 24px rgba(0,229,255,0.4);
+  transition: all 0.3s ease;
+}
+
+.button-glow:hover {
+  box-shadow: 0 12px 32px rgba(0,229,255,0.6);
+  transform: translateY(-2px);
+}

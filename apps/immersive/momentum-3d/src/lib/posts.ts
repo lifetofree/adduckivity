@@ -4,6 +4,8 @@ export interface Post {
   title: string
   /** Publication date — YYYY-MM-DD. Stamped on first publish. */
   date: string
+  /** Full publication timestamp — ISO datetime for precise sorting. */
+  publishedAt?: string
   /** Content category: protocol | tutorial | case-study | system */
   category: string
   /** Three.js scene variant for the blog reading view. */
@@ -184,7 +186,7 @@ export async function postToFacebook(
 }
 
 /**
- * Retrieves all posts from KV, sorted newest-first by date.
+ * Retrieves all posts from KV, sorted newest-first by date and timestamp.
  *
  * @param kv - Cloudflare KV namespace binding.
  * @returns Array of all `Post` objects.
@@ -196,7 +198,18 @@ export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
   )
   return posts
     .filter((p): p is Post => p !== null)
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .sort((a, b) => {
+      // First try to sort by publishedAt timestamp if both have it
+      if (a.publishedAt && b.publishedAt) {
+        return a.publishedAt < b.publishedAt ? 1 : -1
+      }
+      // Fall back to date field for backwards compatibility
+      if (a.date !== b.date) {
+        return a.date < b.date ? 1 : -1
+      }
+      // If dates are the same, maintain stable sort
+      return 0
+    })
 }
 
 /**
@@ -235,6 +248,7 @@ export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?
       status: 'published' as const,
       scheduledAt: undefined,
       date: promotedDate,
+      publishedAt: post.scheduledAt, // Use the scheduled time as the published timestamp
       facebookPosted,
     }
 
@@ -285,11 +299,17 @@ export async function savePost(
 ): Promise<Post> {
   const existing = await getPostBySlug(kv, input.slug)
   const now = new Date().toISOString().split('T')[0]
+  const nowISO = new Date().toISOString()
   const merged = { ...existing, ...input }
+  
+  // Set publishedAt timestamp on first publish
+  const isFirstPublish = merged.status === 'published' && existing?.status !== 'published'
+  
   const post: Post = {
     slug:          merged.slug,
     title:         merged.title,
-    date:          (merged.status === 'published' && existing?.status !== 'published') ? now : (merged.date || now),
+    date:          isFirstPublish ? now : (merged.date || now),
+    publishedAt:   isFirstPublish ? nowISO : merged.publishedAt,
     category:      merged.category      || 'uncategorized',
     scene:         merged.scene         || 'default',
     mood:          merged.mood          || 'neutral',

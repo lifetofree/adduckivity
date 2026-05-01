@@ -1,9 +1,31 @@
-export interface Heading { level: number; text: string; id: string }
+/** Represents a heading extracted from markdown content. */
+export interface Heading {
+  /** Heading level (1-3). */
+  level: number;
+  /** Plain text content with inline formatting stripped. */
+  text: string;
+  /** URL-safe ID fragment for anchor links. */
+  id: string;
+}
 
+/**
+ * Converts a plain text string into a URL-safe ID fragment.
+ * Removes special characters, replaces whitespace with hyphens, and trims.
+ *
+ * @param text - The text to convert.
+ * @returns A lowercase, hyphenated ID string.
+ */
 function toId(text: string): string {
   return text.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').replace(/^-+|-+$/g, '')
 }
 
+/**
+ * Removes markdown inline formatting from text.
+ * Strips bold, italic, and code syntax, leaving plain text.
+ *
+ * @param text - Text with markdown formatting.
+ * @returns Plain text without formatting markers.
+ */
 function stripInline(text: string): string {
   return text
     .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
@@ -13,6 +35,13 @@ function stripInline(text: string): string {
     .replace(/`([^`]+)`/g, '$1')
 }
 
+/**
+ * Extracts a Google Drive file ID from various URL formats.
+ * Supports `/uc?export=view&id=`, `/file/d/`, and `/open?id=` patterns.
+ *
+ * @param url - Google Drive sharing URL.
+ * @returns The file ID string, or `null` if not found.
+ */
 function extractGoogleDriveId(url: string): string | null {
   const ucMatch = url.match(/id=([a-zA-Z0-9_-]+)/)
   if (ucMatch) return ucMatch[1]
@@ -30,6 +59,13 @@ function convertGoogleDriveUrl(url: string): string {
   return `https://drive.google.com/uc?export=view&id=${fileId}`
 }
 
+/**
+ * Extracts all h1-h3 headings from markdown content.
+ * Generates ID fragments for anchor linking and strips inline formatting.
+ *
+ * @param md - Raw markdown content.
+ * @returns Array of heading objects with level, text, and ID.
+ */
 export function extractHeadings(md: string): Heading[] {
   const result: Heading[] = []
   const regex = /^(#{1,3}) (.+)$/gm
@@ -75,6 +111,19 @@ function parseTable(block: string): string {
   return `<table>${thead}${tbody}</table>`
 }
 
+/**
+ * Converts markdown content to HTML with support for:
+ * - Headers (h1-h3) with auto-generated IDs
+ * - Blockquotes, horizontal rules
+ * - Ordered and unordered lists
+ * - Tables with pipe syntax
+ * - Inline formatting (bold, italic, code, links)
+ * - Images with Google Drive URL conversion
+ * - Fenced code blocks
+ *
+ * @param md - Raw markdown content.
+ * @returns HTML string.
+ */
 export function renderMarkdown(md: string): string {
   // Pre-process: fenced code blocks and block-level elements (preserve as-is)
   const processed = md

@@ -6,6 +6,7 @@ import { getRequestContext } from '@cloudflare/next-on-pages'
 import { getAllPosts, promoteScheduledPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
 import { getMockKV } from '@/lib/dev-kv'
+import DeleteButton from './DeleteButton'
 
 export default async function ContentDashboard() {
   const isDev = process.env.NODE_ENV === 'development'
@@ -93,7 +94,7 @@ export default async function ContentDashboard() {
             <div
               className="grid items-center px-5 py-2.5 border-b text-[11px] font-semibold uppercase tracking-wide"
               style={{
-                gridTemplateColumns: '1fr 90px 100px 52px',
+                gridTemplateColumns: '1fr 90px 100px 52px 52px',
                 gap: '1rem',
                 backgroundColor: ET.muted,
                 borderColor: ET.border,
@@ -104,6 +105,7 @@ export default async function ContentDashboard() {
               <span className="text-right">Category</span>
               <span className="text-right">Date</span>
               <span className="text-right">Edit</span>
+              <span className="text-right">Delete</span>
             </div>
 
             {/* Rows */}
@@ -122,7 +124,7 @@ function Row({ post }: { post: import('@/lib/posts').Post }) {
     <div
       className="group grid items-start px-5 py-4 border-b last:border-0 transition-colors"
       style={{
-        gridTemplateColumns: '1fr 90px 100px 52px',
+        gridTemplateColumns: '1fr 90px 100px 52px 52px',
         gap: '1rem',
         borderColor: ET.border,
         backgroundColor: ET.surface,
@@ -186,6 +188,11 @@ function Row({ post }: { post: import('@/lib/posts').Post }) {
         >
           Edit →
         </Link>
+      </p>
+
+      {/* Delete */}
+      <p className="text-right pt-0.5">
+        <DeleteButton slug={post.slug} title={post.title} status={post.status} />
       </p>
     </div>
   )

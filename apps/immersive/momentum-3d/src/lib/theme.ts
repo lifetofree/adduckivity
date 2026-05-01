@@ -1,5 +1,7 @@
-// ─── Site-wide color palette ───────────────────────────────────────────────
-// Edit these values to retheme the entire site at once.
+/**
+ * Site-wide color palette — single source of truth for theming.
+ * Edit these values to retheme the entire site at once.
+ */
 export const ET = {
   bg:      '#0A0F1E',  // page background
   surface: '#0F1829',  // cards, sidebars, nav
@@ -11,6 +13,28 @@ export const ET = {
   accent:  '#00E5FF',  // cyan neon — primary brand color
   accentL: 'rgba(0,229,255,0.12)', // accent tint for backgrounds
 } as const
+
+/**
+ * Generates CSS utility class strings for form elements.
+ * Applies consistent styling to input fields and select dropdowns.
+ *
+ * @param theme - Color palette object (ET).
+ * @returns CSS string with `.et-input` and `.et-select` classes.
+ */
+export const inputCss = (theme: typeof ET) => `
+  .et-input {
+    width: 100%; font-size: 0.75rem; border-radius: 0.5rem;
+    border: 1px solid ${theme.border}; background: ${theme.bg}; color: ${theme.ink};
+    padding: 0.375rem 0.625rem; outline: none; transition: box-shadow 0.15s;
+  }
+  .et-input:focus { box-shadow: 0 0 0 2px ${theme.accent}40; }
+  .et-input::placeholder { color: ${theme.border}; }
+  .et-select {
+    width: 100%; font-size: 0.75rem; border-radius: 0.5rem;
+    border: 1px solid ${theme.border}; background: ${theme.bg}; color: ${theme.ink};
+    padding: 0.375rem 0.625rem; outline: none;
+  }
+`
 
 export const inputCss = (theme: typeof ET) => `
   .et-input {

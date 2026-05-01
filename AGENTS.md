@@ -118,20 +118,21 @@ Compact bottom bar — mirrors SystemBar exactly.
 ### Admin Routes (owner only)
 | Route | Purpose |
 |---|---|
-| `/content` | CMS dashboard |
+| `/content` | CMS dashboard — delete buttons for drafts/scheduled posts, published posts protected |
 | `/content/new` | New post — auto-save, slug, Unsplash, AI assistant |
 | `/content/edit?slug=` | Edit post — auto-save (4s), Publish/Unpublish modals |
 
 ### API Routes (`src/app/api/`)
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/posts` | GET | List all posts or fetch by `?slug=` |
+| `/api/posts` | GET | List all posts or fetch by `?slug=` — sorts by publishedAt DESC, then date DESC |
 | `/api/posts` | PUT | Update post — triggers Facebook auto-post on first publish |
-| `/api/posts` | DELETE | Delete post |
+| `/api/posts` | DELETE | Delete post + associated R2 images — published posts protected (403) |
 | `/api/posts/save` | POST | Upsert (auto-save, preserves status) |
 | `/api/posts/maintenance` | GET | Promote overdue scheduled posts (protected by key) |
 | `/api/ai` | POST | Multi-provider AI — titles, excerpt, outline, seo, tags |
 | `/api/ai/atomize` | POST | MiniMax/Gemini — break task into 12-15 atomic steps (≤2 min each) |
+| `/api/ai/debug` | POST | Debug endpoint for AI provider testing |
 | `/api/unsplash` | GET | Unsplash search proxy |
 | `/api/upload` | POST | Upload image to Cloudflare R2 |
 | `/api/assets/[...key]` | GET | Serve R2 asset by key |
@@ -203,17 +204,19 @@ interface Post {
   slug: string
   title: string
   date: string               // YYYY-MM-DD
+  publishedAt?: string       // ISO datetime — set on first publish for precise sorting
   category: string           // protocol | tutorial | case-study | system
   scene: string              // default | momentum-flywheel
   mood: string               // neutral | energetic | calm | focused
   excerpt: string
   tags: string[]
   featuredImage: string
+  imageAlt?: string
   author: string
   readingTime: string        // auto-calculated
   status: 'draft' | 'published' | 'scheduled'
-  scheduledAt?: string       // ISO datetime
-  facebookPosted?: boolean
+  scheduledAt?: string       // ISO datetime — only for scheduled posts
+  facebookPosted?: boolean   // tracks Facebook sharing status
   content: string            // markdown
 }
 ```
@@ -234,6 +237,58 @@ interface Post {
 | `src/lib/atomizer.test.ts` | AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask |
 
 **Total:** 42 tests passing
+
+---
+
+## Core Libraries
+
+### `src/lib/posts.ts`
+**Post CRUD and Content Management**
+- `getAllPosts()` — Retrieves all posts from KV, sorted by publishedAt DESC
+- `getPublishedPosts()` — Returns only published posts with scheduled promotion
+- `getPostBySlug()` — Fetches single post by slug
+- `savePost()` — Creates or updates post with auto-calculated readingTime
+- `updatePost()` — Partial update with slug rename support
+- `deletePost()` — Deletes post by slug
+- `slugExists()` — Checks slug availability
+- `promoteScheduledPosts()` — Promotes overdue scheduled posts to published
+- `importGoogleDriveImages()` — Downloads Drive images to R2
+- `postToFacebook()` — Shares published posts to Facebook Page
+- `readingTime()` — Calculates reading time from word count
+- `toSlug()` — Converts titles to URL-safe slugs
+- `isPostLive()` — Checks if post is visible to public
+
+### `src/lib/atomizer.ts`
+**Task Decomposition Persistence**
+- `AtomizerTask` interface — Original task + atomic steps + metadata
+- `AtomicStep` interface — Individual step with completion status
+- `saveAtomizerTask()` — Persists task to localStorage
+- `loadAtomizerTask()` — Loads active task from localStorage
+- `STORAGE_KEY` — localStorage key for task persistence
+
+### `src/lib/markdown.ts`
+**Markdown Processing and Rendering**
+- `renderMarkdown()` — Converts markdown to HTML with syntax support
+- `extractHeadings()` — Parses h1-h3 headings for TOC generation
+- Google Drive URL conversion — Transform sharing links to direct embeds
+- Inline formatting — Bold, italic, code, links
+- Block elements — Headers, lists, blockquotes, tables, code blocks
+- Image handling — Responsive img tags with lazy loading
+
+### `src/lib/content.ts`
+**Build-time Content Loading**
+- `getAllPosts()` — Loads all markdown files from public/content
+- `getPostBySlug()` — Loads specific post by slug
+- `getPublishedPosts()` — Filters published posts only
+- Integrates with gray-matter for frontmatter parsing
+- Used for static build operations
+
+### `src/lib/protocol-store.ts`
+**Protocol Builder State Management**
+- Protocol graph persistence to localStorage
+- Node and edge management
+- Architect/Pilot mode switching
+- Flight path serialization
 
 ---
 
@@ -291,6 +346,24 @@ Posts support `status: 'scheduled'` with `scheduledAt` ISO datetime.
 - **Promotion:** Overdue posts promoted to `published` during list fetches or via `/api/posts/maintenance`
 - **Social:** Triggers Facebook post on first publish; `facebookPosted` flag prevents duplicates
 - **Automation:** `/api/posts/maintenance` (protected by `MAINTENANCE_KEY`) — hit via external cron
+- **Timestamp Sorting:** Enhanced sorting with `publishedAt` field for precise chronological ordering
+
+---
+
+## Content Management Features
+
+### Delete Functionality
+- **Smart Protection:** Published posts cannot be deleted (403 error) — must unpublish first
+- **Cascade Deletion:** Deletes both post content AND associated R2 images
+- **Image Detection:** Automatically finds and removes `/api/assets/` URLs from content and featured images
+- **User Confirmation:** Two-step confirmation UI prevents accidental deletions
+- **Status Indicators:** Disabled delete button for published posts with clear visual feedback
+
+### Navigation Consistency
+- **Unified Header:** All pages (`/`, `/blog`, `/momentum`) use identical navigation styling
+- **Sticky Header:** Fixed positioning with backdrop blur and border
+- **Responsive:** Mobile menu button, desktop navigation links
+- **Consistent Links:** Blog, 3D Experience, Archive, Tools across all pages
 
 ---
 
@@ -317,4 +390,4 @@ Hero Reset Trigger → Interactive Protocol → Email Capture (Free Kit) → Ear
 
 ---
 
-*Last updated: 2026-05-01*
+*Last updated: 2026-05-01 — Enhanced with content management, navigation consistency, and timestamp sorting*
