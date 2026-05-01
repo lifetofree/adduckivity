@@ -8,230 +8,367 @@ import EmergencyProtocol from '@/components/EmergencyProtocol'
 import EmailCTA from '@/components/EmailCTA'
 import { ET } from '@/lib/theme'
 
+const phases = [
+  { num: '01', name: 'Activation', desc: 'Smallest possible action. 2-minute commitment. No willpower required.', time: '2 min' },
+  { num: '02', name: 'Build Phase', desc: 'Resistance drops. Dopamine kicks in. Keep going.', time: '10 min' },
+  { num: '03', name: 'Momentum State', desc: 'Flow takes over. The system carries you now.', time: '20+ min' },
+  { num: '04', name: 'Asset Capture', desc: 'Document the output. Compound the library over time.', time: 'ongoing' },
+]
+
+const implementationSteps = [
+  ['2-Minute Activation', 'Commit to exactly 2 minutes. Anyone can do 2 minutes. If you want to stop after, you can. (You almost never will.)'],
+  ['Remove All Friction', 'Phone in another room. Tabs closed. Tools ready. Make the path of least resistance working.'],
+  ['Ride the Flywheel', "Once you hit 10 minutes, don't analyze it. Just ride it. Let the system carry you."],
+  ['Capture the Asset', "When done, document what you made. You're not just working — you're building an empire."],
+]
+
+const tools = [
+  {
+    title: 'The Atomizer',
+    description: 'Break any scary task into 2-minute atomic steps with AI assistance.',
+    href: '/atomizer',
+    badge: 'Executive Tool',
+    accent: ET.accent,
+  },
+  {
+    title: 'Protocol Builder',
+    description: 'Architect your momentum constellation. Map tasks in 3D space.',
+    href: '/protocol-builder',
+    badge: 'System Architect',
+    accent: '#a78bfa',
+  },
+  {
+    title: 'Browse Protocols',
+    description: 'Evidence-based systems and field notes from the Duck OS.',
+    href: '/blog',
+    badge: 'Knowledge Base',
+    accent: ET.accent,
+  },
+]
+
 export default function MomentumPage() {
   const [scrollProgress, setScrollProgress] = useState(0)
 
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight
-      const progress = window.scrollY / totalHeight
-      setScrollProgress(Math.min(Math.max(progress, 0), 1))
+      setScrollProgress(Math.min(Math.max(window.scrollY / totalHeight, 0), 1))
     }
-
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
-    <div className="relative" style={{ backgroundColor: ET.bg }}>
-      {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b px-6 py-4 flex items-center justify-between" style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}>
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Image
-              src="/logo.png"
-              alt="Adduckivity Logo"
-              width={32}
-              height={32}
-              className="rounded-lg"
-            />
-            <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-              Home
-            </Link>
-            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-              Blog
-            </a>
-            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-              Tools
-            </a>
-          </div>
+    <div style={{ backgroundColor: ET.bg }}>
+      {/* 3D background — visible only through the transparent hero */}
+      <FlywheelScene scrollProgress={scrollProgress} />
+
+      {/* ── Nav ── */}
+      <nav
+        className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
+        style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}
+      >
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Image src="/logo.png" alt="Adduckivity" width={36} height={36} className="rounded-lg" />
+          <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
+        </Link>
+        <div className="hidden md:flex items-center gap-7">
+          <Link href="/blog" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Blog</Link>
+          <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>3D Experience</Link>
+          <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Archive</a>
+          <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Tools</a>
         </div>
       </nav>
 
-      {/* 3D Background Scene */}
-      <FlywheelScene scrollProgress={scrollProgress} />
+      {/* ── Hero — split layout ── */}
+      <section
+        className="relative grid grid-cols-1 lg:grid-cols-2 overflow-hidden"
+        style={{ minHeight: 'calc(100vh - 65px)' }}
+      >
+        {/* Left gradient overlay — text readability against 3D bg */}
+        <div
+          className="absolute inset-0 lg:w-3/5 pointer-events-none"
+          style={{ background: 'linear-gradient(105deg, rgba(10,15,30,0.88) 0%, rgba(10,15,30,0.45) 100%)' }}
+          aria-hidden
+        />
 
-      {/* Content overlay */}
-      <div className="relative z-10" style={{ background: `linear-gradient(to bottom, rgba(0,229,255,0.08) 0%, ${ET.bg} 18%)` }}>
-
-        {/* Hero */}
-        <section className="min-h-screen flex items-center justify-center px-6">
-          <div className="max-w-4xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: 'rgba(0,229,255,0.7)' }}>ACT-04 Protocol</p>
-            <h1 className="text-6xl md:text-8xl font-bold mb-6 drop-shadow-2xl" style={{ color: ET.ink }}>
-              Momentum Protocol
-            </h1>
-            <p className="text-xl md:text-2xl mb-12 drop-shadow-lg max-w-2xl mx-auto" style={{ color: ET.mid }}>
-              Action Over Motivation
-            </p>
-            <div className="animate-bounce">
-              <p className="text-sm" style={{ color: ET.sub }}>scroll to begin</p>
-            </div>
+        {/* Left: protocol identity */}
+        <div className="relative z-10 flex flex-col justify-center px-8 md:px-14 py-20 lg:py-0">
+          {/* Status badge */}
+          <div className="flex items-center gap-3 mb-8">
+            <span
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ backgroundColor: '#ff4444', boxShadow: '0 0 8px #ff4444' }}
+            />
+            <span
+              className="font-mono text-[11px] uppercase tracking-[0.2em] px-3 py-1 rounded border"
+              style={{ color: '#ff6666', borderColor: 'rgba(255,68,68,0.3)', backgroundColor: 'rgba(255,68,68,0.08)' }}
+            >
+              ACT-04 // Emergency Recovery
+            </span>
           </div>
-        </section>
 
-        {/* Introduction */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-20" style={{ backgroundColor: ET.bg }}>
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.accent }}>Introduction</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-8" style={{ color: ET.ink }}>
-              Stop Waiting for Motivation
-            </h2>
-            <div className="space-y-5 text-base leading-relaxed" style={{ color: ET.mid }}>
-              <p>You don&apos;t need motivation. You need a system that works when you don&apos;t feel like doing anything.</p>
-              <p>The Momentum Protocol (ACT-04) is designed specifically for people who struggle with consistency. Whether you&apos;re dealing with ADHD, burnout, or just procrastination — this system bypasses willpower entirely.</p>
-              <p><strong style={{ color: ET.ink }}>Core insight:</strong> Motivation is unreliable. Systems are not. This protocol turns action into automatic momentum.</p>
-            </div>
+          <h1
+            className="font-bold leading-[0.88] tracking-tight mb-6"
+            style={{ fontSize: 'clamp(2.8rem, 6vw, 5rem)', color: ET.ink }}
+          >
+            Stop the<br />
+            <span style={{ color: '#ff4444' }}>Spiral.</span>
+          </h1>
+
+          <p className="text-base md:text-lg leading-relaxed mb-10 max-w-sm" style={{ color: ET.mid }}>
+            When burnout hits, don&apos;t think — run the protocol.
+            A 5-step fail-safe that restores momentum in under 10 minutes.
+          </p>
+
+          {/* Stat pills */}
+          <div className="flex flex-wrap gap-3 mb-10">
+            {[
+              { label: '5 steps', color: '#ff4444' },
+              { label: '< 10 min', color: ET.accent },
+              { label: 'zero willpower', color: '#a78bfa' },
+            ].map(s => (
+              <span
+                key={s.label}
+                className="font-mono text-[11px] uppercase tracking-widest px-3 py-1.5 rounded-lg border"
+                style={{ color: s.color, borderColor: `${s.color}40`, backgroundColor: `${s.color}10` }}
+              >
+                {s.label}
+              </span>
+            ))}
           </div>
-        </section>
 
-        {/* Interactive Emergency Protocol */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-24 relative overflow-hidden" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
-          <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'radial-gradient(circle at center, #00e5ff 0%, transparent 70%)' }} />
-          <div className="max-w-4xl w-full">
-            <div className="text-center mb-16">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] mb-4" style={{ color: '#ff4444' }}>System Fail-Safe</p>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: ET.ink }}>Emergency Recovery</h2>
-              <p className="text-lg max-w-xl mx-auto" style={{ color: ET.sub }}>
-                When the spiral starts, don&apos;t think. Just activate the protocol.
-              </p>
-            </div>
-            
+          <p className="text-xs" style={{ color: ET.sub }}>
+            Initialize the protocol on the right. Or scroll to learn the system.
+          </p>
+        </div>
+
+        {/* Right: EmergencyProtocol wizard — visible on load */}
+        <div className="relative z-10 flex items-center justify-center px-6 py-14 lg:py-0"
+          style={{ background: 'linear-gradient(135deg, rgba(10,15,30,0.6) 0%, rgba(10,15,30,0.85) 100%)' }}
+        >
+          <div className="w-full max-w-md">
             <EmergencyProtocol />
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* The Problem */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-20" style={{ backgroundColor: ET.surface }}>
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.accent }}>The Problem</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-8" style={{ color: ET.ink }}>
-              The Motivation Trap
-            </h2>
-            <div className="space-y-5 text-base leading-relaxed" style={{ color: ET.mid }}>
-              <p>You&apos;ve experienced this cycle: You feel inspired → You take action → The feeling fades → You stop → You wait for inspiration again.</p>
-              <p><strong style={{ color: ET.accent }}>This is a broken feedback loop.</strong> You&apos;re outsourcing your agency to your emotional state.</p>
-              <p>The Duck OS philosophy is simple: <em>&quot;Systems over willpower.&quot;</em> When you rely on motivation, you&apos;re building on quicksand. When you build systems, you&apos;re building on bedrock.</p>
-            </div>
-            <div className="mt-8 p-6 rounded-xl border" style={{ backgroundColor: ET.bg, borderColor: ET.border, borderLeft: `3px solid ${ET.accent}` }}>
-              <p className="font-medium italic" style={{ color: ET.mid }}>
-                &quot;The system is the bridge between intention and action.&quot; — UDO
-              </p>
-            </div>
-          </div>
-        </section>
+      {/* ── Below fold: solid bg covers 3D ── */}
+      <div className="relative z-10" style={{ backgroundColor: ET.bg }}>
 
-        {/* The Solution */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-20" style={{ backgroundColor: ET.bg }}>
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.accent }}>The Solution</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-8" style={{ color: ET.ink }}>
-              The Flywheel System
-            </h2>
-            <div className="space-y-5 text-base leading-relaxed" style={{ color: ET.mid }}>
-              <p>Watch the 3D flywheel in the background. Notice how it speeds up as you scroll? That&apos;s not just visual — that&apos;s how momentum actually works.</p>
-              <p><strong style={{ color: ET.ink }}>The Momentum Protocol has 4 phases:</strong></p>
-            </div>
-            <ol className="mt-6 space-y-4">
-              {[
-                ['Activation (2 min)', 'Smallest possible action. Tiny commitment.'],
-                ['Build Phase (10 min)', 'Work becomes easier. Dopamine starts flowing.'],
-                ['Momentum State (20+ min)', "You're in flow. The system carries you."],
-                ['Asset Creation', 'Output without relying on willpower.'],
-              ].map(([title, desc], i) => (
-                <li key={i} className="flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
-                  <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: ET.accent, color: ET.bg }}>{i + 1}</span>
-                  <div>
-                    <p className="font-semibold text-sm mb-0.5" style={{ color: ET.ink }}>{title}</p>
-                    <p className="text-sm" style={{ color: ET.sub }}>{desc}</p>
+        {/* ── Phases strip ── */}
+        <section className="border-t py-16" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
+          <div className="max-w-6xl mx-auto px-6">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] mb-12 text-center" style={{ color: ET.sub }}>
+              The Momentum Protocol · 4 Phases
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {phases.map((p, i) => (
+                <div key={i} className="relative">
+                  {/* Connector line between items */}
+                  {i < phases.length - 1 && (
+                    <div
+                      className="hidden lg:block absolute top-4 left-[calc(100%+1rem)] right-0 h-px"
+                      style={{ backgroundColor: ET.border, width: 'calc(100% - 2rem)' }}
+                    />
+                  )}
+                  <div className="flex items-center gap-3 mb-4">
+                    <span
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{ backgroundColor: ET.accent, color: ET.bg }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span
+                      className="font-mono text-[10px] uppercase tracking-widest px-2 py-0.5 rounded"
+                      style={{ color: ET.sub, backgroundColor: ET.muted }}
+                    >
+                      {p.time}
+                    </span>
                   </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* Implementation */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-20" style={{ backgroundColor: ET.surface }}>
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.accent }}>Implementation</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-10" style={{ color: ET.ink }}>
-              How to Run ACT-04
-            </h2>
-            <div className="space-y-8">
-              {[
-                ['Step 1: The 2-Minute Activation', 'Commit to exactly 2 minutes of work. Anyone can do 2 minutes. If you want to stop after 2 minutes, you are allowed to. (You almost never will.)'],
-                ['Step 2: Remove Friction', 'Before you start, eliminate every possible barrier. Phone in another room. Browser tabs closed. Tools ready. The path of least resistance should be working.'],
-                ['Step 3: Ride the Flywheel', "Once you hit 10 minutes, you'll feel momentum. Don't question it. Don't analyze it. Just ride it. Let the system carry you."],
-                ['Step 4: Asset Capture', "When you finish, document what you created. This builds your asset library. You're not just doing work — you're building your empire, one asset at a time."],
-              ].map(([title, body], i) => (
-                <div key={i} className="border-l-2 pl-6" style={{ borderColor: ET.accent }}>
-                  <h3 className="font-semibold text-lg mb-2" style={{ color: ET.ink }}>{title}</h3>
-                  <p className="text-base leading-relaxed" style={{ color: ET.mid }}>{body}</p>
+                  <h3 className="font-bold text-sm mb-2" style={{ color: ET.ink }}>{p.name}</h3>
+                  <p className="text-xs leading-relaxed" style={{ color: ET.sub }}>{p.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Duck OS Integration */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-20" style={{ backgroundColor: ET.bg }}>
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.accent }}>Ecosystem</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-8" style={{ color: ET.ink }}>
-              ACT-04 in the Duck OS Ecosystem
-            </h2>
-            <p className="text-base mb-6 leading-relaxed" style={{ color: ET.mid }}>
-              The Momentum Protocol is not isolated — it connects to every other Duck OS protocol:
-            </p>
-            <ul className="space-y-4">
-              {[
-                ['SURV-01 (Digital Declutter)', 'Reduces friction so activation becomes automatic'],
-                ['Flow State Architecture', 'ACT-04 gets you into flow, Flow State keeps you there'],
-                ['Single-Tasking Protocol', 'Momentum requires focus, not multitasking'],
-                ['Weekly Calibration', 'Review which ACT-04 sessions created the most assets'],
-              ].map(([title, desc]) => (
-                <li key={title} className="flex gap-3 items-start p-4 rounded-xl border" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
-                  <span className="text-xs font-bold mt-0.5" style={{ color: ET.accent }}>+</span>
-                  <div>
-                    <span className="font-semibold text-sm" style={{ color: ET.ink }}>{title}: </span>
-                    <span className="text-sm" style={{ color: ET.sub }}>{desc}</span>
+        {/* ── The Method — 2 col ── */}
+        <section className="border-t py-20" style={{ borderColor: ET.border }}>
+          <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+            {/* Left: The Problem */}
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-6" style={{ color: '#ff4444' }}>
+                The Problem
+              </p>
+              <h2 className="text-2xl font-bold mb-6" style={{ color: ET.ink }}>The Motivation Trap</h2>
+              <div className="space-y-4 text-sm leading-relaxed mb-8" style={{ color: ET.mid }}>
+                <p>You&apos;ve experienced this cycle: You feel inspired → You take action → The feeling fades → You stop → You wait for inspiration again.</p>
+                <p><strong style={{ color: '#ff4444' }}>This is a broken feedback loop.</strong> You&apos;re outsourcing your agency to your emotional state.</p>
+                <p>The Duck OS philosophy: <em>&quot;Systems over willpower.&quot;</em> Motivation builds on quicksand. Systems build on bedrock.</p>
+              </div>
+              <blockquote
+                className="p-5 rounded-xl"
+                style={{ backgroundColor: ET.surface, borderLeft: `2px solid ${ET.accent}`, paddingLeft: '1.25rem' }}
+              >
+                <p className="text-sm italic leading-relaxed" style={{ color: ET.mid }}>
+                  &quot;The system is the bridge between intention and action.&quot;
+                </p>
+                <footer className="mt-3 text-xs font-semibold" style={{ color: ET.sub }}>— UDO</footer>
+              </blockquote>
+            </div>
+
+            {/* Right: Implementation */}
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-6" style={{ color: ET.accent }}>
+                How to Run ACT-04
+              </p>
+              <h2 className="text-2xl font-bold mb-8" style={{ color: ET.ink }}>The Implementation</h2>
+              <div className="space-y-0">
+                {implementationSteps.map(([title, body], i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <span
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                        style={{ backgroundColor: ET.accent, color: ET.bg }}
+                      >
+                        {i + 1}
+                      </span>
+                      {i < implementationSteps.length - 1 && (
+                        <div className="w-px flex-1 my-1" style={{ backgroundColor: ET.border, minHeight: 28 }} />
+                      )}
+                    </div>
+                    <div className="pb-7">
+                      <p className="font-semibold text-sm mb-1.5" style={{ color: ET.ink }}>{title}</p>
+                      <p className="text-xs leading-relaxed" style={{ color: ET.sub }}>{body}</p>
+                    </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="min-h-screen flex items-center justify-center px-6 py-20" style={{ backgroundColor: ET.muted }}>
-          <div className="max-w-2xl text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: ET.ink }}>
-              Start Your Flywheel Today
-            </h2>
-            <div className="space-y-4 text-base leading-relaxed mb-12" style={{ color: ET.mid }}>
-              <p>You don&apos;t need to wait for motivation. You don&apos;t need to feel ready. You just need to activate the system.</p>
-              <p><strong style={{ color: ET.ink }}>Right now:</strong> Set a timer for 2 minutes. Start one thing you&apos;ve been avoiding. Watch the flywheel begin to spin.</p>
-              <p>In 48 hours, you&apos;ll have momentum. In 30 days, a new identity. In 90 days, an asset library that compounds forever.</p>
+        {/* ── OS Tools ── */}
+        <section className="border-t py-20" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="mb-12 text-center">
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-3" style={{ color: ET.sub }}>Duck OS</p>
+              <h2 className="text-2xl font-bold" style={{ color: ET.ink }}>More Tools</h2>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {tools.map((t, i) => (
+                <Link key={i} href={t.href} className="group block">
+                  <div
+                    className="p-6 rounded-2xl border transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col"
+                    style={{ backgroundColor: ET.bg, borderColor: ET.border }}
+                  >
+                    <span
+                      className="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg border mb-4 inline-block w-fit"
+                      style={{ color: t.accent, borderColor: `${t.accent}40`, backgroundColor: `${t.accent}10` }}
+                    >
+                      {t.badge}
+                    </span>
+                    <h3 className="font-bold text-base mb-2" style={{ color: ET.ink }}>{t.title}</h3>
+                    <p className="text-xs leading-relaxed flex-1" style={{ color: ET.sub }}>{t.description}</p>
+                    <div className="mt-4 flex items-center gap-1 group-hover:gap-2 transition-all">
+                      <span className="text-xs font-semibold" style={{ color: t.accent }}>Open</span>
+                      <span className="text-xs" style={{ color: t.accent }} aria-hidden>→</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Email CTA ── */}
+        <section
+          className="py-24 px-6 text-center relative overflow-hidden border-t"
+          style={{ backgroundColor: ET.bg, borderColor: ET.border }}
+        >
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,229,255,0.07) 0%, transparent 70%)' }}
+            aria-hidden
+          />
+          <div className="relative max-w-xl mx-auto">
+            <div className="w-12 h-0.5 mx-auto mb-8 rounded-full" style={{ backgroundColor: ET.accent }} />
+            <h2 className="text-3xl font-bold mb-4" style={{ color: ET.ink }}>Start Your Flywheel</h2>
+            <p className="text-sm mb-10 leading-relaxed" style={{ color: ET.sub }}>
+              Pick one protocol. Run it for 7 days. Build from there.
+            </p>
             <EmailCTA />
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="py-12 px-6 border-t" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Image src="/logo.png" alt="Adduckivity Logo" width={28} height={28} className="rounded-md" />
-              <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
-            </div>
-            <p className="text-sm mb-1" style={{ color: ET.sub }}>
-              Part of the <strong style={{ color: ET.ink }}>Duck OS</strong> — Life Architecture for Neurodivergent Creators
-            </p>
+        {/* ── Footer ── */}
+        <footer style={{ backgroundColor: ET.surface }}>
+          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.35) 50%, transparent 100%)' }} />
+          <div className="max-w-6xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-12 gap-10">
 
+            <div className="md:col-span-5 flex flex-col gap-5">
+              <Link href="/" className="flex items-center gap-3 group w-fit">
+                <Image src="/logo.png" alt="Adduckivity" width={36} height={36} className="rounded-xl opacity-80 group-hover:opacity-100 transition-opacity" />
+                <span className="font-bold text-base" style={{ color: ET.ink }}>Adduckivity</span>
+              </Link>
+              <p className="text-xs leading-relaxed max-w-xs" style={{ color: ET.sub }}>
+                Life architecture for neurodivergent creators.
+                Evidence-based OS tools built for ADHD and MDD brains.
+              </p>
+              <span
+                className="font-mono text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 rounded-lg border w-fit"
+                style={{ color: ET.sub, borderColor: ET.border, backgroundColor: ET.bg }}
+              >
+                Duck OS · v1.0 · STABLE
+              </span>
+            </div>
+
+            <div className="md:col-span-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-5" style={{ color: ET.sub }}>Navigate</p>
+              <nav className="flex flex-col gap-3">
+                {[
+                  { label: 'Home', href: '/', internal: true },
+                  { label: 'Blog', href: '/blog', internal: true },
+                  { label: 'Archive', href: 'https://wp.adduckivity.com', internal: false },
+                ].map(l => l.internal
+                  ? <Link key={l.label} href={l.href} className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</Link>
+                  : <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</a>
+                )}
+              </nav>
+            </div>
+
+            <div className="md:col-span-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-5" style={{ color: ET.sub }}>OS Tools</p>
+              <nav className="flex flex-col gap-3">
+                {[
+                  { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444' },
+                  { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent },
+                  { label: 'The Atomizer', href: '/atomizer', accent: ET.accent },
+                ].map(t => (
+                  <Link
+                    key={t.label}
+                    href={t.href}
+                    className="text-xs flex items-center gap-2 group w-fit transition-all opacity-60 hover:opacity-100"
+                    style={{ color: ET.mid }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-all group-hover:scale-125" style={{ backgroundColor: t.accent }} />
+                    {t.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          <div className="border-t px-6" style={{ borderColor: ET.border }}>
+            <div className="max-w-6xl mx-auto h-11 flex items-center justify-between gap-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-25" style={{ color: ET.sub }}>
+                Duck OS · Life Architecture for Neurodivergent Creators
+              </p>
+              <p className="font-mono text-[10px] opacity-30 shrink-0" style={{ color: ET.sub }}>© 2026 Adduckivity</p>
+            </div>
           </div>
         </footer>
       </div>
