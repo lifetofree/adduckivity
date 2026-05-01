@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,7 +10,7 @@ import EnergyCheck from '@/components/EnergyCheck';
 import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function AtomizerPage() {
+function AtomizerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
@@ -224,4 +224,12 @@ export default function AtomizerPage() {
       </footer>
     </div>
   );
+}
+
+export default function AtomizerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center text-cyan-500 font-mono">Initializing Neural Path...</div>}>
+      <AtomizerContent />
+    </Suspense>
+  )
 }
