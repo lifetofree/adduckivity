@@ -394,7 +394,8 @@ describe('postToFacebook', () => {
     expect(body.get('message')).toContain('Test Post')
     expect(body.get('message')).toContain('Test excerpt')
     expect(body.get('link')).toBe('https://test.com/blog/test-post')
-    expect(body.get('picture')).toBe('https://test.com/image.jpg')
+    // Note: 'picture' param is no longer sent - Facebook deprecated it
+    // OG image is auto-scraped from the page's og:image meta tag
     expect(body.get('access_token')).toBe('test-token')
 
     process.env.NODE_ENV = originalEnv

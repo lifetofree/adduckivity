@@ -470,6 +470,7 @@ export default function NewPostPage() {
               onChange={e => setScheduledAt(e.target.value)}
               min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
               className="et-input w-full mb-4"
+              title="Schedule time (browser timezone will be converted to UTC)"
             />
             <div className="flex gap-2 justify-end">
               <button

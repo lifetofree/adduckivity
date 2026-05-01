@@ -662,6 +662,7 @@ export default function EditPostPage() {
               min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
               className="w-full px-3 py-2 rounded-lg text-sm mb-4"
               style={{ border: `1px solid ${ET.border}`, backgroundColor: ET.bg, color: ET.ink }}
+              title="Schedule time (browser timezone will be converted to UTC)"
             />
             <div className="flex gap-2 justify-end">
               <button onClick={() => setScheduleModal(false)} className="px-4 py-2 rounded-lg text-xs" style={{ color: ET.mid }}>Cancel</button>

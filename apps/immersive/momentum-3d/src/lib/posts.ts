@@ -146,7 +146,7 @@ export async function postToFacebook(
   const message = `🦆 ${post.title}\n\n${post.excerpt}\n\nRead the full protocol → ${link}\n\n#DuckOS #Productivity #ADHD #Neurodivergent`
 
   const params = new URLSearchParams({ message, link, access_token: token })
-  if (post.featuredImage?.startsWith('http')) params.set('picture', post.featuredImage)
+  // Note: Facebook deprecated the 'picture' parameter - OG tags are auto-scraped from the page
   
   try {
     const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
