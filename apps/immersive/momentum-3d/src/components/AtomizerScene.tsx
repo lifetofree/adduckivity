@@ -32,12 +32,12 @@ function TaskOrb({ shatter = false }) {
         particlesRef.current.material.opacity = Math.min(0.5, particlesRef.current.material.opacity + 0.03);
       }
     } else {
-      const pulse = 1 + Math.sin(t * 1.2) * 0.06;
-      particlesRef.current.rotation.y = t * 0.1;
-      particlesRef.current.rotation.x = t * 0.04;
+      const pulse = 1 + Math.sin(t * 1.2) * 0.04;
+      particlesRef.current.rotation.y = t * 0.08;
+      particlesRef.current.rotation.x = t * 0.03;
       particlesRef.current.scale.set(pulse, pulse, pulse);
       if (particlesRef.current.material instanceof THREE.Material) {
-        particlesRef.current.material.opacity = 0.32 + Math.sin(t * 1.2) * 0.06;
+        particlesRef.current.material.opacity = 0.15 + Math.sin(t * 1.2) * 0.04;
       }
     }
   });
@@ -47,10 +47,10 @@ function TaskOrb({ shatter = false }) {
       <PointMaterial
         transparent
         color={ET.accent}
-        size={0.07}
+        size={0.06}
         sizeAttenuation={true}
         depthWrite={false}
-        opacity={0.32}
+        opacity={0.15}
         blending={THREE.AdditiveBlending}
       />
     </Points>

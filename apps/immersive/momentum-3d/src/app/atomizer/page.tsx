@@ -8,7 +8,6 @@ import AtomizerList from '@/components/AtomizerList';
 import AtomizerScene from '@/components/AtomizerScene';
 import EnergyCheck from '@/components/EnergyCheck';
 import SystemBar from '@/components/ProtocolBuilder/SystemBar';
-import SystemFooter from '@/components/ProtocolBuilder/SystemFooter';
 import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -105,8 +104,8 @@ function AtomizerContent() {
     <div className="min-h-screen flex flex-col bg-[#0a0f1e]">
       <SystemBar title="Atomizer" />
 
-      {/* 3D Background — only on first step */}
-      {!task && <AtomizerScene shatter={shatter} />}
+      {/* 3D Background — now always visible for atmosphere */}
+      <AtomizerScene shatter={shatter} />
       
       <AnimatePresence>
         {showEnergyCheck && (
@@ -201,8 +200,6 @@ function AtomizerContent() {
           </div>
         )}
       </main>
-
-      <SystemFooter />
     </div>
   );
 }
