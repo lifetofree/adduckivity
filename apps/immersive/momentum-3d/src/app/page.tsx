@@ -297,17 +297,28 @@ export default async function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t py-10 px-6" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Adduckivity" width={28} height={28} className="rounded-md" />
-            <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
-          </div>
-          <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
-            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
-            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
-          </div>
-          <p className="text-xs" style={{ color: ET.sub }}>Powered by Duck OS Systems</p>
+      <footer className="border-t px-6" style={{ borderColor: ET.border }}>
+        {/* Main row */}
+        <div className="max-w-7xl mx-auto h-16 flex items-center justify-between gap-6">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <Image src="/logo.png" alt="Adduckivity" width={24} height={24} className="rounded-md opacity-70 group-hover:opacity-100 transition-opacity" />
+            <span className="text-xs font-semibold tracking-wide" style={{ color: ET.sub }}>Adduckivity</span>
+          </Link>
+
+          <nav className="flex items-center gap-6 text-xs" style={{ color: ET.sub }}>
+            <Link href="/blog" className="hover:opacity-100 transition-opacity opacity-60">Blog</Link>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity opacity-60">Archive</a>
+            <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity opacity-60">Tools</a>
+          </nav>
+
+          <p className="text-[11px] opacity-40" style={{ color: ET.sub }}>© 2026 Adduckivity</p>
+        </div>
+
+        {/* Divider + tagline */}
+        <div className="max-w-7xl mx-auto border-t flex items-center justify-center py-4" style={{ borderColor: ET.border }}>
+          <p className="text-[10px] uppercase tracking-[0.25em] opacity-30" style={{ color: ET.sub }}>
+            Duck OS · Life Architecture for Neurodivergent Creators
+          </p>
         </div>
       </footer>
     </div>
