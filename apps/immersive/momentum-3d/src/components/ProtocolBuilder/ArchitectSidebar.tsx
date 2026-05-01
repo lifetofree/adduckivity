@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 interface ArchitectSidebarProps {
   nodes: ProtocolNode[];
@@ -30,14 +30,6 @@ export default function ArchitectSidebar({
 }: ArchitectSidebarProps) {
   const activeNode = nodes.find(n => n.id === activeNodeId)
   const [targetNodeId, setTargetNodeId] = useState<string>('')
-  const [isSyncing, setIsSyncing] = useState(false)
-
-  // Trigger brief "Syncing" state when data changes
-  useEffect(() => {
-    setIsSyncing(true)
-    const timer = setTimeout(() => setIsSyncing(false), 800)
-    return () => clearTimeout(timer)
-  }, [nodes, edges])
 
   return (
     <motion.div
@@ -45,21 +37,20 @@ export default function ArchitectSidebar({
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed right-0 top-0 h-screen w-80 bg-black/80 backdrop-blur-xl border-l border-cyan-500/30 z-50 flex flex-col"
+      className="fixed right-0 top-14 h-[calc(100vh-3.5rem)] w-80 bg-black/40 backdrop-blur-xl border-l border-white/5 z-50 flex flex-col"
     >
-      <div className="p-6 border-b border-cyan-500/20">
-        <h2 className="text-lg font-bold text-white uppercase tracking-tighter flex items-center gap-2">
-          <Settings2 className="w-5 h-5 text-cyan-500" />
-          Protocol Architect
+      <div className="p-6 border-b border-white/5">
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <Settings2 className="w-4 h-4 text-cyan-500" />
+          Node Architect
         </h2>
-        <p className="text-[10px] text-cyan-500/50 font-mono mt-1">DATA_MUTATOR_V1.1</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {/* Node List */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Nodes</h3>
+            <h3 className="text-[10px] font-mono text-white/40 uppercase tracking-widest">System Nodes</h3>
             <div className="flex gap-1">
               <button 
                 onClick={() => onAddNode('action')}
@@ -87,7 +78,7 @@ export default function ArchitectSidebar({
           
           <div className="space-y-2">
             {nodes.length === 0 && (
-              <p className="text-[10px] text-white/20 italic text-center py-4">No nodes in constellation</p>
+              <p className="text-[10px] text-white/20 italic text-center py-4 border border-dashed border-white/5 rounded">No nodes in constellation</p>
             )}
             {nodes.map(node => (
               <button
@@ -95,13 +86,13 @@ export default function ArchitectSidebar({
                 onClick={() => setActiveNodeId(node.id)}
                 className={`w-full text-left p-3 rounded border transition-all cursor-pointer ${
                   activeNodeId === node.id 
-                    ? 'bg-cyan-500/20 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
-                    : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
+                    ? 'bg-cyan-500/10 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
+                    : 'bg-white/5 border-white/5 text-white/60 hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium truncate">{node.label}</span>
-                  <span className="text-[8px] font-mono uppercase opacity-50 px-1.5 py-0.5 rounded bg-black/50">
+                  <span className="text-[8px] font-mono uppercase opacity-30 px-1.5 py-0.5 rounded bg-black/50">
                     {node.type}
                   </span>
                 </div>
@@ -118,10 +109,10 @@ export default function ArchitectSidebar({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 pt-6 border-t border-white/10"
+              className="space-y-6 pt-6 border-t border-white/5"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Edit Node</h3>
+                <h3 className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest">Edit Properties</h3>
                 <button 
                   onClick={() => {
                     if (window.confirm(`Permanently delete node "${activeNode.label}"?`)) {
@@ -142,7 +133,7 @@ export default function ArchitectSidebar({
                     type="text"
                     value={activeNode.label}
                     onChange={(e) => onUpdateNode(activeNode.id, { label: e.target.value })}
-                    className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                    className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
                   />
                 </div>
 
@@ -156,7 +147,7 @@ export default function ArchitectSidebar({
                       if (newType === 'timer' && !newData.duration) newData.duration = 25;
                       onUpdateNode(activeNode.id, { type: newType, data: newData });
                     }}
-                    className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+                    className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-colors cursor-pointer"
                   >
                     <option value="action">Action</option>
                     <option value="tool">Tool</option>
@@ -175,7 +166,7 @@ export default function ArchitectSidebar({
                       onChange={(e) => onUpdateNode(activeNode.id, { 
                         data: { ...activeNode.data, duration: parseInt(e.target.value) || 1 } 
                       })}
-                      className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                      className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
                     />
                   </div>
                 )}
@@ -188,17 +179,17 @@ export default function ArchitectSidebar({
                       onChange={(e) => onUpdateNode(activeNode.id, { 
                         data: { ...activeNode.data, toolId: e.target.value as 'atomizer' } 
                       })}
-                      className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+                      className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-colors cursor-pointer"
                     >
                       <option value="atomizer">Atomizer</option>
                     </select>
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-white/10">
+                <div className="pt-4 border-t border-white/5">
                   <h4 className="text-[10px] text-white/40 uppercase font-mono mb-3 flex items-center gap-2">
                     <LinkIcon className="w-3 h-3" />
-                    Connections
+                    Momentum Path
                   </h4>
                   
                   {/* Current Edges */}
@@ -227,7 +218,7 @@ export default function ArchitectSidebar({
                     <select 
                       value={targetNodeId}
                       onChange={(e) => setTargetNodeId(e.target.value)}
-                      className="flex-1 bg-black/50 border border-white/10 rounded p-2 text-[10px] text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+                      className="flex-1 bg-black/40 border border-white/10 rounded p-2 text-[10px] text-white focus:outline-none focus:border-cyan-500/50 transition-colors cursor-pointer"
                     >
                       <option value="">Connect to...</option>
                       {nodes
@@ -245,7 +236,7 @@ export default function ArchitectSidebar({
                         }
                       }}
                       disabled={!targetNodeId}
-                      className="px-3 bg-cyan-500/20 border border-cyan-500/50 text-cyan-500 rounded disabled:opacity-30 disabled:border-white/10 disabled:text-white/30 cursor-pointer disabled:cursor-not-allowed"
+                      className="px-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-500 rounded disabled:opacity-30 disabled:border-white/10 disabled:text-white/30 cursor-pointer disabled:cursor-not-allowed transition-all"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -257,24 +248,13 @@ export default function ArchitectSidebar({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center h-40 text-center space-y-2 opacity-20"
+              className="flex flex-col items-center justify-center h-40 text-center space-y-2 opacity-10"
             >
               <Edit2 className="w-8 h-8" />
-              <p className="text-[10px] uppercase font-mono">Select a node to architect</p>
+              <p className="text-[10px] uppercase font-mono tracking-[0.2em]">Select node to edit</p>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-      
-      <div className="p-6 border-t border-white/10 bg-black/40">
-        <div className="flex items-center justify-between text-[8px] font-mono uppercase tracking-[0.2em]">
-          <span className="text-white/30">System Status</span>
-          {isSyncing ? (
-            <span className="text-cyan-500 animate-pulse font-bold tracking-[0.3em]">Syncing...</span>
-          ) : (
-            <span className="text-white/20">Stable</span>
-          )}
-        </div>
       </div>
     </motion.div>
   )

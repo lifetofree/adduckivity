@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
+import SystemBar from '@/components/ProtocolBuilder/SystemBar'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
@@ -13,6 +14,7 @@ export default function ProtocolBuilderPage() {
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
+  const [isSyncing, setIsSyncing] = useState(false)
   
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
@@ -53,9 +55,12 @@ export default function ProtocolBuilderPage() {
     init()
   }, [])
 
-  // Auto-save graph to localStorage
+  // Auto-save graph to localStorage with syncing indicator
   useEffect(() => {
     saveProtocol(graph)
+    setIsSyncing(true)
+    const timer = setTimeout(() => setIsSyncing(false), 800)
+    return () => clearTimeout(timer)
   }, [graph])
 
   // Auto-save execution state
@@ -167,16 +172,10 @@ export default function ProtocolBuilderPage() {
     }))
   }
 
-  const toggleMode = () => {
-    const newMode = mode === 'build' ? 'flow' : 'build'
-    setMode(newMode)
-    if (newMode === 'flow' && graph.nodes.length > 0 && !activeNodeId) {
-      setActiveNodeId(graph.nodes[0].id)
-    }
-  }
-
   return (
     <main className="relative w-full h-screen overflow-hidden">
+      <SystemBar mode={mode} setMode={setMode} isSyncing={isSyncing} />
+
       <ProtocolScene 
         nodes={graph.nodes} 
         edges={graph.edges} 
@@ -186,40 +185,31 @@ export default function ProtocolBuilderPage() {
         mode={mode}
       />
       
-      {/* HUD: Status and Navigation */}
-      <div className="absolute top-8 left-8 z-10 flex flex-col gap-6 max-w-sm">
-        <div className="flex flex-col gap-1">
-          <Link href="/" className="text-[10px] text-white/50 hover:text-cyan-500 font-mono uppercase tracking-widest mb-2 transition-colors">
-            ← Back to Home
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tighter text-white uppercase leading-none">System Architect</h1>
-          <p className="text-[10px] text-cyan-500 font-mono">
-            Status: {mode === 'build' ? 'Build Mode Active' : 'Flow Mode Active'}
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <button 
-            onClick={toggleMode}
-            className="px-4 py-2 bg-cyan-900/50 border border-cyan-500 text-cyan-500 text-xs font-mono uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-colors"
-          >
-            {mode === 'build' ? 'Initialize Flow' : 'Abort Flow'}
-          </button>
-
-          {mode === 'flow' && outgoingEdges.length <= 1 && (
+      {/* HUD: Task Controls */}
+      <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
+        {mode === 'flow' && (
+          <div className="flex gap-2">
+            {outgoingEdges.length <= 1 && (
+              <button 
+                onClick={nextNode}
+                className="px-4 py-2 bg-white border border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
+              >
+                Next Step →
+              </button>
+            )}
             <button 
-              onClick={nextNode}
-              className="px-4 py-2 bg-white border border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
+              onClick={() => setMode('build')}
+              className="px-4 py-2 bg-black/40 border border-white/10 text-white/50 text-xs font-mono uppercase tracking-widest hover:bg-white/10 transition-colors"
             >
-              Next Step →
+              Abort Flow
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Branching Options */}
         {mode === 'flow' && outgoingEdges.length > 1 && (
           <div className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-300">
-            <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest">Select Next Path:</p>
+            <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest text-shadow-sm">Select Next Path:</p>
             <div className="grid grid-cols-1 gap-2">
               {outgoingEdges.map(edge => {
                 const targetNode = graph.nodes.find(n => n.id === edge.target)
@@ -227,7 +217,7 @@ export default function ProtocolBuilderPage() {
                   <button
                     key={edge.id}
                     onClick={() => setActiveNodeId(edge.target)}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white text-xs font-mono text-left uppercase hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all group flex items-center justify-between"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white text-xs font-mono text-left uppercase hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all group flex items-center justify-between backdrop-blur-md"
                   >
                     <span>{targetNode?.label || 'Unknown Node'}</span>
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
@@ -240,7 +230,7 @@ export default function ProtocolBuilderPage() {
 
         {/* Node Information Panel */}
         {activeNode && (
-          <div className="mt-4 p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500">
+          <div className="p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
             <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-[0.2em] mb-1">
               {activeNode.type} Node
             </p>
@@ -311,7 +301,7 @@ export default function ProtocolBuilderPage() {
 
       {/* Legend / Help */}
       <div className="absolute bottom-8 right-8 z-10 text-right pointer-events-none opacity-30">
-        <p className="text-[10px] text-white font-mono uppercase tracking-widest">Protocol Visualization Engine v1.0</p>
+        <p className="text-[10px] text-white font-mono uppercase tracking-widest">Protocol Visualization Engine v1.1</p>
         <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-widest">Constellation Mapping Active</p>
       </div>
     </main>
