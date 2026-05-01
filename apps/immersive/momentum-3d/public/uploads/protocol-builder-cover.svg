@@ -1,0 +1,119 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="450" fill="#0a0f1e"/>
+
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a253a" stroke-width="1"/>
+    </pattern>
+    <filter id="nodeGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="hubGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="bgGlow" cx="50%" cy="46%" r="48%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#0a0f1e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#grid)"/>
+  <ellipse cx="400" cy="200" rx="340" ry="210" fill="url(#bgGlow)"/>
+
+  <!-- ── Constellation edges ── -->
+  <!-- Hub → Node A (top-left) -->
+  <line x1="400" y1="195" x2="230" y2="108" stroke="#00e5ff" stroke-width="1.5" opacity="0.35"/>
+  <!-- Hub → Node B (top-right) -->
+  <line x1="400" y1="195" x2="570" y2="108" stroke="#00e5ff" stroke-width="1.5" opacity="0.35"/>
+  <!-- Hub → Node C (right) -->
+  <line x1="400" y1="195" x2="610" y2="210" stroke="#00e5ff" stroke-width="1.5" opacity="0.35"/>
+  <!-- Hub → Node D (bottom-right) -->
+  <line x1="400" y1="195" x2="540" y2="300" stroke="#00e5ff" stroke-width="1.5" opacity="0.35"/>
+  <!-- Hub → Node E (bottom-left) -->
+  <line x1="400" y1="195" x2="260" y2="300" stroke="#00e5ff" stroke-width="1.5" opacity="0.35"/>
+  <!-- Hub → Node F (left) -->
+  <line x1="400" y1="195" x2="192" y2="210" stroke="#00e5ff" stroke-width="1.5" opacity="0.35"/>
+
+  <!-- Secondary edges (dashed) -->
+  <!-- A → B -->
+  <line x1="230" y1="108" x2="570" y2="108" stroke="#00e5ff" stroke-width="1" opacity="0.18" stroke-dasharray="5 4"/>
+  <!-- B → C -->
+  <line x1="570" y1="108" x2="610" y2="210" stroke="#00e5ff" stroke-width="1" opacity="0.18" stroke-dasharray="5 4"/>
+  <!-- C → D -->
+  <line x1="610" y1="210" x2="540" y2="300" stroke="#00e5ff" stroke-width="1" opacity="0.18" stroke-dasharray="5 4"/>
+  <!-- D → E -->
+  <line x1="540" y1="300" x2="260" y2="300" stroke="#00e5ff" stroke-width="1" opacity="0.18" stroke-dasharray="5 4"/>
+  <!-- E → F -->
+  <line x1="260" y1="300" x2="192" y2="210" stroke="#00e5ff" stroke-width="1" opacity="0.18" stroke-dasharray="5 4"/>
+  <!-- F → A -->
+  <line x1="192" y1="210" x2="230" y2="108" stroke="#00e5ff" stroke-width="1" opacity="0.18" stroke-dasharray="5 4"/>
+
+  <!-- Leaf nodes (tertiary) with dashed edges -->
+  <line x1="230" y1="108" x2="155" y2="62"  stroke="#00e5ff" stroke-width="1" opacity="0.2" stroke-dasharray="3 4"/>
+  <line x1="570" y1="108" x2="645" y2="62"  stroke="#00e5ff" stroke-width="1" opacity="0.2" stroke-dasharray="3 4"/>
+  <line x1="540" y1="300" x2="598" y2="358" stroke="#00e5ff" stroke-width="1" opacity="0.2" stroke-dasharray="3 4"/>
+  <line x1="260" y1="300" x2="202" y2="358" stroke="#00e5ff" stroke-width="1" opacity="0.2" stroke-dasharray="3 4"/>
+  <line x1="400" y1="195" x2="400" y2="98"  stroke="#00e5ff" stroke-width="1" opacity="0.2" stroke-dasharray="3 4"/>
+
+  <!-- ── Central hub ── -->
+  <circle cx="400" cy="195" r="26" fill="#001a22" stroke="#00e5ff" stroke-width="2.5" filter="url(#hubGlow)">
+    <animate attributeName="r" values="26;30;26" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="400" cy="195" r="11" fill="#00e5ff" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="3s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ── Primary nodes ── -->
+  <!-- Node A -->
+  <circle cx="230" cy="108" r="12" fill="#001a22" stroke="#00e5ff" stroke-width="2" filter="url(#nodeGlow)" opacity="0.9"/>
+  <circle cx="230" cy="108" r="5"  fill="#00e5ff" opacity="0.85"/>
+  <!-- Node B -->
+  <circle cx="570" cy="108" r="12" fill="#001a22" stroke="#00e5ff" stroke-width="2" filter="url(#nodeGlow)" opacity="0.9"/>
+  <circle cx="570" cy="108" r="5"  fill="#00e5ff" opacity="0.85"/>
+  <!-- Node C -->
+  <circle cx="610" cy="210" r="12" fill="#001a22" stroke="#00e5ff" stroke-width="2" filter="url(#nodeGlow)" opacity="0.9"/>
+  <circle cx="610" cy="210" r="5"  fill="#00e5ff" opacity="0.85"/>
+  <!-- Node D -->
+  <circle cx="540" cy="300" r="12" fill="#001a22" stroke="#00e5ff" stroke-width="2" filter="url(#nodeGlow)" opacity="0.9"/>
+  <circle cx="540" cy="300" r="5"  fill="#00e5ff" opacity="0.85"/>
+  <!-- Node E -->
+  <circle cx="260" cy="300" r="12" fill="#001a22" stroke="#00e5ff" stroke-width="2" filter="url(#nodeGlow)" opacity="0.9"/>
+  <circle cx="260" cy="300" r="5"  fill="#00e5ff" opacity="0.85"/>
+  <!-- Node F -->
+  <circle cx="192" cy="210" r="12" fill="#001a22" stroke="#00e5ff" stroke-width="2" filter="url(#nodeGlow)" opacity="0.9"/>
+  <circle cx="192" cy="210" r="5"  fill="#00e5ff" opacity="0.85"/>
+
+  <!-- ── Leaf nodes (smaller, red accent) ── -->
+  <circle cx="155" cy="62"  r="7" fill="#001a22" stroke="#ff4444" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="645" cy="62"  r="7" fill="#001a22" stroke="#ff4444" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="598" cy="358" r="7" fill="#001a22" stroke="#ff4444" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="202" cy="358" r="7" fill="#001a22" stroke="#ff4444" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="400" cy="98"  r="7" fill="#001a22" stroke="#ff4444" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- ── Pulse ring on hub ── -->
+  <circle cx="400" cy="195" r="44" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0">
+    <animate attributeName="r"       values="30;60;30"  dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ── Typography ── -->
+  <text x="400" y="370" font-family="monospace" font-size="28" font-weight="bold" fill="#00e5ff" text-anchor="middle" letter-spacing="4">
+    PROTOCOL BUILDER
+  </text>
+  <text x="400" y="403" font-family="monospace" font-size="12" font-weight="bold" fill="#ff4444" text-anchor="middle" letter-spacing="7" opacity="0.8">
+    SYSTEM ARCHITECT // ACT-02
+  </text>
+
+  <!-- Scanning line -->
+  <rect width="800" height="2" fill="#00e5ff" opacity="0.08">
+    <animate attributeName="y" values="0;450;0" dur="5s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Corner accents -->
+  <path d="M 20 60 L 20 20 L 60 20" fill="none" stroke="#1a253a" stroke-width="2"/>
+  <path d="M 740 20 L 780 20 L 780 60" fill="none" stroke="#1a253a" stroke-width="2"/>
+  <path d="M 780 390 L 780 430 L 740 430" fill="none" stroke="#1a253a" stroke-width="2"/>
+  <path d="M 60 430 L 20 430 L 20 390" fill="none" stroke="#1a253a" stroke-width="2"/>
+</svg>

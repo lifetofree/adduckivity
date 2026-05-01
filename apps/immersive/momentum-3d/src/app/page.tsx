@@ -20,7 +20,7 @@ const pinnedFeatures = [
   {
     title: 'Protocol Builder',
     description: 'Architect your momentum constellation. Map tasks in 3D space to bypass emotional resistance.',
-    image: '/uploads/20260409-img-prod-02-energy-slots-1777124323897.webp',
+    image: '/uploads/protocol-builder-cover.svg',
     href: '/protocol-builder',
     badge: 'System Architect',
   },
