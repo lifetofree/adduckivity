@@ -8,6 +8,7 @@ import AtomizerList from '@/components/AtomizerList';
 import AtomizerScene from '@/components/AtomizerScene';
 import EnergyCheck from '@/components/EnergyCheck';
 import SystemBar from '@/components/ProtocolBuilder/SystemBar';
+import SystemFooter from '@/components/ProtocolBuilder/SystemFooter';
 import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
