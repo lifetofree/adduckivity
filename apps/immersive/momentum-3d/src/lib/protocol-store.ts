@@ -1,4 +1,4 @@
-export type NodeType = 'action' | 'tool' | 'timer';
+export type NodeType = 'action' | 'tool' | 'timer' | 'ignition';
 
 export interface ProtocolNode {
   id: string;

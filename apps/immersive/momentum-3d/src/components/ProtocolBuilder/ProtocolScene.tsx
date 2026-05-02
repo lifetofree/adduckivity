@@ -6,6 +6,7 @@ import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
 import CameraController from './CameraController'
 import ForceGraphController from './ForceGraphController'
 import { useIgnitionScene } from './useIgnitionScene'
+import { useIgnitionStore } from '@/lib/ignition-store'
 
 interface NodeProps {
   node: ProtocolNode;
@@ -23,50 +24,69 @@ const Connection = ({ start, end }: { start: [number, number, number], end: [num
   />
 )
 
-const Node = ({ node, isActive = false, onSelect }: NodeProps) => (
-  <mesh 
-    position={node.position}
-    onClick={(e) => {
-      e.stopPropagation();
-      onSelect(node.id);
-    }}
-    onPointerOver={() => {
-      document.body.style.cursor = 'pointer';
-    }}
-    onPointerOut={() => {
-      document.body.style.cursor = 'auto';
-    }}
-  >
-    <sphereGeometry args={[isActive ? 0.6 : 0.5, 32, 32]} />
-    <meshStandardMaterial 
-      color={isActive ? '#00f3ff' : (node.type === 'tool' ? '#00f3ff' : '#ffffff')} 
-      emissive={isActive ? '#00f3ff' : (node.type === 'tool' ? '#00f3ff' : '#000000')}
-      emissiveIntensity={isActive ? 2 : 0.5}
-    />
-    
-    <Html 
-      position={[0, 1.2, 0]} 
-      center 
-      distanceFactor={15}
-      className="pointer-events-none select-none"
+const Node = ({ node, isActive = false, onSelect }: NodeProps) => {
+  const startIgnition = useIgnitionStore(state => state.start)
+  
+  const nodeColor = useMemo(() => {
+    if (isActive) return '#00f3ff';
+    if (node.type === 'ignition') return '#f43f5e';
+    if (node.type === 'tool') return '#00f3ff';
+    return '#ffffff';
+  }, [isActive, node.type]);
+
+  return (
+    <mesh 
+      position={node.position}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (node.type === 'ignition') {
+          startIgnition();
+        }
+        onSelect(node.id);
+      }}
+      onPointerOver={() => {
+        document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        document.body.style.cursor = 'auto';
+      }}
     >
-      <div 
-        className={`px-2 py-1 rounded border whitespace-nowrap transition-all duration-300 ${
-          isActive 
-            ? 'bg-cyan-500 text-black border-cyan-400 font-bold scale-110 shadow-[0_0_15px_rgba(6,182,212,0.5)]' 
-            : 'bg-black/60 text-white/70 border-white/10 backdrop-blur-sm'
-        }`}
+      <sphereGeometry args={[isActive ? 0.6 : 0.5, 32, 32]} />
+      <meshStandardMaterial 
+        color={nodeColor} 
+        emissive={nodeColor}
+        emissiveIntensity={isActive ? 2 : (node.type === 'ignition' ? 1.5 : 0.5)}
+      />
+      
+      <Html 
+        position={[0, 1.2, 0]} 
+        center 
+        distanceFactor={15}
+        className="pointer-events-none select-none"
       >
-        <p className="text-[10px] uppercase font-mono tracking-widest">{node.label}</p>
-        {node.type === 'timer' && node.data?.duration && (
-          <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-black' : 'text-cyan-500'}`}>
-            {node.data.duration} MIN
-          </p>
-        )}
-      </div>
-    </Html>
-  </mesh>
-)
+        <div 
+          className={`px-2 py-1 rounded border whitespace-nowrap transition-all duration-300 ${
+            isActive 
+              ? (node.type === 'ignition' ? 'bg-rose-500 text-white border-rose-400' : 'bg-cyan-500 text-black border-cyan-400') + ' font-bold scale-110 shadow-[0_0_15px_rgba(6,182,212,0.5)]' 
+              : 'bg-black/60 text-white/70 border-white/10 backdrop-blur-sm'
+          }`}
+        >
+          <p className="text-[10px] uppercase font-mono tracking-widest">{node.label}</p>
+          {node.type === 'timer' && node.data?.duration && (
+            <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-black' : 'text-cyan-500'}`}>
+              {node.data.duration} MIN
+            </p>
+          )}
+          {node.type === 'ignition' && (
+            <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-white' : 'text-rose-500'}`}>
+              600s BOOT
+            </p>
+          )}
+        </div>
+      </Html>
+    </mesh>
+  );
+}
 
 function SceneContent({ 
   nodes, 

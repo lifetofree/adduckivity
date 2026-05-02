@@ -1,9 +1,10 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock } from 'lucide-react'
+import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock, Zap } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
 import { useState } from 'react'
+import { useIgnitionStore } from '@/lib/ignition-store'
 
 interface ArchitectSidebarProps {
   nodes: ProtocolNode[];
@@ -30,6 +31,7 @@ export default function ArchitectSidebar({
 }: ArchitectSidebarProps) {
   const activeNode = nodes.find(n => n.id === activeNodeId)
   const [targetNodeId, setTargetNodeId] = useState<string>('')
+  const startIgnition = useIgnitionStore(state => state.start)
 
   return (
     <motion.div
@@ -39,11 +41,19 @@ export default function ArchitectSidebar({
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       className="fixed right-0 top-14 h-[calc(100vh-3.5rem)] w-80 bg-black/40 backdrop-blur-xl border-l border-white/5 z-50 flex flex-col"
     >
-      <div className="p-6 border-b border-white/5">
+      <div className="p-6 border-b border-white/5 flex items-center justify-between">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <Settings2 className="w-4 h-4 text-cyan-500" />
           Node Architect
         </h2>
+        
+        <button 
+          onClick={startIgnition}
+          className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/50 text-rose-500 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all rounded shadow-[0_0_10px_rgba(244,63,94,0.2)]"
+        >
+          <Zap className="w-3 h-3" />
+          Quick Ignite
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
@@ -52,6 +62,13 @@ export default function ArchitectSidebar({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[10px] font-mono text-white/40 uppercase tracking-widest">System Nodes</h3>
             <div className="flex gap-1">
+              <button 
+                onClick={() => onAddNode('ignition')}
+                className="p-1.5 hover:bg-rose-500/20 rounded transition-colors text-rose-500 cursor-pointer"
+                title="Add Ignition Node"
+              >
+                <Zap className="w-4 h-4" />
+              </button>
               <button 
                 onClick={() => onAddNode('action')}
                 className="p-1.5 hover:bg-cyan-500/20 rounded transition-colors text-cyan-500 cursor-pointer"
@@ -86,13 +103,13 @@ export default function ArchitectSidebar({
                 onClick={() => setActiveNodeId(node.id)}
                 className={`w-full text-left p-3 rounded border transition-all cursor-pointer ${
                   activeNodeId === node.id 
-                    ? 'bg-cyan-500/10 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
+                    ? (node.type === 'ignition' ? 'bg-rose-500/10 border-rose-500/50 text-white shadow-[0_0_15px_rgba(244,63,94,0.1)]' : 'bg-cyan-500/10 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]')
                     : 'bg-white/5 border-white/5 text-white/60 hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium truncate">{node.label}</span>
-                  <span className="text-[8px] font-mono uppercase opacity-30 px-1.5 py-0.5 rounded bg-black/50">
+                  <span className={`text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/50 ${node.type === 'ignition' ? 'text-rose-500 opacity-100' : 'opacity-30'}`}>
                     {node.type}
                   </span>
                 </div>
@@ -149,6 +166,7 @@ export default function ArchitectSidebar({
                     }}
                     className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-colors cursor-pointer"
                   >
+                    <option value="ignition">Ignition</option>
                     <option value="action">Action</option>
                     <option value="tool">Tool</option>
                     <option value="timer">Timer</option>
