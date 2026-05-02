@@ -101,16 +101,16 @@ export default function ArchitectSidebar({
             {nodes.map(node => (
               <button
                 key={node.id}
-                onClick={() => setActiveNodeId(node.id)}
+                onClick={() => setActiveNodeId(activeNodeId === node.id ? null : node.id)}
                 className={`w-full text-left p-3 rounded border transition-all cursor-pointer ${
                   activeNodeId === node.id 
-                    ? (node.type === 'ignition' ? 'bg-rose-500/10 border-rose-500/50 text-white shadow-[0_0_15px_rgba(244,63,94,0.1)]' : 'bg-cyan-500/10 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]')
+                    ? 'bg-cyan-500/10 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]'
                     : 'bg-white/5 border-white/5 text-white/60 hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium truncate">{node.label}</span>
-                  <span className={`text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/50 ${node.type === 'ignition' ? 'text-rose-500 opacity-100' : 'opacity-30'}`}>
+                  <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/50 opacity-30">
                     {node.type}
                   </span>
                 </div>

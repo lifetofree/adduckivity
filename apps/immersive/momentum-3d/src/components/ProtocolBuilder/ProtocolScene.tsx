@@ -11,7 +11,7 @@ import { useIgnitionStore } from '@/lib/ignition-store'
 interface NodeProps {
   node: ProtocolNode;
   isActive?: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   edges: ProtocolEdge[];
   hideLabel?: boolean;
 }
@@ -41,6 +41,11 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
       position={node.position}
       onClick={(e) => {
         e.stopPropagation();
+        // Toggle: if already selected, deselect to allow zoom/rotate
+        if (isActive) {
+          onSelect(null);
+          return;
+        }
         if (node.type === 'ignition') {
           const firstTarget = edges.find(edge => edge.source === node.id)?.target;
           startIgnition(firstTarget);
@@ -104,7 +109,7 @@ function SceneContent({
   nodes: ProtocolNode[], 
   edges: ProtocolEdge[],
   activeNode: ProtocolNode | null,
-  onSelectNode: (id: string) => void,
+  onSelectNode: (id: string | null) => void,
   updateNodes: (nodes: ProtocolNode[]) => void,
   mode: 'build' | 'flow'
 }) {
@@ -159,7 +164,7 @@ export default function ProtocolScene({
   nodes: ProtocolNode[], 
   edges: ProtocolEdge[],
   activeNode?: ProtocolNode | null,
-  onSelectNode: (id: string) => void,
+  onSelectNode: (id: string | null) => void,
   updateNodes: (nodes: ProtocolNode[]) => void,
   mode?: 'build' | 'flow'
 }) {

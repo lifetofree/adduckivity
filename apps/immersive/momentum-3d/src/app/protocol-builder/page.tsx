@@ -114,6 +114,21 @@ function ProtocolBuilderInner() {
     setPrevMode(mode)
   }, [mode, hasLoaded, graph.nodes, activeNodeId, ignitionActive, startIgnition])
 
+  // Ignition Auto-Trigger: When activeNodeId changes TO an ignition node (while already in flow mode)
+  const [prevActiveNodeId, setPrevActiveNodeId] = useState<string | null>(null)
+  useEffect(() => {
+    if (!hasLoaded) return
+    // Trigger when navigating to ignition node via Next Step (already in flow mode)
+    if (mode === 'flow' && activeNodeId !== prevActiveNodeId) {
+      const node = graph.nodes.find(n => n.id === activeNodeId)
+      if (node?.type === 'ignition' && !ignitionActive) {
+        const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
+        startIgnition(firstTarget)
+      }
+    }
+    setPrevActiveNodeId(activeNodeId)
+  }, [activeNodeId, mode, hasLoaded, graph.nodes, ignitionActive, startIgnition, prevActiveNodeId])
+
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
 
