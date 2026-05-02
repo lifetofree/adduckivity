@@ -6,11 +6,13 @@ import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
+import SystemGate from '@/components/SystemGate'
+import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
-export default function ProtocolBuilderPage() {
+function ProtocolBuilderInner() {
   const router = useRouter()
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
@@ -316,6 +318,16 @@ export default function ProtocolBuilderPage() {
       <div className={`mt-auto transition-opacity duration-700 ${mode === 'flow' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <SystemFooter />
       </div>
+
+      <IgnitionOverlay />
     </main>
+  )
+}
+
+export default function ProtocolBuilderPage() {
+  return (
+    <SystemGate toolName="Protocol Builder">
+      <ProtocolBuilderInner />
+    </SystemGate>
   )
 }
