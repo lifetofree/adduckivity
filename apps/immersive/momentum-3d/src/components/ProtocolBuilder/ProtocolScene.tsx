@@ -13,6 +13,7 @@ interface NodeProps {
   isActive?: boolean;
   onSelect: (id: string) => void;
   edges: ProtocolEdge[];
+  hideLabel?: boolean;
 }
 
 const Connection = ({ start, end }: { start: [number, number, number], end: [number, number, number] }) => (
@@ -25,7 +26,7 @@ const Connection = ({ start, end }: { start: [number, number, number], end: [num
   />
 )
 
-const Node = ({ node, isActive = false, onSelect, edges }: NodeProps) => {
+const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: NodeProps) => {
   const startIgnition = useIgnitionStore(state => state.start)
   
   const nodeColor = useMemo(() => {
@@ -60,32 +61,34 @@ const Node = ({ node, isActive = false, onSelect, edges }: NodeProps) => {
         emissiveIntensity={isActive ? 2 : (node.type === 'ignition' ? 1.5 : 0.5)}
       />
       
-      <Html 
-        position={[0, 1.2, 0]} 
-        center 
-        distanceFactor={15}
-        className="pointer-events-none select-none"
-      >
-        <div 
-          className={`px-2 py-1 rounded border whitespace-nowrap transition-all duration-300 ${
-            isActive 
-              ? (node.type === 'ignition' ? 'bg-rose-500 text-white border-rose-400' : 'bg-cyan-500 text-black border-cyan-400') + ' font-bold scale-110 shadow-[0_0_15px_rgba(6,182,212,0.5)]' 
-              : 'bg-black/60 text-white/70 border-white/10 backdrop-blur-sm'
-          }`}
+      {!hideLabel && (
+        <Html 
+          position={[0, 1.2, 0]} 
+          center 
+          distanceFactor={15}
+          className="pointer-events-none select-none"
         >
-          <p className="text-[10px] uppercase font-mono tracking-widest">{node.label}</p>
-          {node.type === 'timer' && node.data?.duration && (
-            <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-black' : 'text-cyan-500'}`}>
-              {node.data.duration} MIN
-            </p>
-          )}
-          {node.type === 'ignition' && (
-            <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-white' : 'text-rose-500'}`}>
-              600s BOOT
-            </p>
-          )}
-        </div>
-      </Html>
+          <div 
+            className={`px-2 py-1 rounded border whitespace-nowrap transition-all duration-300 ${
+              isActive 
+                ? (node.type === 'ignition' ? 'bg-rose-500 text-white border-rose-400' : 'bg-cyan-500 text-black border-cyan-400') + ' font-bold scale-110 shadow-[0_0_15px_rgba(6,182,212,0.5)]' 
+                : 'bg-black/60 text-white/70 border-white/10 backdrop-blur-sm'
+            }`}
+          >
+            <p className="text-[10px] uppercase font-mono tracking-widest">{node.label}</p>
+            {node.type === 'timer' && node.data?.duration && (
+              <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-black' : 'text-cyan-500'}`}>
+                {node.data.duration} MIN
+              </p>
+            )}
+            {node.type === 'ignition' && (
+              <p className={`text-[8px] font-mono mt-0.5 opacity-50 ${isActive ? 'text-white' : 'text-rose-500'}`}>
+                600s BOOT
+              </p>
+            )}
+          </div>
+        </Html>
+      )}
     </mesh>
   );
 }
@@ -106,6 +109,7 @@ function SceneContent({
   mode: 'build' | 'flow'
 }) {
   const { colors, uniforms } = useIgnitionScene();
+  const ignitionActive = useIgnitionStore(state => state.isActive);
   const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node.position])), [nodes]);
 
   return (
@@ -130,6 +134,7 @@ function SceneContent({
           isActive={activeNode?.id === node.id}
           onSelect={onSelectNode}
           edges={edges}
+          hideLabel={ignitionActive}
         />
       ))}
       {edges.map(edge => {

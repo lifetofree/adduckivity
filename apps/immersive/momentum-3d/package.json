@@ -7,8 +7,10 @@
     "build": "next build",
     "build:cf": "npx @cloudflare/next-on-pages",
     "start": "next start",
-    "deploy": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name immersive-adduckivity --commit-dirty=true",
+    "deploy": "npm run typecheck && npm run check-exports && npm run build:cf && wrangler pages deploy .vercel/output/static --project-name immersive-adduckivity --commit-dirty=true",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "check-exports": "bash scripts/check-page-exports.sh",
     "test": "vitest run",
     "test:watch": "vitest"
   },

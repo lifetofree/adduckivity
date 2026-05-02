@@ -23,7 +23,7 @@ export default function SystemGate({ children, toolName }: SystemGateProps) {
   }, [isLocked])
 
   const sensoryChecks = [
-    { key: 'hydration', label: 'Hydration check', icon: Droplets, color: 'text-blue-400' },
+    { key: 'water', label: 'Hydration check', icon: Droplets, color: 'text-blue-400' },
     { key: 'light', label: 'Check lighting', icon: Eye, color: 'text-yellow-400' },
     { key: 'noise', label: 'Manage noise', icon: Headphones, color: 'text-purple-400' },
   ]

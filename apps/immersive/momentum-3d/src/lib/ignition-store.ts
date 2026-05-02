@@ -30,7 +30,7 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
   start: (targetNodeId = null) => set({ 
     isActive: true, 
     currentPhase: 'spark', 
-    durationRemaining: 600, 
+    durationRemaining: 60, // Reduced to 60s for testing
     startTime: Date.now(),
     targetNodeId
   }),
@@ -48,21 +48,23 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
     const nextRemaining = durationRemaining - 1;
 
     if (nextRemaining === 0) {
-      // We keep isActive: true for one more cycle to allow handoff detection if needed,
-      // or we just reset. Let's reset but keep the targetNodeId for a moment?
-      // Actually, standard state machines reset immediately.
-      set(INITIAL_IGNITION_STATE);
+      set({ 
+        isActive: false, 
+        currentPhase: 'idle', 
+        durationRemaining: 0,
+        // We preserve targetNodeId here so the handoff effect in page.tsx can read it
+      });
       return;
     }
 
     let nextPhase = currentPhase;
-    // Phase logic:
-    // 0-300s: launch (5 mins)
-    // 300-480s: target (3 mins)
-    // 480-600s: spark (2 mins)
+    // Adjusted phase logic for 60s total:
+    // 0-30s: launch
+    // 30-48s: target
+    // 48-60s: spark
     
-    if (nextRemaining <= 300) nextPhase = 'launch';
-    else if (nextRemaining <= 480) nextPhase = 'target';
+    if (nextRemaining <= 30) nextPhase = 'launch';
+    else if (nextRemaining <= 48) nextPhase = 'target';
     else nextPhase = 'spark';
     
     set({ durationRemaining: nextRemaining, currentPhase: nextPhase });

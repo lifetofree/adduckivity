@@ -35,18 +35,3 @@ export const inputCss = (theme: typeof ET) => `
     padding: 0.375rem 0.625rem; outline: none;
   }
 `
-
-export const inputCss = (theme: typeof ET) => `
-  .et-input {
-    width: 100%; font-size: 0.75rem; border-radius: 0.5rem;
-    border: 1px solid ${theme.border}; background: ${theme.bg}; color: ${theme.ink};
-    padding: 0.375rem 0.625rem; outline: none; transition: box-shadow 0.15s;
-  }
-  .et-input:focus { box-shadow: 0 0 0 2px ${theme.accent}40; }
-  .et-input::placeholder { color: ${theme.border}; }
-  .et-select {
-    width: 100%; font-size: 0.75rem; border-radius: 0.5rem;
-    border: 1px solid ${theme.border}; background: ${theme.bg}; color: ${theme.ink};
-    padding: 0.375rem 0.625rem; outline: none;
-  }
-`

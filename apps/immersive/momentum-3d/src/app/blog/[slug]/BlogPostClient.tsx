@@ -1,78 +1,91 @@
-export const runtime = 'edge'
-export const dynamic = 'force-dynamic'
+'use client'
 
-import type { Metadata } from 'next'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
-import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getPostBySlug, getAllPosts, isPostLive, promoteScheduledPosts } from '@/lib/posts'
-import { renderMarkdown, extractHeadings } from '@/lib/markdown'
 import { ET } from '@/lib/theme'
-import { getMockKV } from '@/lib/dev-kv'
 
-function getKV() {
-  return process.env.NODE_ENV === 'development'
-    ? getMockKV()
-    : getRequestContext<CloudflareEnv>().env.POSTS_KV
+interface Post {
+  slug: string
+  title: string
+  date: string
+  excerpt: string
+  tags: string[]
+  featuredImage?: string
+  imageAlt?: string
+  category: string
+  readingTime: string
+  author: string
+  content: string
+  status: 'draft' | 'published' | 'scheduled'
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  try {
-  const { slug } = await params
-  const post = await getPostBySlug(getKV(), slug)
-  if (!post) return {}
-
-  const siteUrl = process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://immersive.adduckivity.com'
-  const url = `${siteUrl}/blog/${slug}`
-  const image = post.featuredImage?.startsWith('http') ? post.featuredImage : undefined
-
-  return {
-    title: post.title,
-    description: post.excerpt,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      url,
-      type: 'article',
-      ...(image && { images: [{ url: image, width: 1200, height: 630, alt: post.imageAlt || post.title }] }),
-    },
-    twitter: {
-      card: image ? 'summary_large_image' : 'summary',
-      title: post.title,
-      description: post.excerpt,
-      ...(image && { images: [image] }),
-    },
-  }
-  } catch {
-    return {}
-  }
+interface BlogPostClientProps {
+  slugParams: Promise<{ slug: string }>
 }
 
+export default function BlogPostClient({ slugParams }: BlogPostClientProps) {
+  const [slug, setSlug] = useState<string | null>(null)
+  const [post, setPost] = useState<Post | null>(null)
+  const [related, setRelated] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const isDev = process.env.NODE_ENV === 'development'
-  const context = isDev ? null : getRequestContext<CloudflareEnv>()
-  const kv = isDev ? getMockKV() : context!.env.POSTS_KV
-  const env = isDev ? undefined : context!.env
+  useEffect(() => {
+    slugParams.then(params => {
+      setSlug(params.slug)
+      fetch(`/api/posts?slug=${params.slug}`)
+        .then(res => {
+          if (!res.ok) {
+            setNotFound(true)
+            return null
+          }
+          return res.json()
+        })
+        .then(data => {
+          if (data) {
+            setPost(data as Post)
+            // Fetch related posts
+            return fetch('/api/posts')
+          }
+        })
+        .then(res => res?.json())
+        .then(allPosts => {
+          if (allPosts && Array.isArray(allPosts) && post) {
+            const filtered = (allPosts as Post[])
+              .filter((p: Post) => p.slug !== post.slug && p.status === 'published' && (
+                p.category === post.category || p.tags.some((t: string) => post.tags.includes(t))
+              ))
+              .slice(0, 3)
+            setRelated(filtered)
+          }
+          setLoading(false)
+        })
+        .catch(() => setLoading(false))
+    })
+  }, [slugParams])
 
-  const raw = await getPostBySlug(kv, slug)
-  if (!raw || !isPostLive(raw)) notFound()
+  if (loading) {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
+        <div className="max-w-3xl mx-auto px-6 py-20">
+          <p className="text-sm" style={{ color: ET.sub }}>Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
-  const [post] = await promoteScheduledPosts(kv, [raw], env)
+  if (notFound || !post) {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
+        <div className="max-w-3xl mx-auto px-6 py-20 text-center">
+          <h1 className="text-4xl font-bold mb-4" style={{ color: ET.ink }}>Post not found</h1>
+          <Link href="/blog" className="text-sm" style={{ color: ET.accent }}>← Back to all posts</Link>
+        </div>
+      </div>
+    )
+  }
 
-  const allPosts = await getAllPosts(kv)
-  const related = allPosts
-    .filter(p => p.slug !== post.slug && p.status === 'published' && (
-      p.category === post.category || p.tags.some(t => post.tags.includes(t))
-    ))
-    .slice(0, 3)
-
-  const bodyHtml = renderMarkdown(post.content)
-  const headings = extractHeadings(post.content)
   const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',
   })
@@ -160,33 +173,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </div>
         )}
 
-        {/* Table of Contents */}
-        {headings.length >= 2 && (
-          <nav
-            className="rounded-xl border mb-10 p-5"
-            style={{ backgroundColor: ET.surface, borderColor: ET.border }}
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: ET.sub }}>
-              Contents
-            </p>
-            <ol className="space-y-1.5">
-              {headings.map((h, i) => (
-                <li key={i} style={{ paddingLeft: h.level === 1 ? 0 : h.level === 2 ? '0.75rem' : '1.5rem' }}>
-                  <a
-                    href={`#${h.id}`}
-                    className="text-sm transition-opacity hover:opacity-70 leading-snug block"
-                    style={{ color: h.level === 1 ? ET.ink : ET.mid }}
-                  >
-                    {h.text}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        )}
-
         {/* Body */}
-        <article className="prose-et mb-12" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+        <article className="prose-et mb-12" dangerouslySetInnerHTML={{ __html: post.content }} />
 
         {/* Tags */}
         {post.tags.length > 0 && (

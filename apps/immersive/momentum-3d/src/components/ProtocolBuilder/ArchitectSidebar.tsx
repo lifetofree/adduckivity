@@ -48,7 +48,7 @@ export default function ArchitectSidebar({
         </h2>
         
         <button 
-          onClick={startIgnition}
+          onClick={() => startIgnition()}
           className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/50 text-rose-500 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all rounded shadow-[0_0_10px_rgba(244,63,94,0.2)]"
         >
           <Zap className="w-3 h-3" />
@@ -64,10 +64,11 @@ export default function ArchitectSidebar({
             <div className="flex gap-1">
               <button 
                 onClick={() => onAddNode('ignition')}
-                className="p-1.5 hover:bg-rose-500/20 rounded transition-colors text-rose-500 cursor-pointer"
+                className="flex items-center gap-1 p-1.5 hover:bg-rose-500/20 rounded transition-colors text-rose-500 cursor-pointer border border-rose-500/30"
                 title="Add Ignition Node"
               >
-                <Zap className="w-4 h-4" />
+                <Zap className="w-3 h-3" />
+                <span className="text-[8px] font-bold">IGN</span>
               </button>
               <button 
                 onClick={() => onAddNode('action')}

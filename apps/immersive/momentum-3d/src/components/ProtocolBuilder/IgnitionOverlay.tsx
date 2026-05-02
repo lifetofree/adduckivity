@@ -34,7 +34,7 @@ export const IgnitionOverlay = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 font-mono overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 font-mono overflow-hidden">
       {/* Background Pulse Effect */}
       <div className={`absolute inset-0 opacity-10 animate-pulse bg-current ${phaseColors[currentPhase]}`} />
       
@@ -61,7 +61,7 @@ export const IgnitionOverlay = () => {
       <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full">
         <div 
           className={`h-full transition-all duration-1000 ${phaseColors[currentPhase].split(' ')[0].replace('text', 'bg')}`}
-          style={{ width: `${(durationRemaining / 600) * 100}%` }}
+          style={{ width: `${(durationRemaining / 60) * 100}%` }} // Adjusted to 60s for testing
         />
       </div>
     </div>

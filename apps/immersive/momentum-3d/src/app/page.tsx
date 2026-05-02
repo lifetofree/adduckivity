@@ -1,11 +1,10 @@
 export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
 import Image from 'next/image'
 import Link from 'next/link'
 import { ET } from '@/lib/theme'
 import EmailCTA from '@/components/EmailCTA'
-import SystemBar from '@/components/ProtocolBuilder/SystemBar'
-import ToolGrid from '@/components/ToolGrid'
 
 const pinnedFeatures = [
   {
@@ -114,8 +113,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
-      <SystemBar title="Core" />
-
       <style>{`
         @keyframes orb1 {
           0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
@@ -265,7 +262,55 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl font-bold" style={{ color: ET.ink }}>Your Operating System</h2>
           </div>
 
-          <ToolGrid tools={pinnedFeatures} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {pinnedFeatures.map((f, i) => (
+              <Link key={i} href={f.href} className="group block">
+                <article
+                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 h-full flex flex-col"
+                  style={{ backgroundColor: ET.surface, borderColor: ET.border }}
+                >
+                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}>
+                    <Image
+                      src={f.image}
+                      alt={f.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <span
+                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
+                        style={{ backgroundColor: f.accentBg, color: f.accentColor }}
+                      >
+                        {f.badge}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-5 flex-1 flex flex-col">
+                    <h3 className="font-bold text-base mb-2" style={{ color: ET.ink }}>{f.title}</h3>
+                    <p className="text-xs leading-relaxed flex-1" style={{ color: ET.sub }}>{f.description}</p>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-xs font-semibold" style={{ color: f.accentColor }}>
+                        Open tool
+                      </span>
+                      <span
+                        className="opacity-0 group-hover:opacity-100 transition-all translate-x-0 group-hover:translate-x-1"
+                        style={{ color: f.accentColor }}
+                        aria-hidden
+                      >→</span>
+                    </div>
+                  </div>
+
+                  <div
+                    className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ backgroundColor: f.accentColor }}
+                  />
+                </article>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

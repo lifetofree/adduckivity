@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 interface Props {
   onContinue: () => void;
   onRest: () => void;
+  stepCount: number;
 }
 
-export default function EnergyCheck({ onContinue, onRest }: Props) {
+export default function EnergyCheck({ onContinue, onRest, stepCount }: Props) {
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -18,7 +19,7 @@ export default function EnergyCheck({ onContinue, onRest }: Props) {
       <div className="max-w-md w-full bg-surface p-8 rounded-3xl border text-center" style={{ backgroundColor: ET.surface, borderColor: ET.border }}>
         <h2 className="text-2xl font-bold mb-4">Energy Check</h2>
         <p className="text-sm mb-8" style={{ color: ET.sub }}>
-            You've completed 6 atomic steps. Respect your system.
+            You've completed {stepCount} atomic steps. Respect your system.
             Do you have the energy to continue, or is it time for a 5-minute reset?
         </p>
         <div className="flex flex-col gap-3">

@@ -9,13 +9,16 @@ import AtomizerScene from '@/components/AtomizerScene';
 import EnergyCheck from '@/components/EnergyCheck';
 import SystemBar from '@/components/ProtocolBuilder/SystemBar';
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter';
+import SystemGate from '@/components/SystemGate';
 import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSystem } from '@/lib/system-context';
 
 function AtomizerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  const { isProtected } = useSystem();
   
   const [input, setInput] = useState('');
   const [task, setTask] = useState<AtomizerTask | null>(null);
@@ -81,7 +84,7 @@ function AtomizerContent() {
 
   const handleComplete = (id: string) => {
     if (!task) return;
-    const completedCount = task.steps.filter(s => s.completed).length + 1;
+    const currentCompleted = task.steps.filter(s => s.completed).length + 1;
     const newSteps = task.steps.map(s => s.id === id ? { ...s, completed: true } : s);
     const updatedTask = { ...task, steps: newSteps };
     
@@ -95,9 +98,13 @@ function AtomizerContent() {
     // Check if all steps completed
     if (newSteps.every(s => s.completed)) {
         setShowSuccess(true);
-    } else if (completedCount % 6 === 0) {
-        // Law 3: Energy check every 6 steps (only if not finished)
-        setShowEnergyCheck(true);
+    } else {
+        // Law 3: Energy check threshold
+        // Standard: 6 steps. Protected Mode: 3 steps.
+        const threshold = isProtected ? 3 : 6;
+        if (currentCompleted % threshold === 0) {
+            setShowEnergyCheck(true);
+        }
     }
   };
 
@@ -111,6 +118,7 @@ function AtomizerContent() {
       <AnimatePresence>
         {showEnergyCheck && (
             <EnergyCheck 
+                stepCount={task?.steps.filter(s => s.completed).length || 0}
                 onContinue={() => setShowEnergyCheck(false)}
                 onRest={() => {
                     setShowEnergyCheck(false);
@@ -213,7 +221,9 @@ function AtomizerContent() {
 export default function AtomizerPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center text-cyan-500 font-mono tracking-widest animate-pulse">Initializing Neural Path...</div>}>
-      <AtomizerContent />
+      <SystemGate toolName="The Atomizer">
+        <AtomizerContent />
+      </SystemGate>
     </Suspense>
   )
 }
