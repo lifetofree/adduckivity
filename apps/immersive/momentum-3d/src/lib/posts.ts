@@ -245,7 +245,7 @@ export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?
 
   return Promise.all(posts.map(async post => {
     if (post.status !== 'scheduled' || !post.scheduledAt) {
-      if (post.status === 'scheduled') {
+      if (post.status === 'scheduled' && post.scheduledAt) {
         const t = new Date(post.scheduledAt)
         const timeUntil = t.getTime() - now.getTime()
         if (timeUntil > 0) {
@@ -254,7 +254,7 @@ export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?
       }
       return post
     }
-    
+
     const t = new Date(post.scheduledAt)
     if (isNaN(t.getTime()) || t > now) {
       console.log(`[Scheduled Posts] Post "${post.slug}" not yet due (scheduled: ${post.scheduledAt}, now: ${now.toISOString()})`)
