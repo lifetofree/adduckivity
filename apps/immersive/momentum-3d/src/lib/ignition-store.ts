@@ -7,6 +7,7 @@ export interface IgnitionState {
   startTime: number | null;
   durationRemaining: number;
   isActive: boolean;
+  targetNodeId: string | null;
 }
 
 export const INITIAL_IGNITION_STATE: IgnitionState = {
@@ -14,10 +15,11 @@ export const INITIAL_IGNITION_STATE: IgnitionState = {
   startTime: null,
   durationRemaining: 0,
   isActive: false,
+  targetNodeId: null,
 };
 
 interface IgnitionStore extends IgnitionState {
-  start: () => void;
+  start: (targetNodeId?: string | null) => void;
   stop: () => void;
   tick: () => void;
   setPhase: (phase: IgnitionPhase) => void;
@@ -25,7 +27,13 @@ interface IgnitionStore extends IgnitionState {
 
 export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
   ...INITIAL_IGNITION_STATE,
-  start: () => set({ isActive: true, currentPhase: 'spark', durationRemaining: 600, startTime: Date.now() }),
+  start: (targetNodeId = null) => set({ 
+    isActive: true, 
+    currentPhase: 'spark', 
+    durationRemaining: 600, 
+    startTime: Date.now(),
+    targetNodeId
+  }),
   stop: () => set(INITIAL_IGNITION_STATE),
   setPhase: (phase) => set({ currentPhase: phase }),
   tick: () => {
@@ -40,6 +48,9 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
     const nextRemaining = durationRemaining - 1;
 
     if (nextRemaining === 0) {
+      // We keep isActive: true for one more cycle to allow handoff detection if needed,
+      // or we just reset. Let's reset but keep the targetNodeId for a moment?
+      // Actually, standard state machines reset immediately.
       set(INITIAL_IGNITION_STATE);
       return;
     }

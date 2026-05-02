@@ -12,6 +12,7 @@ interface NodeProps {
   node: ProtocolNode;
   isActive?: boolean;
   onSelect: (id: string) => void;
+  edges: ProtocolEdge[];
 }
 
 const Connection = ({ start, end }: { start: [number, number, number], end: [number, number, number] }) => (
@@ -24,7 +25,7 @@ const Connection = ({ start, end }: { start: [number, number, number], end: [num
   />
 )
 
-const Node = ({ node, isActive = false, onSelect }: NodeProps) => {
+const Node = ({ node, isActive = false, onSelect, edges }: NodeProps) => {
   const startIgnition = useIgnitionStore(state => state.start)
   
   const nodeColor = useMemo(() => {
@@ -40,7 +41,8 @@ const Node = ({ node, isActive = false, onSelect }: NodeProps) => {
       onClick={(e) => {
         e.stopPropagation();
         if (node.type === 'ignition') {
-          startIgnition();
+          const firstTarget = edges.find(edge => edge.source === node.id)?.target;
+          startIgnition(firstTarget);
         }
         onSelect(node.id);
       }}
@@ -127,6 +129,7 @@ function SceneContent({
           node={node} 
           isActive={activeNode?.id === node.id}
           onSelect={onSelectNode}
+          edges={edges}
         />
       ))}
       {edges.map(edge => {

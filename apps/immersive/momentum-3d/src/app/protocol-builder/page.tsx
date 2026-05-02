@@ -9,6 +9,7 @@ import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
 import SystemGate from '@/components/SystemGate'
 import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
+import { useIgnitionStore } from '@/lib/ignition-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
@@ -19,6 +20,10 @@ function ProtocolBuilderInner() {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
   
+  // Ignition State for handoff
+  const { isActive: ignitionActive, targetNodeId: ignitionTargetId } = useIgnitionStore()
+  const [prevIgnitionActive, setPrevIgnitionActive] = useState(false)
+
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
@@ -70,6 +75,22 @@ function ProtocolBuilderInner() {
   useEffect(() => {
     localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
   }, [mode, activeNodeId])
+
+  // Ignition Handoff Logic
+  useEffect(() => {
+    if (prevIgnitionActive && !ignitionActive) {
+      // Ignition finished
+      if (ignitionTargetId) {
+        setMode('flow')
+        setActiveNodeId(ignitionTargetId)
+      } else if (graph.nodes.length > 0) {
+        // Fallback: fly to first node if no specific target
+        setMode('flow')
+        setActiveNodeId(graph.nodes[0].id)
+      }
+    }
+    setPrevIgnitionActive(ignitionActive)
+  }, [ignitionActive, prevIgnitionActive, ignitionTargetId, graph.nodes])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
