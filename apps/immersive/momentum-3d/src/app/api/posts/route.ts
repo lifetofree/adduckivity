@@ -74,6 +74,8 @@ export async function PUT(req: NextRequest) {
     const existing = await getPostBySlug(kv, slug)
     const body = await req.json() as Partial<import('@/lib/posts').Post>
 
+    console.log('[API/PUT] Processing post:', slug, 'existing:', !!existing, 'body status:', body.status, 'existing facebookPosted:', existing?.facebookPosted)
+
     // Import Google Drive images to R2 if content is provided
     let processedContent = body.content
     if (processedContent !== undefined && processedContent !== null) {
@@ -87,6 +89,8 @@ export async function PUT(req: NextRequest) {
     // OR if it's already published but was never posted.
     const shouldPostToFacebook = body.status === 'published' && !existing?.facebookPosted
 
+    console.log('[API/PUT] shouldPostToFacebook:', shouldPostToFacebook, 'body.status:', body.status, '!existing?.facebookPosted:', !existing?.facebookPosted)
+
     const post = existing
       ? await updatePost(kv, slug, { ...body, content: processedContent !== undefined ? processedContent : existing.content })
       : await savePost(kv, { ...body, slug, title: body.title || slug, content: processedContent !== undefined ? processedContent : '' })
@@ -95,9 +99,11 @@ export async function PUT(req: NextRequest) {
 
     let facebook: { ok: boolean; error?: string } | undefined
     if (shouldPostToFacebook) {
+      console.log('[API/PUT] Attempting Facebook post for:', slug)
       const env = process.env.NODE_ENV === 'development' ? undefined : getEnv()
       if (env) {
         facebook = await postToFacebook(env, post)
+        console.log('[API/PUT] Facebook result:', facebook)
         if (facebook.ok) {
           // Update the post with the flag
           await updatePost(kv, post.slug, { facebookPosted: true })

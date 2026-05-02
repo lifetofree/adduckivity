@@ -149,14 +149,26 @@ export async function postToFacebook(
   env: CloudflareEnv,
   post: { title: string; excerpt: string; slug: string; featuredImage?: string }
 ): Promise<{ ok: boolean; error?: string }> {
-  if (process.env.NODE_ENV === 'development') return { ok: false, error: 'skipped in dev' }
+  // Check if we're in development mode - skip Facebook posting
+  // Note: In Cloudflare Pages, NODE_ENV is 'production' for edge functions
+  const isDev = process.env.NODE_ENV === 'development' || process.env.CF_PAGES === '1'
+  if (isDev) {
+    console.log('[Facebook] Skipping in development mode')
+    return { ok: false, error: 'skipped in dev' }
+  }
 
   const token   = env.FACEBOOK_PAGE_ACCESS_TOKEN
   const pageId  = env.FACEBOOK_PAGE_ID
-  const siteUrl = env.SITE_URL || 'https://immersive-adduckivity.pages.dev'
+  const siteUrl = env.SITE_URL || 'https://immersive.adduckivity.com'
 
-  if (!token) return { ok: false, error: 'FACEBOOK_PAGE_ACCESS_TOKEN not set' }
-  if (!pageId) return { ok: false, error: 'FACEBOOK_PAGE_ID not set' }
+  if (!token) {
+    console.error('[Facebook] FACEBOOK_PAGE_ACCESS_TOKEN not set')
+    return { ok: false, error: 'FACEBOOK_PAGE_ACCESS_TOKEN not set' }
+  }
+  if (!pageId) {
+    console.error('[Facebook] FACEBOOK_PAGE_ID not set')
+    return { ok: false, error: 'FACEBOOK_PAGE_ID not set' }
+  }
 
   const link    = `${siteUrl}/blog/${post.slug}`
   const message = `🦆 ${post.title}\n\n${post.excerpt}\n\nRead the full protocol → ${link}\n\n#DuckOS #Productivity #ADHD #Neurodivergent`
@@ -165,6 +177,7 @@ export async function postToFacebook(
   // Facebook deprecated the 'picture' param — OG tags on the linked page are auto-scraped.
 
   try {
+    console.log('[Facebook] Posting to page:', pageId, 'for post:', post.slug)
     const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
       method: 'POST',
       body: params,
@@ -224,22 +237,49 @@ export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
  */
 export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?: CloudflareEnv): Promise<Post[]> {
   const now = new Date()
+  const isDev = process.env.NODE_ENV === 'development'
+  
+  if (isDev) {
+    console.log('[Scheduled Posts] Running in development mode - will check but not post to Facebook')
+  }
+
   return Promise.all(posts.map(async post => {
-    if (post.status !== 'scheduled' || !post.scheduledAt) return post
+    if (post.status !== 'scheduled' || !post.scheduledAt) {
+      if (post.status === 'scheduled') {
+        const t = new Date(post.scheduledAt)
+        const timeUntil = t.getTime() - now.getTime()
+        if (timeUntil > 0) {
+          console.log(`[Scheduled Posts] Post "${post.slug}" scheduled for ${post.scheduledAt} (${Math.ceil(timeUntil / 60000)}min from now)`)
+        }
+      }
+      return post
+    }
+    
     const t = new Date(post.scheduledAt)
-    if (isNaN(t.getTime()) || t > now) return post
+    if (isNaN(t.getTime()) || t > now) {
+      console.log(`[Scheduled Posts] Post "${post.slug}" not yet due (scheduled: ${post.scheduledAt}, now: ${now.toISOString()})`)
+      return post
+    }
 
     const promotedDate = t.toISOString().split('T')[0]
     let facebookPosted = post.facebookPosted
-    console.log(`[CMS] Promoting scheduled post: ${post.slug} (scheduled for ${post.scheduledAt})`)
+    console.log(`[Scheduled Posts] ✅ PROMOTING: ${post.slug} (scheduled for ${post.scheduledAt})`)
 
     if (env && !facebookPosted) {
       const lockKey = `lock:fb:${post.slug}`
       const locked = await kv.get(lockKey)
       if (!locked) {
+        console.log(`[Scheduled Posts] Attempting Facebook post for: ${post.slug}`)
         await kv.put(lockKey, '1', { expirationTtl: 600 })
         const fb = await postToFacebook(env, { ...post, slug: post.slug })
-        if (fb.ok) facebookPosted = true
+        if (fb.ok) {
+          facebookPosted = true
+          console.log(`[Scheduled Posts] ✅ Facebook post successful for: ${post.slug}`)
+        } else {
+          console.log(`[Scheduled Posts] ❌ Facebook post failed for: ${post.slug} - ${fb.error}`)
+        }
+      } else {
+        console.log(`[Scheduled Posts] Facebook post already attempted for: ${post.slug} (lock exists)`)
       }
     }
 
@@ -254,8 +294,9 @@ export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?
 
     try {
       await kv.put(`post:${post.slug}`, JSON.stringify(promoted))
+      console.log(`[Scheduled Posts] ✅ Saved promoted post: ${post.slug}`)
     } catch (err) {
-      console.error(`[CMS] Failed to save promoted post ${post.slug}:`, err)
+      console.error(`[Scheduled Posts] ❌ Failed to save promoted post ${post.slug}:`, err)
     }
     return promoted
   }))
