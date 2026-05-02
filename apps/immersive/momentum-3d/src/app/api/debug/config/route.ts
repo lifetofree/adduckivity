@@ -28,7 +28,9 @@ export async function GET(req: NextRequest) {
       facebook: {
         hasAccessToken: false,
         hasPageId: false,
-        hasSiteUrl: false
+        hasSiteUrl: false,
+        siteUrl: '',
+        pageId: ''
       }
     }
 
