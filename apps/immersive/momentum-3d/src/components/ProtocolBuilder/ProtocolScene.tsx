@@ -5,6 +5,7 @@ import { OrbitControls, Stars, Line, Html } from '@react-three/drei'
 import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
 import CameraController from './CameraController'
 import ForceGraphController from './ForceGraphController'
+import { useIgnitionScene } from './useIgnitionScene'
 
 interface NodeProps {
   node: ProtocolNode;
@@ -67,6 +68,58 @@ const Node = ({ node, isActive = false, onSelect }: NodeProps) => (
   </mesh>
 )
 
+function SceneContent({ 
+  nodes, 
+  edges, 
+  activeNode,
+  onSelectNode,
+  updateNodes,
+  mode
+}: { 
+  nodes: ProtocolNode[], 
+  edges: ProtocolEdge[],
+  activeNode: ProtocolNode | null,
+  onSelectNode: (id: string) => void,
+  updateNodes: (nodes: ProtocolNode[]) => void,
+  mode: 'build' | 'flow'
+}) {
+  const { colors, uniforms } = useIgnitionScene();
+  const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node.position])), [nodes]);
+
+  return (
+    <>
+      <color attach="background" args={[colors?.bg || '#0a0f1e']} />
+      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+      <ambientLight intensity={colors ? 0.8 + uniforms.pulseIntensity * 0.4 : 0.5} color={colors?.primary} />
+      <pointLight position={[10, 10, 10]} intensity={colors ? 1.5 : 1} color={colors?.accent} />
+      <CameraController activeNode={activeNode} />
+      
+      <ForceGraphController 
+        nodes={nodes} 
+        edges={edges} 
+        updateNodes={updateNodes} 
+        enabled={mode === 'build'} 
+      />
+
+      {nodes.map(node => (
+        <Node 
+          key={node.id} 
+          node={node} 
+          isActive={activeNode?.id === node.id}
+          onSelect={onSelectNode}
+        />
+      ))}
+      {edges.map(edge => {
+        const start = nodeMap.get(edge.source);
+        const end = nodeMap.get(edge.target);
+        if (!start || !end) return null;
+        return <Connection key={edge.id} start={start} end={end} />;
+      })}
+      <OrbitControls makeDefault enabled={!activeNode} />
+    </>
+  )
+}
+
 export default function ProtocolScene({ 
   nodes, 
   edges, 
@@ -82,39 +135,17 @@ export default function ProtocolScene({
   updateNodes: (nodes: ProtocolNode[]) => void,
   mode?: 'build' | 'flow'
 }) {
-  const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node.position])), [nodes]);
-
   return (
     <div className="w-full h-screen bg-[#0a0f1e]">
       <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
-        <color attach="background" args={['#0a0f1e']} />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
-        <CameraController activeNode={activeNode} />
-        
-        <ForceGraphController 
-          nodes={nodes} 
-          edges={edges} 
-          updateNodes={updateNodes} 
-          enabled={mode === 'build'} 
+        <SceneContent 
+          nodes={nodes}
+          edges={edges}
+          activeNode={activeNode}
+          onSelectNode={onSelectNode}
+          updateNodes={updateNodes}
+          mode={mode}
         />
-
-        {nodes.map(node => (
-          <Node 
-            key={node.id} 
-            node={node} 
-            isActive={activeNode?.id === node.id}
-            onSelect={onSelectNode}
-          />
-        ))}
-        {edges.map(edge => {
-          const start = nodeMap.get(edge.source);
-          const end = nodeMap.get(edge.target);
-          if (!start || !end) return null;
-          return <Connection key={edge.id} start={start} end={end} />;
-        })}
-        <OrbitControls makeDefault enabled={!activeNode} />
       </Canvas>
     </div>
   )
