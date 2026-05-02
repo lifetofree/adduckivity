@@ -1,30 +1,22 @@
 'use client'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
-import SystemGate from '@/components/SystemGate'
-import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
-import { useIgnitionStore } from '@/lib/ignition-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
-function ProtocolBuilderInner() {
+export default function ProtocolBuilderPage() {
   const router = useRouter()
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [hasLoaded, setHasLoaded] = useState(false)
   
-  // Ignition State
-  const { isActive: ignitionActive, targetNodeId: ignitionTargetId, start: startIgnition } = useIgnitionStore()
-  const [prevIgnitionActive, setPrevIgnitionActive] = useState(false)
-
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
@@ -54,66 +46,34 @@ function ProtocolBuilderInner() {
       if (savedExecution) {
         try {
           const { mode: savedMode, activeNodeId: savedId } = JSON.parse(savedExecution)
-          setMode(savedMode || 'build')
-          setActiveNodeId(savedId || null)
+          setMode(savedMode)
+          setActiveNodeId(savedId)
         } catch (e) {
           console.error('Failed to load execution state', e)
         }
       }
-      setHasLoaded(true)
     }
     init()
   }, [])
 
   // Auto-save graph to localStorage with syncing indicator
   useEffect(() => {
-    if (!hasLoaded) return // Prevent overwriting with initial state
-    
     saveProtocol(graph)
     setIsSyncing(true)
     const timer = setTimeout(() => setIsSyncing(false), 800)
     return () => clearTimeout(timer)
-  }, [graph, hasLoaded])
+  }, [graph])
 
   // Auto-save execution state
   useEffect(() => {
-    if (!hasLoaded) return
     localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
-  }, [mode, activeNodeId, hasLoaded])
-
-  // Ignition Logic: Auto-trigger when node becomes active in flow
-  useEffect(() => {
-    if (!hasLoaded) return
-    const node = graph.nodes.find(n => n.id === activeNodeId)
-    if (mode === 'flow' && node?.type === 'ignition' && !ignitionActive) {
-      const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
-      startIgnition(firstTarget)
-    }
-  }, [activeNodeId, mode, graph.nodes, graph.edges, ignitionActive, startIgnition, hasLoaded])
-
-  // Ignition Handoff Logic
-  useEffect(() => {
-    if (!hasLoaded) return
-    if (prevIgnitionActive && !ignitionActive) {
-      // Ignition finished
-      if (ignitionTargetId) {
-        setMode('flow')
-        setActiveNodeId(ignitionTargetId)
-      } else {
-        // If no target connected, immediately return to build mode to prevent re-run loops
-        setMode('build')
-        setActiveNodeId(null)
-      }
-    }
-    setPrevIgnitionActive(ignitionActive)
-  }, [ignitionActive, prevIgnitionActive, ignitionTargetId, graph.nodes, hasLoaded])
+  }, [mode, activeNodeId])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
 
   // Handle Timer Initialization when node changes
   useEffect(() => {
-    if (!hasLoaded) return
     if (activeNode?.type === 'timer') {
       setTimeLeft((activeNode.data?.duration || 25) * 60)
       setIsTimerRunning(false)
@@ -121,42 +81,34 @@ function ProtocolBuilderInner() {
       setTimeLeft(null)
       setIsTimerRunning(false)
     }
-  }, [activeNodeId, activeNode?.type, activeNode?.data?.duration, hasLoaded])
+  }, [activeNodeId, activeNode?.type, activeNode?.data?.duration])
 
   const nextNode = useCallback(() => {
     if (graph.nodes.length === 0) return
     
     if (outgoingEdges.length === 1) {
-      const nextId = outgoingEdges[0].target
-      const nextNodeObj = graph.nodes.find(n => n.id === nextId)
-      
-      // If the next node is ignition, trigger it immediately
-      if (nextNodeObj?.type === 'ignition') {
-        const target = graph.edges.find(e => e.source === nextId)?.target
-        startIgnition(target)
-      }
-      
-      setActiveNodeId(nextId)
+      // Follow the single connection
+      setActiveNodeId(outgoingEdges[0].target)
     } else if (outgoingEdges.length === 0) {
-      const node = graph.nodes.find(n => n.id === activeNodeId)
-      if (node?.type === 'ignition') {
-          // Ignition handoff handles this
-      } else {
-          setMode('build')
-      }
+      // Fallback: cycle through nodes linearly if no outgoing connections
+      const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
+      const nextIndex = (currentIndex + 1) % graph.nodes.length
+      setActiveNodeId(graph.nodes[nextIndex].id)
     }
-  }, [graph.nodes, graph.edges, outgoingEdges, activeNodeId, startIgnition])
+    // If outgoingEdges.length > 1, the user must choose via HUD
+  }, [graph.nodes, outgoingEdges, activeNodeId])
 
   // Countdown Effect
   useEffect(() => {
-    if (!hasLoaded) return
     let interval: NodeJS.Timeout
+    // Only auto-advance if it's actually a timer node and the timer finished
     if (isTimerRunning && timeLeft !== null && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(prev => (prev !== null ? prev - 1 : null))
       }, 1000)
     } else if (timeLeft === 0 && activeNode?.type === 'timer') {
       setIsTimerRunning(false)
+      // Auto-advance only if there's a clear next path (0 or 1 edge)
       if (outgoingEdges.length <= 1) {
         setTimeout(() => {
           nextNode()
@@ -164,7 +116,7 @@ function ProtocolBuilderInner() {
       }
     }
     return () => clearInterval(interval)
-  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, hasLoaded])
+  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -240,6 +192,7 @@ function ProtocolBuilderInner() {
         mode={mode}
       />
       
+      {/* HUD: Task Controls */}
       <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
         {mode === 'flow' && (
           <div className="flex gap-2">
@@ -260,6 +213,7 @@ function ProtocolBuilderInner() {
           </div>
         )}
 
+        {/* Branching Options */}
         {mode === 'flow' && outgoingEdges.length > 1 && (
           <div className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-300">
             <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest text-shadow-sm">Select Next Path:</p>
@@ -281,6 +235,7 @@ function ProtocolBuilderInner() {
           </div>
         )}
 
+        {/* Node Information Panel */}
         {activeNode && (
           <div className="p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
             <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-[0.2em] mb-1">
@@ -336,6 +291,7 @@ function ProtocolBuilderInner() {
         )}
       </div>
 
+      {/* Architect Sidebar */}
       {mode === 'build' && (
         <ArchitectSidebar 
           nodes={graph.nodes}
@@ -350,24 +306,16 @@ function ProtocolBuilderInner() {
         />
       )}
 
+      {/* Legend / Help */}
       <div className="absolute bottom-8 right-8 z-10 text-right pointer-events-none opacity-30">
         <p className="text-[10px] text-white font-mono uppercase tracking-widest">Protocol Visualization Engine v1.1</p>
         <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-widest">Constellation Mapping Active</p>
       </div>
 
+      {/* System Footer (Hidden in Flow Mode for full immersion) */}
       <div className={`mt-auto transition-opacity duration-700 ${mode === 'flow' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <SystemFooter />
       </div>
-
-      <IgnitionOverlay />
     </main>
-  )
-}
-
-export default function ProtocolBuilderPage() {
-  return (
-    <SystemGate toolName="Protocol Builder">
-      <ProtocolBuilderInner />
-    </SystemGate>
   )
 }
