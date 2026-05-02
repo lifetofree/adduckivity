@@ -1,13 +1,11 @@
 export const runtime = 'edge'
-export const dynamic = 'force-dynamic'
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getPublishedPosts } from '@/lib/posts'
-import { getMockKV } from '@/lib/dev-kv'
 import { ET } from '@/lib/theme'
 import EmailCTA from '@/components/EmailCTA'
+import SystemBar from '@/components/ProtocolBuilder/SystemBar'
+import ToolGrid from '@/components/ToolGrid'
 
 const pinnedFeatures = [
   {
@@ -19,6 +17,7 @@ const pinnedFeatures = [
     accentColor: '#ff4444',
     accentBg: 'rgba(255,68,68,0.15)',
     accentBorder: 'rgba(255,68,68,0.3)',
+    complexity: 'low' as const,
   },
   {
     title: 'Protocol Builder',
@@ -29,6 +28,7 @@ const pinnedFeatures = [
     accentColor: ET.accent,
     accentBg: 'rgba(0,229,255,0.15)',
     accentBorder: 'rgba(0,229,255,0.3)',
+    complexity: 'high' as const,
   },
   {
     title: 'The Atomizer',
@@ -39,6 +39,7 @@ const pinnedFeatures = [
     accentColor: ET.accent,
     accentBg: 'rgba(0,229,255,0.15)',
     accentBorder: 'rgba(0,229,255,0.3)',
+    complexity: 'high' as const,
   },
 ]
 
@@ -101,25 +102,20 @@ const stats = [
   { value: '5 steps', label: 'Emergency reset' },
 ]
 
-export default async function Home() {
-  const kv = process.env.NODE_ENV === 'development'
-    ? getMockKV()
-    : getRequestContext<CloudflareEnv>().env.POSTS_KV
-  const cmsPosts = await getPublishedPosts(kv)
-
-  const latestPosts = cmsPosts
-    .filter(p => p.slug !== 'emergency-recovery')
-    .slice(0, 6)
-    .map(p => ({
-      title: p.title,
-      description: p.excerpt || '',
-      image: p.featuredImage || '',
-      href: `/blog/${p.slug}`,
-      badge: p.category.toUpperCase(),
-    }))
+export default function Home() {
+  // Remove dynamic KV data fetching to reduce bundle size
+  const latestPosts: Array<{
+    title: string
+    description: string
+    image: string
+    href: string
+    badge: string
+  }> = []
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
+      <SystemBar title="Core" />
+
       <style>{`
         @keyframes orb1 {
           0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
@@ -140,27 +136,10 @@ export default async function Home() {
         }
       `}</style>
 
-      {/* ── Nav ── */}
-      <nav
-        className="sticky top-0 z-50 border-b px-6 py-4 flex items-center justify-between"
-        style={{ backgroundColor: 'rgba(10,15,30,0.92)', borderColor: ET.border, backdropFilter: 'blur(12px)' }}
-      >
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <Image src="/logo.png" alt="Adduckivity" width={36} height={36} className="rounded-lg" />
-          <span className="font-semibold text-lg" style={{ color: ET.ink }}>Adduckivity</span>
-        </Link>
-        <div className="hidden md:flex items-center gap-7">
-          <Link href="/blog" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Blog</Link>
-          <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>3D Experience</Link>
-          <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Archive</a>
-          <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Tools</a>
-        </div>
-      </nav>
-
       {/* ── Hero ── */}
       <section
         className="relative flex flex-col items-center justify-center text-center px-6 overflow-hidden"
-        style={{ minHeight: 'calc(100vh - 65px)', paddingTop: '6rem', paddingBottom: '8rem' }}
+        style={{ minHeight: 'calc(100vh - 56px)', paddingTop: '6rem', paddingBottom: '8rem' }}
       >
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
@@ -286,50 +265,7 @@ export default async function Home() {
             <h2 className="text-3xl sm:text-4xl font-bold" style={{ color: ET.ink }}>Your Operating System</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {pinnedFeatures.map((f, i) => (
-              <Link key={i} href={f.href} className="group block">
-                <article
-                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl flex flex-col h-full"
-                  style={{ backgroundColor: ET.surface, borderColor: ET.border }}
-                >
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: ET.muted }}>
-                    <Image
-                      src={f.image}
-                      alt={f.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <span
-                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm border"
-                        style={{ backgroundColor: f.accentBg, color: f.accentColor, borderColor: f.accentBorder }}
-                      >
-                        {f.badge}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="font-bold text-base mb-2" style={{ color: ET.ink }}>{f.title}</h3>
-                    <p className="text-xs leading-relaxed flex-1" style={{ color: ET.sub }}>{f.description}</p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs font-semibold" style={{ color: f.accentColor }}>Open tool</span>
-                      <span
-                        className="opacity-0 group-hover:opacity-100 transition-all translate-x-0 group-hover:translate-x-1"
-                        style={{ color: f.accentColor }}
-                        aria-hidden
-                      >→</span>
-                    </div>
-                  </div>
-                  <div
-                    className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ backgroundColor: f.accentColor }}
-                  />
-                </article>
-              </Link>
-            ))}
-          </div>
+          <ToolGrid tools={pinnedFeatures} />
         </div>
       </section>
 
