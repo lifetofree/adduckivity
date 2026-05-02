@@ -23,7 +23,8 @@ export async function GET(req: NextRequest) {
       bindings: {
         hasEnv: false,
         hasKV: false,
-        hasR2: false
+        hasR2: false,
+        error: ''
       },
       facebook: {
         hasAccessToken: false,
