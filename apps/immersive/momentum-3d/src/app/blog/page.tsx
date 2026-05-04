@@ -3,18 +3,13 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { getRequestContext } from '@cloudflare/next-on-pages'
-import { getPublishedPosts } from '@/lib/posts'
 import { ET } from '@/lib/theme'
-import { getMockKV } from '@/lib/dev-kv'
+import { getWordPressPosts, formatWordPressPost } from '@/lib/wordpress'
 
 export default async function BlogPage() {
-  const isDev = process.env.NODE_ENV === 'development'
-  const context = isDev ? null : getRequestContext<CloudflareEnv>()
-  const kv = isDev ? getMockKV() : context!.env.POSTS_KV
-  const env = isDev ? undefined : context!.env
-
-  const posts = await getPublishedPosts(kv, env)
+  // Fetch posts from WordPress
+  const wpPosts = await getWordPressPosts({ perPage: 20 })
+  const posts = wpPosts.map(formatWordPressPost)
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
@@ -53,7 +48,7 @@ export default async function BlogPage() {
         {/* ── Page header ── */}
         <div className="py-16 md:py-20 border-b" style={{ borderColor: ET.border }}>
           <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.sub }}>
-            Duck OS
+            Duck OS · Archive
           </p>
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
@@ -61,7 +56,7 @@ export default async function BlogPage() {
                 All <span style={{ color: ET.accent }}>Posts</span>
               </h1>
               <p className="text-sm" style={{ color: ET.sub }}>
-                {posts.length} {posts.length === 1 ? 'article' : 'articles'} · systems, protocols, and ideas for neurodivergent creators
+                {posts.length} {posts.length === 1 ? 'article' : 'articles'} from the WordPress archive · systems, protocols, and ideas for neurodivergent creators
               </p>
             </div>
             {posts.length > 0 && (
@@ -69,7 +64,7 @@ export default async function BlogPage() {
                 className="shrink-0 text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full border"
                 style={{ borderColor: ET.border, color: ET.sub, backgroundColor: ET.surface }}
               >
-                {posts.length} Published
+                {posts.length} Posts
               </span>
             )}
           </div>
@@ -81,7 +76,10 @@ export default async function BlogPage() {
             className="rounded-2xl border py-24 text-center my-12"
             style={{ backgroundColor: ET.surface, borderColor: ET.border }}
           >
-            <p className="text-sm" style={{ color: ET.sub }}>No published posts yet. Check back soon.</p>
+            <p className="text-sm mb-2" style={{ color: ET.sub }}>No posts found</p>
+            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm hover:opacity-70" style={{ color: ET.accent }}>
+              Visit the WordPress archive →
+            </a>
           </div>
         )}
 
@@ -89,7 +87,13 @@ export default async function BlogPage() {
         {posts.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-12">
             {posts.map(post => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
+              <a
+                key={post.slug}
+                href={post.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
                 <article
                   className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 h-full flex flex-col"
                   style={{ backgroundColor: ET.surface, borderColor: ET.border }}
@@ -173,7 +177,7 @@ export default async function BlogPage() {
 
                   <div className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundColor: ET.accent }} />
                 </article>
-              </Link>
+              </a>
             ))}
           </div>
         )}
