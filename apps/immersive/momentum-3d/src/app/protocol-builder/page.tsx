@@ -21,7 +21,7 @@ export default function ProtocolBuilderPage() {
   const [isInitialized, setIsInitialized] = useState(false)
   
   // Ignition State
-  const { isActive: isIgnitionActive, targetNodeId } = useIgnitionStore()
+  const { isActive: isIgnitionActive, targetNodeId, start: startIgnition } = useIgnitionStore()
   
   // Handle Ignition Completion Handoff
   useEffect(() => {
@@ -94,32 +94,32 @@ export default function ProtocolBuilderPage() {
   // Ignition Auto-Trigger: Only triggers when switching TO flow mode with an ignition node selected
   const [prevMode, setPrevMode] = useState<'build' | 'flow'>('build')
   useEffect(() => {
-    if (!hasLoaded) return
+    if (!isInitialized) return
     // Only trigger when transitioning TO flow mode (not every render)
     if (mode === 'flow' && prevMode === 'build') {
       const node = graph.nodes.find(n => n.id === activeNodeId)
-      if (node?.type === 'ignition' && !ignitionActive) {
+      if (node?.type === 'ignition' && !isIgnitionActive) {
         const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
         startIgnition(firstTarget)
       }
     }
     setPrevMode(mode)
-  }, [mode, hasLoaded, graph.nodes, activeNodeId, ignitionActive, startIgnition])
+  }, [mode, isInitialized, graph.nodes, activeNodeId, isIgnitionActive, startIgnition])
 
   // Ignition Auto-Trigger: When activeNodeId changes TO an ignition node (while already in flow mode)
   const [prevActiveNodeId, setPrevActiveNodeId] = useState<string | null>(null)
   useEffect(() => {
-    if (!hasLoaded) return
+    if (!isInitialized) return
     // Trigger when navigating to ignition node via Next Step (already in flow mode)
     if (mode === 'flow' && activeNodeId !== prevActiveNodeId) {
       const node = graph.nodes.find(n => n.id === activeNodeId)
-      if (node?.type === 'ignition' && !ignitionActive) {
+      if (node?.type === 'ignition' && !isIgnitionActive) {
         const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
         startIgnition(firstTarget)
       }
     }
     setPrevActiveNodeId(activeNodeId)
-  }, [activeNodeId, mode, hasLoaded, graph.nodes, ignitionActive, startIgnition, prevActiveNodeId])
+  }, [activeNodeId, mode, isInitialized, graph.nodes, isIgnitionActive, startIgnition, prevActiveNodeId])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
@@ -127,6 +127,12 @@ export default function ProtocolBuilderPage() {
   // Check if current node is the last one (no outgoing edges and at end of graph)
   const isLastNode = activeNode && outgoingEdges.length === 0 && 
     graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
+  
+  // Timer is still running on last node
+  const isTimerRunningOnLastNode = isLastNode && activeNode?.type === 'timer' && timeLeft !== null && timeLeft > 0
+  
+  // Timer just completed on last node (show "Protocol Complete")
+  const isTimerCompletedOnLastNode = isLastNode && activeNode?.type === 'timer' && timeLeft === 0
 
   // Handle Timer Initialization when node changes
   useEffect(() => {
@@ -150,7 +156,7 @@ export default function ProtocolBuilderPage() {
       const nextNodeObj = graph.nodes.find(n => n.id === nextId)
       
       // If the next node is ignition, trigger it and let handoff handle activation
-      if (nextNodeObj?.type === 'ignition') {
+      if (nextNodeObj?.type === 'ignition' && !isIgnitionActive) {
         const target = graph.edges.find(e => e.source === nextId)?.target
         startIgnition(target)
         return // Don't set activeNodeId here — handoff will after ignition finishes
@@ -192,15 +198,15 @@ export default function ProtocolBuilderPage() {
       }, 1000)
     } else if (timeLeft === 0 && activeNode?.type === 'timer') {
       setIsTimerRunning(false)
-      // Auto-advance only if there's a clear next path (0 or 1 edge)
-      if (outgoingEdges.length <= 1) {
+      // Don't auto-advance if this is the last node
+      if (!isLastNode && outgoingEdges.length > 0) {
         setTimeout(() => {
           nextNode()
         }, 1500)
       }
     }
     return () => clearInterval(interval)
-  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length])
+  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, isLastNode])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -293,7 +299,10 @@ export default function ProtocolBuilderPage() {
                     : 'bg-white border-white text-black hover:bg-transparent hover:text-white'
                 }`}
               >
-                {isLastNode ? '✓ Protocol Complete' : 'Next Step →'}
+                {isLastNode 
+                  ? (isTimerRunningOnLastNode ? 'Next Step →' : '✓ Protocol Complete')
+                  : 'Next Step →'
+                }
               </button>
             )}
             <button 

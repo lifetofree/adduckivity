@@ -40,6 +40,17 @@ const pinnedFeatures = [
     accentBorder: 'rgba(0,229,255,0.3)',
     complexity: 'high' as const,
   },
+  {
+    title: 'Ignite Momentum',
+    description: '600-second power-up sequence to break inertia and launch into flow state.',
+    image: '/uploads/ignition-cover.svg',
+    href: '/protocol-builder',
+    badge: 'Quick Launch',
+    accentColor: '#f43f5e',
+    accentBg: 'rgba(244,63,94,0.15)',
+    accentBorder: 'rgba(244,63,94,0.3)',
+    complexity: 'medium' as const,
+  },
 ]
 
 const principles = [
@@ -96,7 +107,7 @@ const differentiators = [
 ]
 
 const stats = [
-  { value: '3', label: 'OS Tools' },
+  { value: '4', label: 'OS Tools' },
   { value: '2 min', label: 'Atomic steps' },
   { value: '5 steps', label: 'Emergency reset' },
 ]
@@ -262,7 +273,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl font-bold" style={{ color: ET.ink }}>Your Operating System</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {pinnedFeatures.map((f, i) => (
               <Link key={i} href={f.href} className="group block">
                 <article
@@ -516,6 +527,7 @@ export default function Home() {
                 { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444' },
                 { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent },
                 { label: 'The Atomizer', href: '/atomizer', accent: ET.accent },
+                { label: 'Ignite Momentum', href: '/protocol-builder', accent: '#f43f5e' },
               ].map(t => (
                 <Link
                   key={t.label}

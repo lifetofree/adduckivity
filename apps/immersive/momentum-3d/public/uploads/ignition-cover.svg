@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#1a0a0a"/>
+      <stop offset="100%" stop-color="#0a0f1e"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.6"/>
+      <stop offset="70%" stop-color="#f43f5e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="spark" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="50%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#ff8c00"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="250" fill="url(#bg)"/>
+  
+  <!-- Glow Effect -->
+  <ellipse cx="200" cy="125" rx="120" ry="80" fill="url(#glow)"/>
+  
+  <!-- Center Flame/Rocket -->
+  <g transform="translate(200, 110)">
+    <!-- Main flame -->
+    <path d="M0 -50 C20 -30 25 -10 20 15 C15 30 10 45 0 60 C-10 45 -15 30 -20 15 C-25 -10 -20 -30 0 -50Z" fill="url(#spark)" opacity="0.9"/>
+    
+    <!-- Inner flame -->
+    <path d="M0 -30 C12 -15 15 -5 10 10 C5 20 3 35 0 45 C-3 35 -5 20 -10 10 C-15 -5 -12 -15 0 -30Z" fill="#ffd93d" opacity="0.8"/>
+    
+    <!-- Core glow -->
+    <ellipse cx="0" cy="10" rx="6" ry="12" fill="#fff" opacity="0.5"/>
+  </g>
+  
+  <!-- Orbiting particles -->
+  <circle cx="120" cy="80" r="4" fill="#f43f5e" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="280" cy="90" r="3" fill="#ff8c00" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="150" cy="170" r="5" fill="#ff6b6b" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;0.1;0.5" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="260" cy="160" r="4" fill="#f43f5e" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Energy lines -->
+  <line x1="80" y1="125" x2="160" y2="125" stroke="#f43f5e" stroke-width="2" opacity="0.3" stroke-dasharray="5,5">
+    <animate attributeName="stroke-dashoffset" values="0;10" dur="1s" repeatCount="indefinite"/>
+  </line>
+  <line x1="240" y1="125" x2="320" y2="125" stroke="#f43f5e" stroke-width="2" opacity="0.3" stroke-dasharray="5,5">
+    <animate attributeName="stroke-dashoffset" values="10;0" dur="1s" repeatCount="indefinite"/>
+  </line>
+  
+  <!-- Timer circle -->
+  <circle cx="200" cy="200" r="25" fill="none" stroke="#f43f5e" stroke-width="2" opacity="0.4"/>
+  <circle cx="200" cy="200" r="25" fill="none" stroke="#f43f5e" stroke-width="2" opacity="0.8" stroke-dasharray="157" stroke-dashoffset="39" stroke-linecap="round">
+    <animate attributeName="stroke-dashoffset" values="157;0" dur="10s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Label area -->
+  <text x="200" y="235" text-anchor="middle" fill="#f43f5e" font-family="monospace" font-size="8" font-weight="bold" opacity="0.6">600s QUICK LAUNCH</text>
+</svg>
