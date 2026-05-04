@@ -12,6 +12,7 @@ const pinnedFeatures = [
     description: 'A 5-step fail-safe for when burnout spirals begin. Run the reset protocol in under 10 minutes.',
     image: '/uploads/emergency-recovery-cover.svg',
     href: '/momentum',
+    guideHref: null as string | null,
     badge: 'Fail-Safe',
     accentColor: '#ff4444',
     accentBg: 'rgba(255,68,68,0.15)',
@@ -23,6 +24,7 @@ const pinnedFeatures = [
     description: 'Architect your momentum constellation. Map tasks in 3D space to bypass emotional resistance.',
     image: '/uploads/protocol-builder-cover.svg',
     href: '/protocol-builder',
+    guideHref: null as string | null,
     badge: 'System Architect',
     accentColor: ET.accent,
     accentBg: 'rgba(0,229,255,0.15)',
@@ -34,6 +36,7 @@ const pinnedFeatures = [
     description: 'Break intimidating projects into 2-minute atomic steps with AI.',
     image: '/uploads/atomizer-cover.svg',
     href: '/atomizer',
+    guideHref: null as string | null,
     badge: 'Executive Tool',
     accentColor: ET.accent,
     accentBg: 'rgba(0,229,255,0.15)',
@@ -45,6 +48,7 @@ const pinnedFeatures = [
     description: '600-second power-up sequence to break inertia and launch into flow state.',
     image: '/uploads/ignition-cover.svg',
     href: '/ignition',
+    guideHref: '/ignition/guide' as string | null,
     badge: 'Quick Launch',
     accentColor: '#f43f5e',
     accentBg: 'rgba(244,63,94,0.15)',
@@ -275,51 +279,64 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {pinnedFeatures.map((f, i) => (
-              <Link key={i} href={f.href} className="group block">
-                <article
-                  className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 h-full flex flex-col"
-                  style={{ backgroundColor: ET.surface, borderColor: ET.border }}
-                >
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}>
-                    <Image
-                      src={f.image}
-                      alt={f.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              <div key={i} className="flex flex-col gap-2">
+                <Link href={f.href} className="group block flex-1">
+                  <article
+                    className="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 h-full flex flex-col"
+                    style={{ backgroundColor: ET.surface, borderColor: ET.border }}
+                  >
+                    <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9', backgroundColor: ET.muted }}>
+                      <Image
+                        src={f.image}
+                        alt={f.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                      <div className="absolute top-3 left-3">
+                        <span
+                          className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
+                          style={{ backgroundColor: f.accentBg, color: f.accentColor }}
+                        >
+                          {f.badge}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="font-bold text-base mb-2" style={{ color: ET.ink }}>{f.title}</h3>
+                      <p className="text-xs leading-relaxed flex-1" style={{ color: ET.sub }}>{f.description}</p>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-xs font-semibold" style={{ color: f.accentColor }}>
+                          Open tool
+                        </span>
+                        <span
+                          className="opacity-0 group-hover:opacity-100 transition-all translate-x-0 group-hover:translate-x-1"
+                          style={{ color: f.accentColor }}
+                          aria-hidden
+                        >→</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ backgroundColor: f.accentColor }}
                     />
-                    <div className="absolute top-3 left-3">
-                      <span
-                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-sm"
-                        style={{ backgroundColor: f.accentBg, color: f.accentColor }}
-                      >
-                        {f.badge}
-                      </span>
-                    </div>
-                  </div>
+                  </article>
+                </Link>
 
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="font-bold text-base mb-2" style={{ color: ET.ink }}>{f.title}</h3>
-                    <p className="text-xs leading-relaxed flex-1" style={{ color: ET.sub }}>{f.description}</p>
-
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs font-semibold" style={{ color: f.accentColor }}>
-                        Open tool
-                      </span>
-                      <span
-                        className="opacity-0 group-hover:opacity-100 transition-all translate-x-0 group-hover:translate-x-1"
-                        style={{ color: f.accentColor }}
-                        aria-hidden
-                      >→</span>
-                    </div>
-                  </div>
-
-                  <div
-                    className="h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ backgroundColor: f.accentColor }}
-                  />
-                </article>
-              </Link>
+                {f.guideHref && (
+                  <Link
+                    href={f.guideHref}
+                    className="flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all hover:opacity-80"
+                    style={{ borderColor: f.accentBorder, color: f.accentColor, backgroundColor: f.accentBg }}
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    Read the guide
+                  </Link>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -524,20 +541,30 @@ export default function Home() {
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-5" style={{ color: ET.sub }}>OS Tools</p>
             <nav className="flex flex-col gap-3">
               {[
-                { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444' },
-                { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent },
-                { label: 'The Atomizer', href: '/atomizer', accent: ET.accent },
-                { label: 'Ignite Momentum', href: '/ignition', accent: '#f43f5e' },
+                { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444', guide: null as string | null },
+                { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent, guide: null as string | null },
+                { label: 'The Atomizer', href: '/atomizer', accent: ET.accent, guide: null as string | null },
+                { label: 'Ignite Momentum', href: '/ignition', accent: '#f43f5e', guide: '/ignition/guide' as string | null },
               ].map(t => (
-                <Link
-                  key={t.label}
-                  href={t.href}
-                  className="text-xs flex items-center gap-2 group w-fit transition-all opacity-60 hover:opacity-100"
-                  style={{ color: ET.mid }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-all group-hover:scale-125" style={{ backgroundColor: t.accent }} />
-                  {t.label}
-                </Link>
+                <div key={t.label} className="flex flex-col gap-1">
+                  <Link
+                    href={t.href}
+                    className="text-xs flex items-center gap-2 group w-fit transition-all opacity-60 hover:opacity-100"
+                    style={{ color: ET.mid }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-all group-hover:scale-125" style={{ backgroundColor: t.accent }} />
+                    {t.label}
+                  </Link>
+                  {t.guide && (
+                    <Link
+                      href={t.guide}
+                      className="text-[10px] pl-5 opacity-40 hover:opacity-70 transition-opacity w-fit"
+                      style={{ color: t.accent }}
+                    >
+                      ↳ Read guide
+                    </Link>
+                  )}
+                </div>
               ))}
             </nav>
           </div>

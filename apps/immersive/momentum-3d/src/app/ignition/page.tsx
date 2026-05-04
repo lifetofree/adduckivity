@@ -113,16 +113,25 @@ export default function IgnitionPage() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               
-              {/* Back link */}
-              <Link 
-                href="/"
-                className="mt-12 text-white/30 hover:text-white/60 transition-colors text-sm font-mono uppercase tracking-wider"
-              >
-                ← Back to Duck OS
-              </Link>
+              {/* Guide + Back links */}
+              <div className="mt-12 flex items-center gap-6">
+                <Link
+                  href="/ignition/guide"
+                  className="text-white/30 hover:text-white/60 transition-colors text-sm font-mono uppercase tracking-wider"
+                >
+                  How it works?
+                </Link>
+                <span className="text-white/15">·</span>
+                <Link
+                  href="/"
+                  className="text-white/30 hover:text-white/60 transition-colors text-sm font-mono uppercase tracking-wider"
+                >
+                  ← Back to Duck OS
+                </Link>
+              </div>
             </>
           )}
-          
+
           {/* Show start button again if was started but now complete (can restart) */}
           {wasStarted && !isActive && (
             <>
