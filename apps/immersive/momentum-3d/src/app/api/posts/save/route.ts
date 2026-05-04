@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
 
     let facebook: { ok: boolean; error?: string } | undefined
     if (shouldPostToFacebook) {
-      const env = process.env.NODE_ENV === 'development' ? undefined : getEnv()
+      const env = (process.env.NODE_ENV === 'development' || process.env.CF_PAGES === '1') ? undefined : getEnv()
       if (env) {
         facebook = await postToFacebook(env, post)
         if (facebook.ok) {
