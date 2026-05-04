@@ -79,7 +79,7 @@ export async function PUT(req: NextRequest) {
     // Import Google Drive images to R2 if content is provided
     let processedContent = body.content
     if (processedContent !== undefined && processedContent !== null) {
-      const env = process.env.NODE_ENV === 'development' ? undefined : getEnv()
+      const env = (process.env.NODE_ENV === 'development' || process.env.CF_PAGES === '1') ? undefined : getEnv()
       if (env && processedContent.trim()) {
         processedContent = await importGoogleDriveImages(env, processedContent)
       }
@@ -100,7 +100,7 @@ export async function PUT(req: NextRequest) {
     let facebook: { ok: boolean; error?: string } | undefined
     if (shouldPostToFacebook) {
       console.log('[API/PUT] Attempting Facebook post for:', slug)
-      const env = process.env.NODE_ENV === 'development' ? undefined : getEnv()
+      const env = (process.env.NODE_ENV === 'development' || process.env.CF_PAGES === '1') ? undefined : getEnv()
       if (env) {
         facebook = await postToFacebook(env, post)
         console.log('[API/PUT] Facebook result:', facebook)
