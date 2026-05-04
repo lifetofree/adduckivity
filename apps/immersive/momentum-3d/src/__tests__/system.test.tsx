@@ -86,7 +86,7 @@ describe('SystemContext', () => {
       result.current.setSensory({ water: true })
     })
 
-    const stored = JSON.parse(localStorage.getItem('duck_os_system_v1') || '{}')
+    const stored = JSON.parse(localStorage.getItem('st8') || '{}')
     expect(stored.energy).toBe(8)
     expect(stored.sensory.water).toBe(true)
   })
@@ -97,7 +97,7 @@ describe('SystemContext', () => {
       sensory: { water: true, light: true, noise: true },
       lastCheck: new Date().toISOString(),
     }
-    localStorage.setItem('duck_os_system_v1', JSON.stringify(initialState))
+    localStorage.setItem('st8', JSON.stringify(initialState))
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <SystemProvider>{children}</SystemProvider>

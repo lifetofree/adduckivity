@@ -1,9 +1,32 @@
 'use client'
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useIgnitionStore } from '../../lib/ignition-store';
+
+const SPARK_ACTIONS = [
+  "JUMPING JACKS",
+  "HIGH KNEES", 
+  "DEEP SQUATS",
+  "ARM CIRCLES",
+  "BURPEES",
+  "PUSH-UPS",
+  "MOUNTAIN CLIMBERS",
+  "TOE TOUCHES",
+  "JOG IN PLACE",
+  "STRETCH SIDE TO SIDE",
+  "POWER SKIPS",
+  "LUNGES",
+  "SHADOW BOX",
+  "DEEP BREATHING",
+  "DESPERATE NEED STRETCH"
+];
 
 export const IgnitionOverlay = () => {
   const { currentPhase, durationRemaining, isActive, stop, tick } = useIgnitionStore();
+  const [currentAction, setCurrentAction] = useState<string>("");
+
+  const getRandomAction = useCallback(() => {
+    return SPARK_ACTIONS[Math.floor(Math.random() * SPARK_ACTIONS.length)];
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -17,10 +40,20 @@ export const IgnitionOverlay = () => {
     };
   }, [isActive, tick]);
 
+  useEffect(() => {
+    if (isActive && currentPhase === 'spark') {
+      setCurrentAction(getRandomAction());
+      const actionInterval = setInterval(() => {
+        setCurrentAction(getRandomAction());
+      }, 3000);
+      return () => clearInterval(actionInterval);
+    }
+  }, [isActive, currentPhase, getRandomAction]);
+
   if (!isActive) return null;
 
   const prompts = {
-    spark: "IGNITE YOUR NERVOUS SYSTEM - MOVE NOW",
+    spark: "IGNITE YOUR NERVOUS SYSTEM MOVE NOW",
     target: "ALIGN WITH YOUR PRIMARY GOALS",
     launch: "PREPARE FOR DEEP WORK FOCUS",
     idle: ""
@@ -43,11 +76,17 @@ export const IgnitionOverlay = () => {
           {durationRemaining}s
         </div>
         
-        <div className={`text-2xl font-bold tracking-[0.3em] uppercase mb-8 max-w-2xl ${phaseColors[currentPhase]}`}>
+        <div className={`text-2xl font-bold tracking-[0.3em] uppercase mb-4 max-w-2xl ${phaseColors[currentPhase]}`}>
           {prompts[currentPhase]}
         </div>
+
+        {currentPhase === 'spark' && currentAction && (
+          <div className={`text-lg font-bold tracking-widest uppercase animate-pulse ${phaseColors[currentPhase]}`}>
+            {currentAction}
+          </div>
+        )}
         
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-8">
           <button 
             onClick={stop}
             className="border border-white/20 bg-white/5 hover:bg-white/10 text-white/50 px-8 py-3 tracking-widest uppercase text-xs transition-all"

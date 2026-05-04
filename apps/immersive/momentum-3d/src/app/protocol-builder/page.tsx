@@ -92,6 +92,10 @@ export default function ProtocolBuilderPage() {
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+  
+  // Check if current node is the last one (no outgoing edges and at end of graph)
+  const isLastNode = activeNode && outgoingEdges.length === 0 && 
+    graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
 
   // Handle Timer Initialization when node changes
   useEffect(() => {
@@ -111,6 +115,15 @@ export default function ProtocolBuilderPage() {
       // Follow the single connection
       setActiveNodeId(outgoingEdges[0].target)
     } else if (outgoingEdges.length === 0) {
+      // Check if this is the last node in the graph (no edges and single node or at end)
+      const isLastNode = graph.nodes.length === 1 || 
+        graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
+      
+      if (isLastNode) {
+        // Don't advance - stay on last node
+        return
+      }
+      
       // Fallback: cycle through nodes linearly if no outgoing connections
       const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
       const nextIndex = (currentIndex + 1) % graph.nodes.length
@@ -223,9 +236,14 @@ export default function ProtocolBuilderPage() {
             {outgoingEdges.length <= 1 && (
               <button 
                 onClick={nextNode}
-                className="px-4 py-2 bg-white border border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
+                disabled={isLastNode === true}
+                className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
+                  isLastNode
+                    ? 'bg-white/10 border border-white/10 text-white/30 cursor-not-allowed opacity-50'
+                    : 'bg-white border-white text-black hover:bg-transparent hover:text-white'
+                }`}
               >
-                Next Step →
+                {isLastNode ? '✓ Protocol Complete' : 'Next Step →'}
               </button>
             )}
             <button 

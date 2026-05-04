@@ -30,7 +30,7 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
   start: (targetNodeId = null) => set({ 
     isActive: true, 
     currentPhase: 'spark', 
-    durationRemaining: 60, // Test mode: 60s instead of 600s
+    durationRemaining: 600,
     startTime: Date.now(),
     targetNodeId
   }),
@@ -58,13 +58,13 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
     }
 
     let nextPhase = currentPhase;
-    // Phase logic for 60s test (scaled from 600s):
-    // 48-60s: Spark (first 12s) - Physical Activation
-    // 30-48s: Target (next 18s) - Mental Alignment  
-    // 0-30s: Launch (final 30s) - Deep Work Ignition
+    // Phase logic for 600s:
+    // 480-600s: Spark - Physical Activation (120s)
+    // 300-480s: Target - Mental Alignment (180s)
+    // 0-300s: Launch - Deep Work Ignition (300s)
     
-    if (nextRemaining > 48) nextPhase = 'spark';
-    else if (nextRemaining > 30) nextPhase = 'target';
+    if (nextRemaining > 480) nextPhase = 'spark';
+    else if (nextRemaining > 300) nextPhase = 'target';
     else nextPhase = 'launch';
     
     set({ durationRemaining: nextRemaining, currentPhase: nextPhase });
