@@ -8,6 +8,7 @@ export const useIgnitionScene = () => {
     pulseIntensity: 0,
     cameraShake: 0,
   });
+  const timeRef = useRef(0);
   
   const colors = useMemo(() => {
     if (!isActive) return null;
@@ -19,14 +20,15 @@ export const useIgnitionScene = () => {
     }
   }, [currentPhase, isActive]);
 
-  useFrame((state) => {
+  useFrame((_, delta) => {
     if (!isActive) {
       uniforms.current.pulseIntensity = 0;
       uniforms.current.cameraShake = 0;
       return;
     }
     
-    const time = state.clock.elapsedTime;
+    timeRef.current += delta;
+    const time = timeRef.current;
     
     if (currentPhase === 'spark') {
       uniforms.current.pulseIntensity = Math.sin(time * 12) * 0.5 + 0.5;

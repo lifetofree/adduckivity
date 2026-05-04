@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSystem } from '@/lib/system-context'
 import { Droplets, Eye, Headphones, X, Zap, ShieldAlert, CheckCircle2 } from 'lucide-react'
@@ -12,6 +12,43 @@ interface ControlCenterProps {
 
 export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
   const { energy, sensory, setEnergy, setSensory, isLocked, isProtected } = useSystem()
+  const [showEnergyFeedback, setShowEnergyFeedback] = useState(false)
+  const [lastEnergy, setLastEnergy] = useState(energy)
+  const [sensoryFeedback, setSensoryFeedback] = useState<{ key: string; enabled: boolean } | null>(null)
+
+  // Show feedback when energy changes
+  useEffect(() => {
+    if (isOpen && energy !== lastEnergy) {
+      setShowEnergyFeedback(true)
+      setLastEnergy(energy)
+      const timer = setTimeout(() => setShowEnergyFeedback(false), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [energy, lastEnergy, isOpen])
+
+  // Show feedback when sensory changes
+  useEffect(() => {
+    if (isOpen && sensoryFeedback) {
+      const timer = setTimeout(() => setSensoryFeedback(null), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [sensoryFeedback, isOpen])
+
+  const handleSensoryToggle = (key: string) => {
+    const newValue = !sensory[key as keyof typeof sensory]
+    setSensory({ [key]: newValue })
+    setSensoryFeedback({ key, enabled: newValue })
+  }
+
+  const getEnergyLabel = (level: number) => {
+    if (level <= 2) return { text: 'Critical Low', color: 'text-red-500', bg: 'bg-red-500/20' }
+    if (level <= 4) return { text: 'Low Energy', color: 'text-orange-500', bg: 'bg-orange-500/20' }
+    if (level <= 6) return { text: 'Moderate', color: 'text-yellow-500', bg: 'bg-yellow-500/20' }
+    if (level <= 8) return { text: 'Good', color: 'text-cyan-500', bg: 'bg-cyan-500/20' }
+    return { text: 'Peak Performance', color: 'text-emerald-500', bg: 'bg-emerald-500/20' }
+  }
+
+  const energyInfo = getEnergyLabel(energy)
 
   const sensoryItems = [
     { key: 'water', label: 'Hydration Status', icon: Droplets, color: 'text-blue-400' },
@@ -81,10 +118,25 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.2em]">Energy Level</span>
-                <span className={`text-lg font-mono font-bold ${isProtected ? 'text-amber-500' : 'text-cyan-500'}`}>
+                <span className={`text-lg font-mono font-bold ${energyInfo.color}`}>
                   {energy.toString().padStart(2, '0')}/10
                 </span>
               </div>
+              
+              <AnimatePresence>
+                {showEnergyFeedback && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`mb-4 px-4 py-2 rounded-xl ${energyInfo.bg} border ${energyInfo.color.replace('text', 'border')}/20`}
+                  >
+                    <p className={`text-xs font-bold ${energyInfo.color} uppercase tracking-wider`}>
+                      {energyInfo.text}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
               <div className="relative h-12 flex items-end">
                 <div className="absolute inset-x-0 top-0 flex justify-between px-1">
@@ -103,7 +155,7 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
               </div>
               <div className="flex justify-between mt-3 px-1 text-[8px] font-mono text-white/20 uppercase tracking-widest">
                 <span>Critical</span>
-                <span>Performance</span>
+                <span>Peak</span>
               </div>
             </div>
 
@@ -112,30 +164,44 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
               <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.2em] block mb-6">Sensory Sync</span>
               {sensoryItems.map((item) => {
                 const isCheckPassed = sensory[item.key as keyof typeof sensory]
+                const showFeedback = sensoryFeedback?.key === item.key
                 return (
-                  <button
-                    key={item.key}
-                    onClick={() => setSensory({ [item.key]: !isCheckPassed })}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                      isCheckPassed 
-                        ? 'bg-white/5 border-white/10 text-white' 
-                        : 'bg-black/20 border-white/5 text-white/30 hover:border-white/10'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${
-                        isCheckPassed ? 'bg-white/5 ' + item.color : 'bg-white/5'
-                      }`}>
-                        <item.icon className="w-5 h-5" />
+                  <div key={item.key} className="relative">
+                    {showFeedback && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className={`absolute -right-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          sensoryFeedback.enabled ? 'bg-cyan-500 text-black' : 'bg-white/10 text-white/50'
+                        }`}
+                      >
+                        {sensoryFeedback.enabled ? '✓ Active' : '○ Inactive'}
+                      </motion.div>
+                    )}
+                    <button
+                      onClick={() => handleSensoryToggle(item.key)}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                        isCheckPassed 
+                          ? 'bg-white/5 border-white/10 text-white' 
+                          : 'bg-black/20 border-white/5 text-white/30 hover:border-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${
+                          isCheckPassed ? 'bg-white/5 ' + item.color : 'bg-white/5'
+                        }`}>
+                          <item.icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold tracking-tight">{item.label}</span>
                       </div>
-                      <span className="text-xs font-bold tracking-tight">{item.label}</span>
-                    </div>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-                      isCheckPassed ? 'bg-cyan-500 text-black' : 'border border-white/10'
-                    }`}>
-                      {isCheckPassed && <CheckCircle2 className="w-4 h-4" />}
-                    </div>
-                  </button>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        isCheckPassed ? 'bg-cyan-500 text-black' : 'border border-white/10'
+                      }`}>
+                        {isCheckPassed && <CheckCircle2 className="w-4 h-4" />}
+                      </div>
+                    </button>
+                  </div>
                 )
               })}
             </div>

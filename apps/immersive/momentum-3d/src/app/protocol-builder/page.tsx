@@ -6,25 +6,32 @@ import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
-import SystemGate from '@/components/SystemGate'
 import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 import { useIgnitionStore } from '@/lib/ignition-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
-function ProtocolBuilderInner() {
+export default function ProtocolBuilderPage() {
   const router = useRouter()
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [hasLoaded, setHasLoaded] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
   
   // Ignition State
-  const { isActive: ignitionActive, targetNodeId: ignitionTargetId, start: startIgnition } = useIgnitionStore()
-  const [prevIgnitionActive, setPrevIgnitionActive] = useState(false)
-
+  const { isActive: isIgnitionActive, targetNodeId } = useIgnitionStore()
+  
+  // Handle Ignition Completion Handoff
+  useEffect(() => {
+    if (!isIgnitionActive && targetNodeId) {
+      // Ignition just completed, transition to the target node
+      setMode('flow')
+      setActiveNodeId(targetNodeId)
+    }
+  }, [isIgnitionActive, targetNodeId])
+  
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
@@ -62,42 +69,27 @@ function ProtocolBuilderInner() {
           console.error('Failed to load execution state', e)
         }
       }
-      setHasLoaded(true)
+      
+      // Mark as initialized after loading state
+      setIsInitialized(true)
     }
     init()
   }, [])
 
   // Auto-save graph to localStorage with syncing indicator
   useEffect(() => {
-    if (!hasLoaded) return // Prevent overwriting with initial state
+    if (!isInitialized) return // Prevent overwriting with initial state
     saveProtocol(graph)
     setIsSyncing(true)
     const timer = setTimeout(() => setIsSyncing(false), 800)
     return () => clearTimeout(timer)
-  }, [graph, hasLoaded])
+  }, [graph, isInitialized])
 
-  // Auto-save execution state
+  // Auto-save execution state (only after initialization to avoid overwriting with defaults)
   useEffect(() => {
-    if (!hasLoaded) return
+    if (!isInitialized) return
     localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
-  }, [mode, activeNodeId, hasLoaded])
-
-  // Ignition Handoff Logic
-  useEffect(() => {
-    if (!hasLoaded) return
-    if (prevIgnitionActive && !ignitionActive) {
-      // Ignition finished
-      if (ignitionTargetId) {
-        setMode('flow')
-        setActiveNodeId(ignitionTargetId)
-      } else {
-        // If no target connected, return to build mode to prevent loops
-        setMode('build')
-        setActiveNodeId(null)
-      }
-    }
-    setPrevIgnitionActive(ignitionActive)
-  }, [ignitionActive, prevIgnitionActive, ignitionTargetId, graph.nodes, hasLoaded])
+  }, [mode, activeNodeId, isInitialized])
 
   // Ignition Auto-Trigger: Only triggers when switching TO flow mode with an ignition node selected
   const [prevMode, setPrevMode] = useState<'build' | 'flow'>('build')
@@ -131,6 +123,10 @@ function ProtocolBuilderInner() {
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+  
+  // Check if current node is the last one (no outgoing edges and at end of graph)
+  const isLastNode = activeNode && outgoingEdges.length === 0 && 
+    graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
 
   // Handle Timer Initialization when node changes
   useEffect(() => {
@@ -168,6 +164,16 @@ function ProtocolBuilderInner() {
         setActiveNodeId(null)
         return
       }
+      
+      // Check if this is the last node in the graph
+      const isLastNode = graph.nodes.length === 1 || 
+        graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
+      
+      if (isLastNode) {
+        // Don't advance - stay on last node
+        return
+      }
+      
       // Fallback: cycle through nodes linearly if no outgoing connections
       const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
       const nextIndex = (currentIndex + 1) % graph.nodes.length
@@ -259,16 +265,19 @@ function ProtocolBuilderInner() {
         setMode={setMode} 
         isSyncing={isSyncing} 
         showModeSwitcher={true}
+        activeNodeId={activeNodeId}
       />
 
-      <ProtocolScene 
-        nodes={graph.nodes} 
-        edges={graph.edges} 
-        activeNode={activeNode} 
-        onSelectNode={setActiveNodeId}
-        updateNodes={updateNodes}
-        mode={mode}
-      />
+      <div className={mode === 'build' && activeNode?.type === 'tool' ? 'pointer-events-none' : ''}>
+        <ProtocolScene 
+          nodes={graph.nodes} 
+          edges={graph.edges} 
+          activeNode={activeNode} 
+          onSelectNode={setActiveNodeId}
+          updateNodes={updateNodes}
+          mode={mode}
+        />
+      </div>
       
       {/* HUD: Task Controls */}
       <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
@@ -277,16 +286,21 @@ function ProtocolBuilderInner() {
             {outgoingEdges.length <= 1 && (
               <button 
                 onClick={nextNode}
-                className="px-4 py-2 bg-white border border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
+                disabled={isLastNode === true}
+                className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
+                  isLastNode
+                    ? 'bg-white/10 border border-white/10 text-white/30 cursor-not-allowed opacity-50'
+                    : 'bg-white border-white text-black hover:bg-transparent hover:text-white'
+                }`}
               >
-                Next Step →
+                {isLastNode ? '✓ Protocol Complete' : 'Next Step →'}
               </button>
             )}
             <button 
               onClick={() => setMode('build')}
               className="px-4 py-2 bg-black/40 border border-white/10 text-white/50 text-xs font-mono uppercase tracking-widest hover:bg-white/10 transition-colors"
             >
-              Abort Flow
+              Stop Flow
             </button>
           </div>
         )}
@@ -314,7 +328,7 @@ function ProtocolBuilderInner() {
         )}
 
         {/* Node Information Panel */}
-        {activeNode && (
+        {activeNode && mode === 'flow' && (
           <div className="p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
             <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-[0.2em] mb-1">
               {activeNode.type} Node
@@ -395,15 +409,8 @@ function ProtocolBuilderInner() {
         <SystemFooter />
       </div>
 
+      {/* Ignition Overlay */}
       <IgnitionOverlay />
     </main>
-  )
-}
-
-export default function ProtocolBuilderPage() {
-  return (
-    <SystemGate toolName="Protocol Builder">
-      <ProtocolBuilderInner />
-    </SystemGate>
   )
 }

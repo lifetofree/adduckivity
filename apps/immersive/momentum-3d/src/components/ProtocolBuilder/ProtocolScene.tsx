@@ -179,6 +179,16 @@ export default function ProtocolScene({
           updateNodes={updateNodes}
           mode={mode}
         />
+        {/* Background click plane for deselecting in build mode */}
+        {mode === 'build' && (
+          <mesh onClick={(e) => {
+            e.stopPropagation()
+            if (activeNode) onSelectNode('')
+          }}>
+            <planeGeometry args={[100, 100]} />
+            <meshBasicMaterial transparent opacity={0} />
+          </mesh>
+        )}
       </Canvas>
     </div>
   )

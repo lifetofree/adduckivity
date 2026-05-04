@@ -13,6 +13,7 @@ interface SystemBarProps {
   setMode?: (mode: 'build' | 'flow') => void
   isSyncing?: boolean
   showModeSwitcher?: boolean
+  activeNodeId?: string | null
 }
 
 export default function SystemBar({ 
@@ -20,7 +21,8 @@ export default function SystemBar({
   mode, 
   setMode, 
   isSyncing = false,
-  showModeSwitcher = false 
+  showModeSwitcher = false,
+  activeNodeId = null
 }: SystemBarProps) {
   const { energy, isLocked, isProtected } = useSystem()
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false)
@@ -56,11 +58,23 @@ export default function SystemBar({
               Architect
             </button>
             <button
-              onClick={() => setMode('flow')}
+              onClick={() => {
+                if (!activeNodeId) {
+                  alert('Please select a node first before entering Pilot mode')
+                  return
+                }
+                if (isLocked) {
+                  alert('System is locked. Complete your biological requirements (water, light, noise) first.')
+                  return
+                }
+                setMode('flow')
+              }}
               className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
                 mode === 'flow' 
                   ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' 
-                  : 'text-white/40 hover:text-white/70'
+                  : isLocked
+                    ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'text-white/40 hover:text-white/70'
               }`}
             >
               Pilot
