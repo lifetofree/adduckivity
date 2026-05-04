@@ -250,7 +250,7 @@ export default function ProtocolBuilderPage() {
               onClick={() => setMode('build')}
               className="px-4 py-2 bg-black/40 border border-white/10 text-white/50 text-xs font-mono uppercase tracking-widest hover:bg-white/10 transition-colors"
             >
-              Abort Flow
+              Stop Flow
             </button>
           </div>
         )}

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react';
 import { useIgnitionStore } from '../../lib/ignition-store';
+import { ignitionAudio } from '../../lib/ignition-audio';
 
 const SPARK_ACTIONS = [
   "JUMPING JACKS",
@@ -23,10 +24,16 @@ const SPARK_ACTIONS = [
 export const IgnitionOverlay = () => {
   const { currentPhase, durationRemaining, isActive, stop, tick } = useIgnitionStore();
   const [currentAction, setCurrentAction] = useState<string>("");
+  const [audioEnabled, setAudioEnabled] = useState(true);
 
   const getRandomAction = useCallback(() => {
     return SPARK_ACTIONS[Math.floor(Math.random() * SPARK_ACTIONS.length)];
   }, []);
+
+  const toggleAudio = () => {
+    const newState = ignitionAudio.toggle();
+    setAudioEnabled(newState);
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -50,6 +57,18 @@ export const IgnitionOverlay = () => {
     }
   }, [isActive, currentPhase, getRandomAction]);
 
+  useEffect(() => {
+    if (isActive && currentPhase !== 'idle') {
+      ignitionAudio.playPhase(currentPhase);
+    } else {
+      ignitionAudio.stop();
+    }
+
+    return () => {
+      ignitionAudio.stop();
+    };
+  }, [isActive, currentPhase]);
+
   if (!isActive) return null;
 
   const prompts = {
@@ -70,6 +89,14 @@ export const IgnitionOverlay = () => {
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 font-mono overflow-hidden">
       {/* Background Pulse Effect */}
       <div className={`absolute inset-0 opacity-10 animate-pulse bg-current ${phaseColors[currentPhase]}`} />
+      
+      {/* Audio Toggle */}
+      <button 
+        onClick={toggleAudio}
+        className="absolute top-6 right-6 z-20 text-white/50 hover:text-white transition-colors"
+      >
+        {audioEnabled ? '🔊' : '🔇'}
+      </button>
       
       <div className="relative z-10 flex flex-col items-center text-center px-4">
         <div className={`text-[120px] font-black tracking-tighter mb-4 leading-none ${phaseColors[currentPhase]}`}>
@@ -100,7 +127,7 @@ export const IgnitionOverlay = () => {
       <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full">
         <div 
           className={`h-full transition-all duration-1000 ${phaseColors[currentPhase].split(' ')[0].replace('text', 'bg')}`}
-          style={{ width: `${(durationRemaining / 60) * 100}%` }}
+          style={{ width: `${(durationRemaining / 600) * 100}%` }}
         />
       </div>
     </div>

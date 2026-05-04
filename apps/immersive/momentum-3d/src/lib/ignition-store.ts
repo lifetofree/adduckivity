@@ -59,9 +59,9 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
 
     let nextPhase = currentPhase;
     // Phase logic for 600s:
-    // 480-600s: Spark - Physical Activation (120s)
-    // 300-480s: Target - Mental Alignment (180s)
-    // 0-300s: Launch - Deep Work Ignition (300s)
+    // 480-600s: Spark (120s) - Physical Activation
+    // 300-480s: Target (180s) - Mental Alignment  
+    // 0-300s: Launch (300s) - Deep Work Ignition
     
     if (nextRemaining > 480) nextPhase = 'spark';
     else if (nextRemaining > 300) nextPhase = 'target';

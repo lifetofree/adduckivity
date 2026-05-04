@@ -63,12 +63,18 @@ export default function SystemBar({
                   alert('Please select a node first before entering Pilot mode')
                   return
                 }
+                if (isLocked) {
+                  alert('System is locked. Complete your biological requirements (water, light, noise) first.')
+                  return
+                }
                 setMode('flow')
               }}
               className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
                 mode === 'flow' 
                   ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' 
-                  : 'text-white/40 hover:text-white/70'
+                  : isLocked
+                    ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'text-white/40 hover:text-white/70'
               }`}
             >
               Pilot
