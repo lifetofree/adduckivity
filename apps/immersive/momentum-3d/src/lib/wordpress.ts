@@ -9,6 +9,10 @@ export interface WordPressPost {
   title: {
     rendered: string
   }
+  content: {
+    rendered: string
+    raw?: string
+  }
   excerpt: {
     rendered: string
     protected: boolean
@@ -18,6 +22,11 @@ export interface WordPressPost {
   categories: number[]
   tags: number[]
   featured_media: number
+  // Yoast SEO fields
+  yoast_head_json?: {
+    title?: string
+    description?: string
+  }
   _embedded?: {
     'wp:featuredmedia'?: Array<{
       source_url: string
@@ -53,14 +62,17 @@ export async function getWordPressPosts(options: {
   page?: number
   categories?: number[]
   tags?: number[]
+  lang?: string
 }): Promise<WordPressPost[]> {
   const params = new URLSearchParams()
   params.append('_embed', 'wp:featuredmedia,wp:term')
+  params.append('content', 'true')
   params.append('per_page', String(options.perPage || 20))
   params.append('page', String(options.page || 1))
   params.append('status', 'publish')
   params.append('orderby', 'date')
   params.append('order', 'desc')
+  if (options.lang) params.append('lang', options.lang)
 
   if (options.categories?.length) {
     options.categories.forEach(cat => params.append('categories[]', String(cat)))
@@ -78,6 +90,74 @@ export async function getWordPressPosts(options: {
   }
 
   return response.json()
+}
+
+/**
+ * Decode HTML entities in a string
+ */
+function decodeHtmlEntities(str: string | null): string | null {
+  if (!str) return null
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .trim()
+}
+
+/**
+ * Fetch SEO title and description from a WordPress post's HTML page
+ * Falls back to WP title/excerpt if meta tags not found
+ */
+export async function getPostSeoFromHtml(link: string): Promise<{ seoTitle: string | null; seoDesc: string | null }> {
+  try {
+    const response = await fetch(link, {
+      next: { revalidate: 300 }
+    })
+    if (!response.ok) return { seoTitle: null, seoDesc: null }
+
+    const html = await response.text()
+
+    // Extract og:title
+    const titleMatch = html.match(/<meta[^>]*og:title[^>]*>/i)
+    const rawTitle = titleMatch 
+      ? titleMatch[0].match(/content=["]([^"]+)["]/)?.[1] || null
+      : null
+
+    // Extract og:description
+    const descMatch = html.match(/<meta[^>]*og:description[^>]*>/i)
+    const rawDesc = descMatch 
+      ? descMatch[0].match(/content=["]([^"]+)["]/)?.[1] || null
+      : null
+
+    return { 
+      seoTitle: decodeHtmlEntities(rawTitle), 
+      seoDesc: decodeHtmlEntities(rawDesc) 
+    }
+  } catch {
+    return { seoTitle: null, seoDesc: null }
+  }
+}
+export async function getWordPressPostBySlug(slug: string): Promise<WordPressPost | null> {
+  const params = new URLSearchParams()
+  params.append('_embed', 'wp:featuredmedia,wp:term')
+  params.append('content', 'true')
+  params.append('slug', slug)
+  params.append('status', 'publish')
+
+  const response = await fetch(`${WP_API_BASE}/posts?${params.toString()}`, {
+    next: { revalidate: 300 }
+  })
+
+  if (!response.ok) {
+    throw new Error(`WordPress API error: ${response.status}`)
+  }
+
+  const posts = await response.json() as WordPressPost[]
+  return posts.length > 0 ? posts[0] : null
 }
 
 /**
@@ -163,9 +243,42 @@ export function calculateReadingTime(content: string): string {
 }
 
 /**
+ * Get reading time from WordPress post content (most accurate)
+ */
+export function getReadingTimeFromPost(post: WordPressPost): string {
+  // Use actual post content if available (more accurate)
+  const content = stripHtml(post.content?.rendered || '')
+  return calculateReadingTime(content)
+}
+
+/**
+ * Detect if text contains Thai characters
+ */
+export function containsThaiText(text: string): boolean {
+  return /[\u0E00-\u0E7F]/.test(text)
+}
+
+/**
+ * Filter out posts with Thai content
+ */
+export function isEnglishPost(post: WordPressPost): boolean {
+  const title = post.title.rendered
+  const excerpt = post.excerpt.rendered
+
+  // Check if title or excerpt contains Thai characters
+  if (containsThaiText(title) || containsThaiText(excerpt)) {
+    return false
+  }
+
+  return true
+}
+
+/**
  * Convert WordPress post to a format compatible with the blog page
  */
 export function formatWordPressPost(post: WordPressPost) {
+  const seoTitle = post.yoast_head_json?.title?.trim()
+  const seoDescription = post.yoast_head_json?.description?.trim()
   const plainExcerpt = stripHtml(post.excerpt.rendered)
   const featuredImage = getFeaturedImageUrl(post)
   const category = getCategoryName(post)
@@ -173,14 +286,16 @@ export function formatWordPressPost(post: WordPressPost) {
 
   return {
     slug: post.slug,
-    title: post.title.rendered,
-    excerpt: plainExcerpt,
+    title: seoTitle || post.title.rendered,
+    excerpt: seoDescription || plainExcerpt,
+    seoTitle: seoTitle || null,
+    seoDesc: seoDescription || null,
     date: new Date(post.date).toISOString().split('T')[0],
     featuredImage,
     imageAlt: getFeaturedImageAlt(post),
     category: category.toLowerCase(),
     tags,
-    readingTime: calculateReadingTime(plainExcerpt),
+    readingTime: getReadingTimeFromPost(post),
     link: post.link
   }
 }

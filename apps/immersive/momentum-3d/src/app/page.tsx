@@ -500,7 +500,6 @@ export default function Home() {
               {[
                 { label: 'Blog', href: '/blog', internal: true },
                 { label: '3D Experience', href: '/momentum', internal: true },
-                { label: 'Archive', href: 'https://wp.adduckivity.com', internal: false },
                 { label: 'Tools', href: 'https://duckshort.cc', internal: false },
               ].map(l => l.internal
                 ? <Link key={l.label} href={l.href} className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</Link>

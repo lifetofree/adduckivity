@@ -4,12 +4,37 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ET } from '@/lib/theme'
-import { getWordPressPosts, formatWordPressPost } from '@/lib/wordpress'
+import { getWordPressPosts, getWordPressPostBySlug, formatWordPressPost, getPostSeoFromHtml } from '@/lib/wordpress'
+
+const PINNED_SLUG = 'duck-os-philosophy-system-over-emotion'
 
 export default async function BlogPage() {
-  // Fetch posts from WordPress
-  const wpPosts = await getWordPressPosts({ perPage: 20 })
-  const posts = wpPosts.map(formatWordPressPost)
+  const [pinnedWpPost, wpPosts] = await Promise.all([
+    getWordPressPostBySlug(PINNED_SLUG),
+    getWordPressPosts({ perPage: 9 })
+  ])
+  
+  const pinnedPost = pinnedWpPost ? formatWordPressPost(pinnedWpPost) : null
+  // Override SEO title and description for pinned post (WordPress REST API doesn't return yoast_head_json)
+  if (pinnedPost && pinnedPost.slug === PINNED_SLUG) {
+    pinnedPost.seoTitle = 'Transform Your Life with Duck OS: From Overwhelm to Structure'
+    pinnedPost.seoDesc = 'The difference between a life spent reacting to chaos and one designed with intention is not about discipline. It is about building systems that run when you are not running.'
+  }
+  
+  // Fetch SEO data from HTML for all posts (to get Yoast meta tags)
+  const postsWithSeo = await Promise.all(
+    wpPosts
+      .filter(p => p.slug !== PINNED_SLUG)
+      .map(async (p) => {
+        const formatted = formatWordPressPost(p)
+        const { seoTitle, seoDesc } = await getPostSeoFromHtml(p.link)
+        formatted.seoTitle = seoTitle || formatted.title
+        formatted.seoDesc = seoDesc || formatted.excerpt
+        return formatted
+      })
+  )
+  
+  const posts = pinnedPost ? [pinnedPost, ...postsWithSeo] : postsWithSeo
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
@@ -34,9 +59,6 @@ export default async function BlogPage() {
           <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
             3D Experience
           </Link>
-          <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
-            Archive
-          </a>
           <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>
             Tools
           </a>
@@ -48,7 +70,7 @@ export default async function BlogPage() {
         {/* ── Page header ── */}
         <div className="py-16 md:py-20 border-b" style={{ borderColor: ET.border }}>
           <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: ET.sub }}>
-            Duck OS · Archive
+            Duck OS
           </p>
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
@@ -56,7 +78,7 @@ export default async function BlogPage() {
                 All <span style={{ color: ET.accent }}>Posts</span>
               </h1>
               <p className="text-sm" style={{ color: ET.sub }}>
-                {posts.length} {posts.length === 1 ? 'article' : 'articles'} from the WordPress archive · systems, protocols, and ideas for neurodivergent creators
+                systems, protocols, and ideas for neurodivergent creators
               </p>
             </div>
             {posts.length > 0 && (
@@ -137,7 +159,7 @@ export default async function BlogPage() {
                         className="font-semibold text-base leading-snug line-clamp-2"
                         style={{ color: ET.ink }}
                       >
-                        {post.title}
+                        {post.seoTitle || post.title}
                       </h2>
                       <span
                         className="shrink-0 text-lg mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-1"
@@ -148,9 +170,9 @@ export default async function BlogPage() {
                       </span>
                     </div>
 
-                    {post.excerpt && (
+                    {post.seoDesc && (
                       <p className="text-xs leading-relaxed line-clamp-2 mb-3" style={{ color: ET.sub }}>
-                        {post.excerpt}
+                        {post.seoDesc}
                       </p>
                     )}
 
@@ -158,7 +180,7 @@ export default async function BlogPage() {
                       <div className="flex flex-wrap gap-1 mb-4">
                         {post.tags.slice(0, 3).map(t => (
                           <span key={t} className="px-2 py-0.5 rounded-full text-[10px] border" style={{ borderColor: ET.border, color: ET.sub }}>
-                            #{t}
+                            #{t.replace(/^#+/, '')}
                           </span>
                         ))}
                         {post.tags.length > 3 && (
@@ -181,6 +203,22 @@ export default async function BlogPage() {
             ))}
           </div>
         )}
+
+        {/* ── View More ── */}
+        {posts.length > 0 && (
+          <div className="flex justify-center pb-16">
+            <a
+              href="https://wp.adduckivity.com/post/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border text-sm font-medium transition-all duration-200 hover:opacity-80 hover:-translate-y-0.5"
+              style={{ borderColor: ET.accent, color: ET.accent, backgroundColor: 'rgba(0,229,255,0.06)' }}
+            >
+              Read more
+              <span aria-hidden>→</span>
+            </a>
+          </div>
+        )}
       </main>
 
       {/* ── Footer ── */}
@@ -191,7 +229,6 @@ export default async function BlogPage() {
             <span className="font-semibold text-sm" style={{ color: ET.ink }}>Adduckivity</span>
           </div>
           <div className="flex items-center gap-7 text-xs" style={{ color: ET.sub }}>
-            <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Archive</a>
             <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Tools</a>
             <a href="https://github.com/lifetofree/adduckivity" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">GitHub</a>
           </div>

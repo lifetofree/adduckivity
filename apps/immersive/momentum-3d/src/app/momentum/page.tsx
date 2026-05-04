@@ -75,7 +75,6 @@ export default function MomentumPage() {
         <div className="hidden md:flex items-center gap-7">
           <Link href="/blog" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Blog</Link>
           <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>3D Experience</Link>
-          <a href="https://wp.adduckivity.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Archive</a>
           <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Tools</a>
         </div>
       </nav>
@@ -332,7 +331,6 @@ export default function MomentumPage() {
                 {[
                   { label: 'Home', href: '/', internal: true },
                   { label: 'Blog', href: '/blog', internal: true },
-                  { label: 'Archive', href: 'https://wp.adduckivity.com', internal: false },
                 ].map(l => l.internal
                   ? <Link key={l.label} href={l.href} className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</Link>
                   : <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</a>
