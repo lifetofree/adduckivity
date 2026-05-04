@@ -61,7 +61,7 @@ export const IgnitionOverlay = () => {
       <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full">
         <div 
           className={`h-full transition-all duration-1000 ${phaseColors[currentPhase].split(' ')[0].replace('text', 'bg')}`}
-          style={{ width: `${(durationRemaining / 60) * 100}%` }} // Adjusted to 60s for testing
+          style={{ width: `${(durationRemaining / 60) * 100}%` }}
         />
       </div>
     </div>

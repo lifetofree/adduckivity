@@ -6,7 +6,9 @@ import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
+import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
+import { useIgnitionStore } from '@/lib/ignition-store'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
@@ -16,6 +18,19 @@ export default function ProtocolBuilderPage() {
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+  
+  // Ignition State
+  const { isActive: isIgnitionActive, targetNodeId } = useIgnitionStore()
+  
+  // Handle Ignition Completion Handoff
+  useEffect(() => {
+    if (!isIgnitionActive && targetNodeId) {
+      // Ignition just completed, transition to the target node
+      setMode('flow')
+      setActiveNodeId(targetNodeId)
+    }
+  }, [isIgnitionActive, targetNodeId])
   
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
@@ -52,6 +67,9 @@ export default function ProtocolBuilderPage() {
           console.error('Failed to load execution state', e)
         }
       }
+      
+      // Mark as initialized after loading state
+      setIsInitialized(true)
     }
     init()
   }, [])
@@ -64,9 +82,12 @@ export default function ProtocolBuilderPage() {
     return () => clearTimeout(timer)
   }, [graph])
 
-  // Auto-save execution state
+  // Auto-save execution state (only after initialization to avoid overwriting with defaults)
   useEffect(() => {
-    localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
+    if (isInitialized) {
+      localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, activeNodeId])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
@@ -181,16 +202,19 @@ export default function ProtocolBuilderPage() {
         setMode={setMode} 
         isSyncing={isSyncing} 
         showModeSwitcher={true}
+        activeNodeId={activeNodeId}
       />
 
-      <ProtocolScene 
-        nodes={graph.nodes} 
-        edges={graph.edges} 
-        activeNode={activeNode} 
-        onSelectNode={setActiveNodeId}
-        updateNodes={updateNodes}
-        mode={mode}
-      />
+      <div className={mode === 'build' && activeNode?.type === 'tool' ? 'pointer-events-none' : ''}>
+        <ProtocolScene 
+          nodes={graph.nodes} 
+          edges={graph.edges} 
+          activeNode={activeNode} 
+          onSelectNode={setActiveNodeId}
+          updateNodes={updateNodes}
+          mode={mode}
+        />
+      </div>
       
       {/* HUD: Task Controls */}
       <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
@@ -236,7 +260,7 @@ export default function ProtocolBuilderPage() {
         )}
 
         {/* Node Information Panel */}
-        {activeNode && (
+        {activeNode && mode === 'flow' && (
           <div className="p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
             <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-[0.2em] mb-1">
               {activeNode.type} Node
@@ -316,6 +340,9 @@ export default function ProtocolBuilderPage() {
       <div className={`mt-auto transition-opacity duration-700 ${mode === 'flow' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <SystemFooter />
       </div>
+
+      {/* Ignition Overlay */}
+      <IgnitionOverlay />
     </main>
   )
 }

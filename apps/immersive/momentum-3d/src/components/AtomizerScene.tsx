@@ -7,6 +7,7 @@ import { ET } from '@/lib/theme';
 
 function TaskOrb({ shatter = false }) {
   const particlesRef = useRef<THREE.Points>(null!);
+  const timeRef = useRef(0);
 
   const count = 3000;
   const points = useMemo(() => {
@@ -22,9 +23,10 @@ function TaskOrb({ shatter = false }) {
     return p;
   }, [count]);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  useFrame((_, delta) => {
     if (!particlesRef.current) return;
+    
+    timeRef.current += delta;
 
     if (shatter) {
       particlesRef.current.scale.multiplyScalar(1.02);
@@ -32,6 +34,7 @@ function TaskOrb({ shatter = false }) {
         particlesRef.current.material.opacity = Math.min(0.5, particlesRef.current.material.opacity + 0.03);
       }
     } else {
+      const t = timeRef.current;
       const pulse = 1 + Math.sin(t * 1.2) * 0.04;
       particlesRef.current.rotation.y = t * 0.08;
       particlesRef.current.rotation.x = t * 0.03;

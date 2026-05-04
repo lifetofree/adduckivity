@@ -1,9 +1,10 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock, Zap } from 'lucide-react'
+import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock, Zap, Flame } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
 import { useState } from 'react'
+import { useIgnitionStore } from '@/lib/ignition-store'
 
 interface ArchitectSidebarProps {
   nodes: ProtocolNode[];
@@ -30,6 +31,7 @@ export default function ArchitectSidebar({
 }: ArchitectSidebarProps) {
   const activeNode = nodes.find(n => n.id === activeNodeId)
   const [targetNodeId, setTargetNodeId] = useState<string>('')
+  const { start: startIgnition } = useIgnitionStore()
 
   return (
     <motion.div
@@ -47,6 +49,20 @@ export default function ArchitectSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
+        {/* Quick Ignition */}
+        <section className="p-4 bg-gradient-to-br from-rose-500/10 to-orange-500/10 border border-rose-500/20 rounded-lg">
+          <button 
+            onClick={() => startIgnition(activeNodeId)}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white text-xs font-bold uppercase tracking-[0.2em] hover:from-rose-400 hover:to-orange-400 transition-all transform hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(244,63,94,0.3)]"
+          >
+            <Flame className="w-5 h-5" />
+            Ignite Momentum
+          </button>
+          <p className="text-[9px] text-white/40 text-center mt-2 font-mono uppercase tracking-wider">
+            600s Quick Launch Protocol
+          </p>
+        </section>
+
         {/* Node List */}
         <section>
           <div className="flex items-center justify-between mb-4">

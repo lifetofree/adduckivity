@@ -16,7 +16,7 @@ describe('IgnitionStore', () => {
     expect(useIgnitionStore.getState().currentPhase).toBe('spark');
     expect(useIgnitionStore.getState().durationRemaining).toBe(600);
     
-    // Fast forward through spark (120s)
+    // Fast forward through spark (first 120s)
     for(let i = 0; i < 120; i++) {
       useIgnitionStore.getState().tick();
     }
@@ -24,7 +24,7 @@ describe('IgnitionStore', () => {
     expect(useIgnitionStore.getState().durationRemaining).toBe(480);
     expect(useIgnitionStore.getState().currentPhase).toBe('target');
 
-    // Fast forward through target (180s)
+    // Fast forward through target (next 180s)
     for(let i = 0; i < 180; i++) {
       useIgnitionStore.getState().tick();
     }
@@ -32,7 +32,7 @@ describe('IgnitionStore', () => {
     expect(useIgnitionStore.getState().durationRemaining).toBe(300);
     expect(useIgnitionStore.getState().currentPhase).toBe('launch');
 
-    // Fast forward to end
+    // Fast forward to end (final 300s)
     for(let i = 0; i < 300; i++) {
       useIgnitionStore.getState().tick();
     }
