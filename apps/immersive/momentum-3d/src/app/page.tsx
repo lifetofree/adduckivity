@@ -44,7 +44,7 @@ const pinnedFeatures = [
     title: 'Ignite Momentum',
     description: '600-second power-up sequence to break inertia and launch into flow state.',
     image: '/uploads/ignition-cover.svg',
-    href: '/protocol-builder',
+    href: '/ignition',
     badge: 'Quick Launch',
     accentColor: '#f43f5e',
     accentBg: 'rgba(244,63,94,0.15)',
@@ -527,7 +527,7 @@ export default function Home() {
                 { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444' },
                 { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent },
                 { label: 'The Atomizer', href: '/atomizer', accent: ET.accent },
-                { label: 'Ignite Momentum', href: '/protocol-builder', accent: '#f43f5e' },
+                { label: 'Ignite Momentum', href: '/ignition', accent: '#f43f5e' },
               ].map(t => (
                 <Link
                   key={t.label}
