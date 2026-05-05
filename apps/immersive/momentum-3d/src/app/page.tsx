@@ -24,7 +24,7 @@ const pinnedFeatures = [
     description: 'Architect your momentum constellation. Map tasks in 3D space to bypass emotional resistance.',
     image: '/uploads/protocol-builder-cover.svg',
     href: '/protocol-builder',
-    guideHref: null as string | null,
+    guideHref: '/protocol-builder/guide' as string | null,
     badge: 'System Architect',
     accentColor: ET.accent,
     accentBg: 'rgba(0,229,255,0.15)',
@@ -36,7 +36,7 @@ const pinnedFeatures = [
     description: 'Break intimidating projects into 2-minute atomic steps with AI.',
     image: '/uploads/atomizer-cover.svg',
     href: '/atomizer',
-    guideHref: null as string | null,
+    guideHref: '/atomizer/guide' as string | null,
     badge: 'Executive Tool',
     accentColor: ET.accent,
     accentBg: 'rgba(0,229,255,0.15)',
@@ -542,8 +542,8 @@ export default function Home() {
             <nav className="flex flex-col gap-3">
               {[
                 { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444', guide: '/momentum/guide' as string | null },
-                { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent, guide: null as string | null },
-                { label: 'The Atomizer', href: '/atomizer', accent: ET.accent, guide: null as string | null },
+                { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent, guide: '/protocol-builder/guide' as string | null },
+                { label: 'The Atomizer', href: '/atomizer', accent: ET.accent, guide: '/atomizer/guide' as string | null },
                 { label: 'Ignite Momentum', href: '/ignition', accent: '#f43f5e', guide: '/ignition/guide' as string | null },
               ].map(t => (
                 <div key={t.label} className="flex flex-col gap-1">
