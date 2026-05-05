@@ -4,37 +4,21 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ET } from '@/lib/theme'
-import { getWordPressPosts, getWordPressPostBySlug, formatWordPressPost, getPostSeoFromHtml } from '@/lib/wordpress'
-
-const PINNED_SLUG = 'duck-os-philosophy-system-over-emotion'
+import { getWordPressPosts, formatWordPressPost, getPostSeoFromHtml } from '@/lib/wordpress'
 
 export default async function BlogPage() {
-  const [pinnedWpPost, wpPosts] = await Promise.all([
-    getWordPressPostBySlug(PINNED_SLUG),
-    getWordPressPosts({ perPage: 9 })
-  ])
-  
-  const pinnedPost = pinnedWpPost ? formatWordPressPost(pinnedWpPost) : null
-  // Override SEO title and description for pinned post (WordPress REST API doesn't return yoast_head_json)
-  if (pinnedPost && pinnedPost.slug === PINNED_SLUG) {
-    pinnedPost.seoTitle = 'Transform Your Life with Duck OS: From Overwhelm to Structure'
-    pinnedPost.seoDesc = 'The difference between a life spent reacting to chaos and one designed with intention is not about discipline. It is about building systems that run when you are not running.'
-  }
+  const wpPosts = await getWordPressPosts({ perPage: 9 })
   
   // Fetch SEO data from HTML for all posts (to get Yoast meta tags)
-  const postsWithSeo = await Promise.all(
-    wpPosts
-      .filter(p => p.slug !== PINNED_SLUG)
-      .map(async (p) => {
-        const formatted = formatWordPressPost(p)
-        const { seoTitle, seoDesc } = await getPostSeoFromHtml(p.link)
-        formatted.seoTitle = seoTitle || formatted.title
-        formatted.seoDesc = seoDesc || formatted.excerpt
-        return formatted
-      })
+  const posts = await Promise.all(
+    wpPosts.map(async (p) => {
+      const formatted = formatWordPressPost(p)
+      const { seoTitle, seoDesc } = await getPostSeoFromHtml(p.link)
+      formatted.seoTitle = seoTitle || formatted.title
+      formatted.seoDesc = seoDesc || formatted.excerpt
+      return formatted
+    })
   )
-  
-  const posts = pinnedPost ? [pinnedPost, ...postsWithSeo] : postsWithSeo
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ET.bg, color: ET.ink }}>
@@ -81,14 +65,6 @@ export default async function BlogPage() {
                 systems, protocols, and ideas for neurodivergent creators
               </p>
             </div>
-            {posts.length > 0 && (
-              <span
-                className="shrink-0 text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full border"
-                style={{ borderColor: ET.border, color: ET.sub, backgroundColor: ET.surface }}
-              >
-                {posts.length} Posts
-              </span>
-            )}
           </div>
         </div>
 
