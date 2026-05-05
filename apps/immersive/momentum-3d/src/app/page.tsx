@@ -12,7 +12,7 @@ const pinnedFeatures = [
     description: 'A 5-step fail-safe for when burnout spirals begin. Run the reset protocol in under 10 minutes.',
     image: '/uploads/emergency-recovery-cover.svg',
     href: '/momentum',
-    guideHref: null as string | null,
+    guideHref: '/momentum/guide' as string | null,
     badge: 'Fail-Safe',
     accentColor: '#ff4444',
     accentBg: 'rgba(255,68,68,0.15)',
@@ -541,7 +541,7 @@ export default function Home() {
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-5" style={{ color: ET.sub }}>OS Tools</p>
             <nav className="flex flex-col gap-3">
               {[
-                { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444', guide: null as string | null },
+                { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444', guide: '/momentum/guide' as string | null },
                 { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent, guide: null as string | null },
                 { label: 'The Atomizer', href: '/atomizer', accent: ET.accent, guide: null as string | null },
                 { label: 'Ignite Momentum', href: '/ignition', accent: '#f43f5e', guide: '/ignition/guide' as string | null },
