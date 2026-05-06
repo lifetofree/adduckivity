@@ -48,6 +48,7 @@ export default function ProtocolBuilderPage() {
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+  const isActuallyLast = activeNodeId !== null && outgoingEdges.length === 0
 
   const nextNode = useCallback(() => {
     if (graph.nodes.length === 0 || !activeNodeId) return
@@ -286,11 +287,15 @@ export default function ProtocolBuilderPage() {
       <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
         {mode === 'flow' && activeNodeId && (
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={nextNode}
-              className="px-4 py-2 bg-white border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
+              className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
+                isActuallyLast
+                  ? 'bg-emerald-500/20 border border-emerald-500/60 text-emerald-400 hover:bg-emerald-500/30'
+                  : 'bg-white border-white text-black hover:bg-transparent hover:text-white'
+              }`}
             >
-              Next Step →
+              {isActuallyLast ? 'Protocol Complete ✓' : 'Next Step →'}
             </button>
             <button 
               onClick={stopFlow}

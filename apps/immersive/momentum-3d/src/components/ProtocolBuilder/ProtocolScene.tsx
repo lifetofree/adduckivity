@@ -61,7 +61,7 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
 
   return (
     <group position={node.position}>
-      {/* Circle node — full Html so clicks work anywhere inside the circle */}
+      {/* Circle node */}
       {!hideLabel && (
         <Html center distanceFactor={8} zIndexRange={isActive ? [30, 0] : [20, 0]}>
           <div
@@ -69,14 +69,14 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
             onMouseEnter={() => { document.body.style.cursor = 'pointer' }}
             onMouseLeave={() => { document.body.style.cursor = 'auto' }}
             style={{
-              width: isActive ? 70 : 58,
-              height: isActive ? 70 : 58,
+              width: isActive ? 76 : 64,
+              height: isActive ? 76 : 64,
               borderRadius: '50%',
               border: `2px solid ${color}`,
-              backgroundColor: isActive ? `${color}18` : 'rgba(10,15,30,0.9)',
+              backgroundColor: isActive ? `${color}20` : 'rgba(10,15,30,0.92)',
               boxShadow: isActive
-                ? `0 0 20px ${color}55, 0 0 40px ${color}25, inset 0 0 12px ${color}15`
-                : `0 0 8px ${color}35`,
+                ? `0 0 22px ${color}60, 0 0 44px ${color}28, inset 0 0 14px ${color}18`
+                : `0 0 10px ${color}40`,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -87,13 +87,14 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
               userSelect: 'none',
             }}
           >
+            {/* Type badge */}
             <span style={{
               fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: 700,
-              letterSpacing: '0.14em',
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: isActive ? color : `${color}cc`,
+              color: isActive ? color : `${color}dd`,
               lineHeight: 1,
             }}>
               {abbrev}
@@ -101,30 +102,32 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
             {node.type === 'timer' && node.data?.duration && (
               <span style={{
                 fontFamily: 'ui-monospace, monospace',
-                fontSize: 7,
-                color: `${color}80`,
-                marginTop: 2,
+                fontSize: 9,
+                color: `${color}99`,
+                marginTop: 3,
+                lineHeight: 1,
               }}>
-                {node.data.duration}M
+                {node.data.duration}m
               </span>
             )}
           </div>
         </Html>
       )}
 
-      {/* Node name below the circle */}
+      {/* Node name below */}
       {!hideLabel && (
-        <Html position={[0, -1.0, 0]} center distanceFactor={8} zIndexRange={[10, 0]}>
+        <Html position={[0, -1.1, 0]} center distanceFactor={8} zIndexRange={[10, 0]}>
           <p style={{
             fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-            fontSize: 8,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: isActive ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)',
+            fontSize: 10,
+            letterSpacing: '0.04em',
+            color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
             userSelect: 'none',
             margin: 0,
+            textShadow: isActive ? `0 0 8px ${color}88` : '0 1px 3px rgba(0,0,0,0.8)',
+            fontWeight: isActive ? 600 : 400,
           }}>
             {node.label}
           </p>
