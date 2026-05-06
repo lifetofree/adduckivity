@@ -19,14 +19,13 @@ export default function ProtocolBuilderPage() {
   const [isSyncing, setIsSyncing] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const timerProcessedRef = useRef<string | null>(null)
-  
+
   // Ignition State
   const { isActive: isIgnitionActive, targetNodeId, start: startIgnition, stop: stopIgnitionState } = useIgnitionStore()
-  
+
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [isProtocolComplete, setIsProtocolComplete] = useState(false)
 
   // -- Helpers & Callbacks --
 
@@ -43,20 +42,15 @@ export default function ProtocolBuilderPage() {
   const stopFlow = useCallback(() => {
     setMode('build')
     setActiveNodeId(null) // Reset active node when stopping flow
-    setIsProtocolComplete(false) // Reset completion state
     stopIgnitionState() // Also ensure ignition state is cleared
     timerProcessedRef.current = null
   }, [stopIgnitionState])
 
   const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
   const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
-  
-  const currentIndex = activeNodeId ? graph.nodes.findIndex(n => n.id === activeNodeId) : -1
-  // A node is the last step when it has no outgoing edges — array position doesn't matter
-  const isActuallyLast = outgoingEdges.length === 0
 
   const nextNode = useCallback(() => {
-    if (graph.nodes.length === 0 || !activeNodeId || currentIndex === -1) return
+    if (graph.nodes.length === 0 || !activeNodeId) return
 
     if (outgoingEdges.length > 0) {
       const nextId = outgoingEdges[0].target
@@ -69,11 +63,9 @@ export default function ProtocolBuilderPage() {
       }
 
       setActiveNodeId(nextId)
-    } else {
-      // No outgoing edges → this is the terminal node, protocol complete
-      setIsProtocolComplete(true)
     }
-  }, [graph.nodes, graph.edges, outgoingEdges, activeNodeId, isIgnitionActive, startIgnition, currentIndex])
+    // If no outgoing edges, user can continue clicking or stop manually
+  }, [graph.nodes, graph.edges, outgoingEdges, activeNodeId, isIgnitionActive, startIgnition])
 
   const addNode = (type: NodeType, toolId?: 'atomizer' | 'emergency') => {
     const newNode: ProtocolNode = {
@@ -199,8 +191,6 @@ export default function ProtocolBuilderPage() {
         setActiveNodeId(graph.nodes[0].id)
         return
       }
-      // Reset completion state when entering flow mode
-      setIsProtocolComplete(false)
       const node = graph.nodes.find(n => n.id === activeNodeId)
       if (node?.type === 'ignition' && !isIgnitionActive) {
         const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
@@ -227,13 +217,12 @@ export default function ProtocolBuilderPage() {
 
   // Reset completion state when active node changes
   useEffect(() => {
-    setIsProtocolComplete(false)
-    // Also reset timer processed ref when node changes
+    // Reset timer processed ref when node changes
     if (activeNodeId !== timerProcessedRef.current) {
       timerProcessedRef.current = null
     }
   }, [activeNodeId])
-  
+
   // Handle Timer Initialization when node changes
   useEffect(() => {
     if (activeNode?.type === 'timer') {
@@ -295,17 +284,13 @@ export default function ProtocolBuilderPage() {
       
       {/* HUD: Task Controls */}
       <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
-        {mode === 'flow' && activeNodeId && !isProtocolComplete && (
+        {mode === 'flow' && activeNodeId && (
           <div className="flex gap-2">
-            {/* Always show Next Step button when in flow mode with active node */}
             <button 
               onClick={nextNode}
-              disabled={isActuallyLast}
-              className={`px-4 py-2 bg-white border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors ${
-                isActuallyLast ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className="px-4 py-2 bg-white border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors"
             >
-              {isActuallyLast ? 'Complete Protocol ✓' : 'Next Step →'}
+              Next Step →
             </button>
             <button 
               onClick={stopFlow}
@@ -316,29 +301,8 @@ export default function ProtocolBuilderPage() {
           </div>
         )}
 
-        {/* Protocol Complete State */}
-        {isProtocolComplete && (
-          <div className="p-6 bg-emerald-500/20 border border-emerald-500/50 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
-            <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-[0.2em] mb-1">
-              Protocol Complete
-            </p>
-            <h2 className="text-xl font-bold text-white uppercase tracking-tight mb-2">
-              Session Complete
-            </h2>
-            <p className="text-xs text-white/70 mb-4">
-              You have completed all steps in this protocol.
-            </p>
-            <button 
-              onClick={stopFlow}
-              className="w-full px-4 py-3 bg-emerald-500 text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white transition-all"
-            >
-              Exit Flow Mode
-            </button>
-          </div>
-        )}
-
         {/* Branching Options - shown when paths available */}
-        {mode === 'flow' && outgoingEdges.length > 0 && !isProtocolComplete && (
+        {mode === 'flow' && outgoingEdges.length > 0 && (
           <div className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-300">
             <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest text-shadow-sm">Select Path:</p>
             <div className="grid grid-cols-1 gap-2">
@@ -360,7 +324,7 @@ export default function ProtocolBuilderPage() {
         )}
 
         {/* Node Information Panel */}
-        {activeNode && mode === 'flow' && !isProtocolComplete && (
+        {activeNode && mode === 'flow' && (
           <div className="p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
             <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-[0.2em] mb-1">
               {activeNode.type} Node
