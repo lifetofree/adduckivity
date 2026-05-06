@@ -6,6 +6,7 @@ import Link from 'next/link'
 import FlywheelScene from '@/components/FlywheelScene'
 import EmergencyProtocol from '@/components/EmergencyProtocol'
 import EmailCTA from '@/components/EmailCTA'
+import SiteFooter from '@/components/SiteFooter'
 import { ET } from '@/lib/theme'
 
 const phases = [
@@ -60,7 +61,6 @@ export default function MomentumPage() {
 
   return (
     <div style={{ backgroundColor: ET.bg }}>
-      {/* 3D background — visible only through the transparent hero */}
       <FlywheelScene scrollProgress={scrollProgress} />
 
       {/* ── Nav ── */}
@@ -74,33 +74,31 @@ export default function MomentumPage() {
         </Link>
         <div className="hidden md:flex items-center gap-7">
           <Link href="/blog" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Blog</Link>
-          <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>3D Experience</Link>
+          <Link href="/momentum" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.accent }}>3D Experience</Link>
           <a href="https://duckshort.cc" target="_blank" rel="noopener noreferrer" className="text-sm font-medium transition-opacity hover:opacity-70" style={{ color: ET.mid }}>Tools</a>
         </div>
       </nav>
 
-      {/* ── Hero — split layout ── */}
+      {/* ── Hero ── */}
       <section
         className="relative grid grid-cols-1 lg:grid-cols-2 overflow-hidden"
         style={{ minHeight: 'calc(100vh - 65px)' }}
       >
-        {/* Left gradient overlay — text readability against 3D bg */}
         <div
           className="absolute inset-0 lg:w-3/5 pointer-events-none"
-          style={{ background: 'linear-gradient(105deg, rgba(10,15,30,0.88) 0%, rgba(10,15,30,0.45) 100%)' }}
+          style={{ background: 'linear-gradient(105deg, rgba(10,15,30,0.92) 0%, rgba(10,15,30,0.5) 100%)' }}
           aria-hidden
         />
 
-        {/* Left: protocol identity */}
+        {/* Left */}
         <div className="relative z-10 flex flex-col justify-center px-8 md:px-14 py-20 lg:py-0">
-          {/* Status badge */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-10">
             <span
               className="w-2 h-2 rounded-full animate-pulse"
-              style={{ backgroundColor: '#ff4444', boxShadow: '0 0 8px #ff4444' }}
+              style={{ backgroundColor: '#ff4444', boxShadow: '0 0 10px #ff4444' }}
             />
             <span
-              className="font-mono text-[11px] uppercase tracking-[0.2em] px-3 py-1 rounded border"
+              className="font-mono text-[11px] uppercase tracking-[0.2em] px-3 py-1.5 rounded border"
               style={{ color: '#ff6666', borderColor: 'rgba(255,68,68,0.3)', backgroundColor: 'rgba(255,68,68,0.08)' }}
             >
               ACT-04 // Emergency Recovery
@@ -109,19 +107,18 @@ export default function MomentumPage() {
 
           <h1
             className="font-bold leading-[0.88] tracking-tight mb-6"
-            style={{ fontSize: 'clamp(2.8rem, 6vw, 5rem)', color: ET.ink }}
+            style={{ fontSize: 'clamp(3.2rem, 7vw, 5.5rem)', color: ET.ink }}
           >
             Stop the<br />
             <span style={{ color: '#ff4444' }}>Spiral.</span>
           </h1>
 
-          <p className="text-base md:text-lg leading-relaxed mb-10 max-w-sm" style={{ color: ET.mid }}>
+          <p className="text-base md:text-lg leading-relaxed mb-10 max-w-md" style={{ color: ET.mid }}>
             When burnout hits, don&apos;t think — run the protocol.
             A 5-step fail-safe that restores momentum in under 10 minutes.
           </p>
 
-          {/* Stat pills */}
-          <div className="flex flex-wrap gap-3 mb-10">
+          <div className="flex flex-wrap gap-2.5 mb-10">
             {[
               { label: '5 steps', color: '#ff4444' },
               { label: '< 10 min', color: ET.accent },
@@ -138,13 +135,14 @@ export default function MomentumPage() {
           </div>
 
           <p className="text-xs" style={{ color: ET.sub }}>
-            Initialize the protocol on the right. Or scroll to learn the system.
+            Initialize the protocol on the right — or scroll to learn the system.
           </p>
         </div>
 
-        {/* Right: EmergencyProtocol wizard — visible on load */}
-        <div className="relative z-10 flex items-center justify-center px-6 py-14 lg:py-0"
-          style={{ background: 'linear-gradient(135deg, rgba(10,15,30,0.6) 0%, rgba(10,15,30,0.85) 100%)' }}
+        {/* Right: protocol widget */}
+        <div
+          className="relative z-10 flex items-center justify-center px-6 py-14 lg:py-0"
+          style={{ background: 'linear-gradient(135deg, rgba(10,15,30,0.5) 0%, rgba(10,15,30,0.88) 100%)' }}
         >
           <div className="w-full max-w-md">
             <EmergencyProtocol />
@@ -152,29 +150,31 @@ export default function MomentumPage() {
         </div>
       </section>
 
-      {/* ── Below fold: solid bg covers 3D ── */}
+      {/* ── Below fold ── */}
       <div className="relative z-10" style={{ backgroundColor: ET.bg }}>
 
-        {/* ── Phases strip ── */}
-        <section className="border-t py-16" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
+        {/* ── Phases ── */}
+        <section className="border-t py-20" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
           <div className="max-w-6xl mx-auto px-6">
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] mb-12 text-center" style={{ color: ET.sub }}>
-              The Momentum Protocol · 4 Phases
-            </p>
+            <div className="flex items-center gap-4 mb-14">
+              <p className="font-mono text-[11px] uppercase tracking-[0.22em] shrink-0" style={{ color: ET.sub }}>
+                The Momentum Protocol · 4 Phases
+              </p>
+              <div className="flex-1 h-px" style={{ backgroundColor: ET.border }} />
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {phases.map((p, i) => (
-                <div key={i} className="relative">
-                  {/* Connector line between items */}
+                <div key={i} className="relative group">
                   {i < phases.length - 1 && (
                     <div
-                      className="hidden lg:block absolute top-4 left-[calc(100%+1rem)] right-0 h-px"
+                      className="hidden lg:block absolute top-4 left-[calc(100%+1rem)] h-px"
                       style={{ backgroundColor: ET.border, width: 'calc(100% - 2rem)' }}
                     />
                   )}
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-5">
                     <span
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                      style={{ backgroundColor: ET.accent, color: ET.bg }}
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all duration-300 group-hover:shadow-lg"
+                      style={{ backgroundColor: ET.accent, color: ET.bg, boxShadow: 'none' }}
                     >
                       {i + 1}
                     </span>
@@ -193,16 +193,19 @@ export default function MomentumPage() {
           </div>
         </section>
 
-        {/* ── The Method — 2 col ── */}
+        {/* ── The Method ── */}
         <section className="border-t py-20" style={{ borderColor: ET.border }}>
           <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-            {/* Left: The Problem */}
+            {/* The Problem */}
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-6" style={{ color: '#ff4444' }}>
-                The Problem
-              </p>
-              <h2 className="text-2xl font-bold mb-6" style={{ color: ET.ink }}>The Motivation Trap</h2>
+              <div className="flex items-center gap-4 mb-8">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] shrink-0" style={{ color: '#ff4444' }}>
+                  The Problem
+                </p>
+                <div className="flex-1 h-px" style={{ backgroundColor: ET.border }} />
+              </div>
+              <h2 className="text-3xl font-bold mb-6" style={{ color: ET.ink }}>The Motivation Trap</h2>
               <div className="space-y-4 text-sm leading-relaxed mb-8" style={{ color: ET.mid }}>
                 <p>You&apos;ve experienced this cycle: You feel inspired → You take action → The feeling fades → You stop → You wait for inspiration again.</p>
                 <p><strong style={{ color: '#ff4444' }}>This is a broken feedback loop.</strong> You&apos;re outsourcing your agency to your emotional state.</p>
@@ -219,12 +222,15 @@ export default function MomentumPage() {
               </blockquote>
             </div>
 
-            {/* Right: Implementation */}
+            {/* Implementation */}
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-6" style={{ color: ET.accent }}>
-                How to Run ACT-04
-              </p>
-              <h2 className="text-2xl font-bold mb-8" style={{ color: ET.ink }}>The Implementation</h2>
+              <div className="flex items-center gap-4 mb-8">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] shrink-0" style={{ color: ET.accent }}>
+                  How to Run ACT-04
+                </p>
+                <div className="flex-1 h-px" style={{ backgroundColor: ET.border }} />
+              </div>
+              <h2 className="text-3xl font-bold mb-8" style={{ color: ET.ink }}>The Implementation</h2>
               <div className="space-y-0">
                 {implementationSteps.map(([title, body], i) => (
                   <div key={i} className="flex gap-4">
@@ -253,26 +259,32 @@ export default function MomentumPage() {
         {/* ── OS Tools ── */}
         <section className="border-t py-20" style={{ borderColor: ET.border, backgroundColor: ET.surface }}>
           <div className="max-w-6xl mx-auto px-6">
-            <div className="mb-12 text-center">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-3" style={{ color: ET.sub }}>Duck OS</p>
-              <h2 className="text-2xl font-bold" style={{ color: ET.ink }}>More Tools</h2>
+            <div className="flex items-center gap-4 mb-12">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-1" style={{ color: ET.sub }}>Duck OS</p>
+                <h2 className="text-3xl font-bold" style={{ color: ET.ink }}>More Tools</h2>
+              </div>
+              <div className="flex-1 h-px ml-6" style={{ backgroundColor: ET.border }} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {tools.map((t, i) => (
                 <Link key={i} href={t.href} className="group block">
                   <div
-                    className="p-6 rounded-2xl border transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col"
-                    style={{ backgroundColor: ET.bg, borderColor: ET.border }}
+                    className="p-7 rounded-2xl border transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-full flex flex-col"
+                    style={{
+                      backgroundColor: ET.bg,
+                      borderColor: ET.border,
+                    }}
                   >
                     <span
-                      className="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg border mb-4 inline-block w-fit"
+                      className="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg border mb-5 inline-block w-fit"
                       style={{ color: t.accent, borderColor: `${t.accent}40`, backgroundColor: `${t.accent}10` }}
                     >
                       {t.badge}
                     </span>
-                    <h3 className="font-bold text-base mb-2" style={{ color: ET.ink }}>{t.title}</h3>
+                    <h3 className="font-bold text-base mb-2.5" style={{ color: ET.ink }}>{t.title}</h3>
                     <p className="text-xs leading-relaxed flex-1" style={{ color: ET.sub }}>{t.description}</p>
-                    <div className="mt-4 flex items-center gap-1 group-hover:gap-2 transition-all">
+                    <div className="mt-5 flex items-center gap-1.5 group-hover:gap-3 transition-all duration-200">
                       <span className="text-xs font-semibold" style={{ color: t.accent }}>Open</span>
                       <span className="text-xs" style={{ color: t.accent }} aria-hidden>→</span>
                     </div>
@@ -285,17 +297,17 @@ export default function MomentumPage() {
 
         {/* ── Email CTA ── */}
         <section
-          className="py-24 px-6 text-center relative overflow-hidden border-t"
+          className="py-28 px-6 text-center relative overflow-hidden border-t"
           style={{ backgroundColor: ET.bg, borderColor: ET.border }}
         >
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,229,255,0.07) 0%, transparent 70%)' }}
+            style={{ background: 'radial-gradient(ellipse 70% 70% at 50% 50%, rgba(0,229,255,0.07) 0%, transparent 70%)' }}
             aria-hidden
           />
           <div className="relative max-w-xl mx-auto">
             <div className="w-12 h-0.5 mx-auto mb-8 rounded-full" style={{ backgroundColor: ET.accent }} />
-            <h2 className="text-3xl font-bold mb-4" style={{ color: ET.ink }}>Start Your Flywheel</h2>
+            <h2 className="text-4xl font-bold mb-4" style={{ color: ET.ink }}>Start Your Flywheel</h2>
             <p className="text-sm mb-10 leading-relaxed" style={{ color: ET.sub }}>
               Pick one protocol. Run it for 7 days. Build from there.
             </p>
@@ -303,72 +315,7 @@ export default function MomentumPage() {
           </div>
         </section>
 
-        {/* ── Footer ── */}
-        <footer style={{ backgroundColor: ET.surface }}>
-          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.35) 50%, transparent 100%)' }} />
-          <div className="max-w-6xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-12 gap-10">
-
-            <div className="md:col-span-5 flex flex-col gap-5">
-              <Link href="/" className="flex items-center gap-3 group w-fit">
-                <Image src="/logo.png" alt="Adduckivity" width={36} height={36} className="rounded-xl opacity-80 group-hover:opacity-100 transition-opacity" />
-                <span className="font-bold text-base" style={{ color: ET.ink }}>Adduckivity</span>
-              </Link>
-              <p className="text-xs leading-relaxed max-w-xs" style={{ color: ET.sub }}>
-                Life architecture for neurodivergent creators.
-                Evidence-based OS tools built for ADHD and MDD brains.
-              </p>
-              <span
-                className="font-mono text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 rounded-lg border w-fit"
-                style={{ color: ET.sub, borderColor: ET.border, backgroundColor: ET.bg }}
-              >
-                Duck OS · v1.0 · STABLE
-              </span>
-            </div>
-
-            <div className="md:col-span-3">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-5" style={{ color: ET.sub }}>Navigate</p>
-              <nav className="flex flex-col gap-3">
-                {[
-                  { label: 'Home', href: '/', internal: true },
-                  { label: 'Blog', href: '/blog', internal: true },
-                ].map(l => l.internal
-                  ? <Link key={l.label} href={l.href} className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</Link>
-                  : <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="text-xs transition-all hover:translate-x-0.5 hover:opacity-100 opacity-60 w-fit" style={{ color: ET.mid }}>{l.label}</a>
-                )}
-              </nav>
-            </div>
-
-            <div className="md:col-span-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-5" style={{ color: ET.sub }}>OS Tools</p>
-              <nav className="flex flex-col gap-3">
-                {[
-                  { label: 'Emergency Recovery', href: '/momentum', accent: '#ff4444' },
-                  { label: 'Protocol Builder', href: '/protocol-builder', accent: ET.accent },
-                  { label: 'The Atomizer', href: '/atomizer', accent: ET.accent },
-                ].map(t => (
-                  <Link
-                    key={t.label}
-                    href={t.href}
-                    className="text-xs flex items-center gap-2 group w-fit transition-all opacity-60 hover:opacity-100"
-                    style={{ color: ET.mid }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-all group-hover:scale-125" style={{ backgroundColor: t.accent }} />
-                    {t.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          </div>
-
-          <div className="border-t px-6" style={{ borderColor: ET.border }}>
-            <div className="max-w-6xl mx-auto h-11 flex items-center justify-between gap-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] opacity-25" style={{ color: ET.sub }}>
-                Duck OS · Life Architecture for Neurodivergent Creators
-              </p>
-              <p className="font-mono text-[10px] opacity-30 shrink-0" style={{ color: ET.sub }}>© 2026 Adduckivity</p>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter />
       </div>
     </div>
   )
