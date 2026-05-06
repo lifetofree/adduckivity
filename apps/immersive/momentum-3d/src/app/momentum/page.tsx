@@ -1,13 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import FlywheelScene from '@/components/FlywheelScene'
+import { SceneLoader } from '@/components/shared/SceneLoader'
 import EmergencyProtocol from '@/components/EmergencyProtocol'
 import EmailCTA from '@/components/EmailCTA'
 import SiteFooter from '@/components/SiteFooter'
 import { ET } from '@/lib/theme'
+
+const FlywheelScene = dynamic(() => import('@/components/FlywheelScene'), {
+  ssr: false,
+  loading: () => <SceneLoader />
+})
 
 const phases = [
   { num: '01', name: 'Activation', desc: 'Smallest possible action. 2-minute commitment. No willpower required.', time: '2 min' },
