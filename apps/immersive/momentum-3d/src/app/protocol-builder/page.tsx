@@ -1,7 +1,6 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
@@ -19,22 +18,120 @@ export default function ProtocolBuilderPage() {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const timerProcessedRef = useRef<string | null>(null)
   
   // Ignition State
-  const { isActive: isIgnitionActive, targetNodeId, start: startIgnition } = useIgnitionStore()
+  const { isActive: isIgnitionActive, targetNodeId, start: startIgnition, stop: stopIgnitionState } = useIgnitionStore()
   
+  // Timer State
+  const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [isProtocolComplete, setIsProtocolComplete] = useState(false)
+
+  // -- Helpers & Callbacks --
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const updateNodes = useCallback((nodes: ProtocolNode[]) => {
+    setGraph(prev => ({ ...prev, nodes }))
+  }, [])
+
+  const stopFlow = useCallback(() => {
+    setMode('build')
+    setActiveNodeId(null) // Reset active node when stopping flow
+    setIsProtocolComplete(false) // Reset completion state
+    stopIgnitionState() // Also ensure ignition state is cleared
+    timerProcessedRef.current = null
+  }, [stopIgnitionState])
+
+  const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
+  const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+  
+  const currentIndex = activeNodeId ? graph.nodes.findIndex(n => n.id === activeNodeId) : -1
+  // A node is the last step when it has no outgoing edges — array position doesn't matter
+  const isActuallyLast = outgoingEdges.length === 0
+
+  const nextNode = useCallback(() => {
+    if (graph.nodes.length === 0 || !activeNodeId || currentIndex === -1) return
+
+    if (outgoingEdges.length > 0) {
+      const nextId = outgoingEdges[0].target
+      const nextNodeObj = graph.nodes.find(n => n.id === nextId)
+
+      if (nextNodeObj?.type === 'ignition' && !isIgnitionActive) {
+        const target = graph.edges.find(e => e.source === nextId)?.target
+        startIgnition(target)
+        return
+      }
+
+      setActiveNodeId(nextId)
+    } else {
+      // No outgoing edges → this is the terminal node, protocol complete
+      setIsProtocolComplete(true)
+    }
+  }, [graph.nodes, graph.edges, outgoingEdges, activeNodeId, isIgnitionActive, startIgnition, currentIndex])
+
+  const addNode = (type: NodeType, toolId?: 'atomizer' | 'emergency') => {
+    const newNode: ProtocolNode = {
+      id: Math.random().toString(36).substr(2, 9),
+      type,
+      label: type === 'tool' ? `New ${toolId} Node` : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
+      position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
+      data: toolId ? { toolId } : (type === 'timer' ? { duration: 25 } : {})
+    }
+    setGraph(prev => ({
+      ...prev,
+      nodes: [...prev.nodes, newNode]
+    }))
+    setActiveNodeId(newNode.id)
+  }
+
+  const updateNode = (id: string, updates: Partial<ProtocolNode>) => {
+    setGraph(prev => ({
+      ...prev,
+      nodes: prev.nodes.map(n => n.id === id ? { ...n, ...updates } : n)
+    }))
+  }
+
+  const deleteNode = (id: string) => {
+    setGraph(prev => ({
+      nodes: prev.nodes.filter(n => n.id !== id),
+      edges: prev.edges.filter(e => e.source !== id && e.target !== id)
+    }))
+    if (activeNodeId === id) setActiveNodeId(null)
+  }
+
+  const addEdge = (source: string, target: string) => {
+    const newEdge = { id: `e-${source}-${target}-${Date.now()}`, source, target }
+    setGraph(prev => ({
+      ...prev,
+      edges: [...prev.edges, newEdge]
+    }))
+  }
+
+  const deleteEdge = (id: string) => {
+    setGraph(prev => ({
+      ...prev,
+      edges: prev.edges.filter(e => e.id !== id)
+    }))
+  }
+
+  // -- Effects --
+
   // Handle Ignition Completion Handoff
   useEffect(() => {
     if (!isIgnitionActive && targetNodeId) {
       // Ignition just completed, transition to the target node
       setMode('flow')
       setActiveNodeId(targetNodeId)
+      // Clear the target node ID after use so it doesn't trigger again
+      stopIgnitionState()
     }
-  }, [isIgnitionActive, targetNodeId])
-  
-  // Timer State
-  const [timeLeft, setTimeLeft] = useState<number | null>(null)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  }, [isIgnitionActive, targetNodeId, stopIgnitionState])
 
   // Initialize Graph and Execution State
   useEffect(() => {
@@ -97,6 +194,13 @@ export default function ProtocolBuilderPage() {
     if (!isInitialized) return
     // Only trigger when transitioning TO flow mode (not every render)
     if (mode === 'flow' && prevMode === 'build') {
+      // Auto-select first node if none selected when entering flow mode
+      if (!activeNodeId && graph.nodes.length > 0) {
+        setActiveNodeId(graph.nodes[0].id)
+        return
+      }
+      // Reset completion state when entering flow mode
+      setIsProtocolComplete(false)
       const node = graph.nodes.find(n => n.id === activeNodeId)
       if (node?.type === 'ignition' && !isIgnitionActive) {
         const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
@@ -104,7 +208,7 @@ export default function ProtocolBuilderPage() {
       }
     }
     setPrevMode(mode)
-  }, [mode, isInitialized, graph.nodes, activeNodeId, isIgnitionActive, startIgnition])
+  }, [mode, isInitialized, graph.nodes, graph.edges, activeNodeId, isIgnitionActive, startIgnition, prevMode])
 
   // Ignition Auto-Trigger: When activeNodeId changes TO an ignition node (while already in flow mode)
   const [prevActiveNodeId, setPrevActiveNodeId] = useState<string | null>(null)
@@ -119,21 +223,17 @@ export default function ProtocolBuilderPage() {
       }
     }
     setPrevActiveNodeId(activeNodeId)
-  }, [activeNodeId, mode, isInitialized, graph.nodes, isIgnitionActive, startIgnition, prevActiveNodeId])
+  }, [activeNodeId, mode, isInitialized, graph.nodes, graph.edges, isIgnitionActive, startIgnition, prevActiveNodeId])
 
-  const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
-  const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+  // Reset completion state when active node changes
+  useEffect(() => {
+    setIsProtocolComplete(false)
+    // Also reset timer processed ref when node changes
+    if (activeNodeId !== timerProcessedRef.current) {
+      timerProcessedRef.current = null
+    }
+  }, [activeNodeId])
   
-  // Check if current node is the last one (no outgoing edges and at end of graph)
-  const isLastNode = activeNode && outgoingEdges.length === 0 && 
-    graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
-  
-  // Timer is still running on last node
-  const isTimerRunningOnLastNode = isLastNode && activeNode?.type === 'timer' && timeLeft !== null && timeLeft > 0
-  
-  // Timer just completed on last node (show "Protocol Complete")
-  const isTimerCompletedOnLastNode = isLastNode && activeNode?.type === 'timer' && timeLeft === 0
-
   // Handle Timer Initialization when node changes
   useEffect(() => {
     if (activeNode?.type === 'timer') {
@@ -145,123 +245,31 @@ export default function ProtocolBuilderPage() {
     }
   }, [activeNodeId, activeNode?.type, activeNode?.data?.duration])
 
-  const nextNode = useCallback(() => {
-    if (graph.nodes.length === 0) return
-    
-    const currentNode = graph.nodes.find(n => n.id === activeNodeId)
-    
-    if (outgoingEdges.length === 1) {
-      // Follow the single connection
-      const nextId = outgoingEdges[0].target
-      const nextNodeObj = graph.nodes.find(n => n.id === nextId)
-      
-      // If the next node is ignition, trigger it and let handoff handle activation
-      if (nextNodeObj?.type === 'ignition' && !isIgnitionActive) {
-        const target = graph.edges.find(e => e.source === nextId)?.target
-        startIgnition(target)
-        return // Don't set activeNodeId here — handoff will after ignition finishes
-      }
-      
-      setActiveNodeId(nextId)
-    } else if (outgoingEdges.length === 0) {
-      // Dead end — ignition nodes have no next step
-      if (currentNode?.type === 'ignition') {
-        setMode('build')
-        setActiveNodeId(null)
-        return
-      }
-      
-      // Check if this is the last node in the graph
-      const isLastNode = graph.nodes.length === 1 || 
-        graph.nodes.findIndex(n => n.id === activeNodeId) === graph.nodes.length - 1
-      
-      if (isLastNode) {
-        // Don't advance - stay on last node
-        return
-      }
-      
-      // Fallback: cycle through nodes linearly if no outgoing connections
-      const currentIndex = graph.nodes.findIndex(n => n.id === activeNodeId)
-      const nextIndex = (currentIndex + 1) % graph.nodes.length
-      setActiveNodeId(graph.nodes[nextIndex].id)
-    }
-    // If outgoingEdges.length > 1, the user must choose via HUD
-  }, [graph.nodes, outgoingEdges, activeNodeId, startIgnition])
-
   // Countdown Effect
   useEffect(() => {
     let interval: NodeJS.Timeout
+    let advanceTimeout: NodeJS.Timeout
+
     // Only auto-advance if it's actually a timer node and the timer finished
     if (isTimerRunning && timeLeft !== null && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(prev => (prev !== null ? prev - 1 : null))
       }, 1000)
-    } else if (timeLeft === 0 && activeNode?.type === 'timer') {
+    } else if (timeLeft === 0 && activeNode?.type === 'timer' && isTimerRunning && timerProcessedRef.current !== activeNodeId) {
+      // Mark as processed immediately to prevent double-triggering during render cycles
+      timerProcessedRef.current = activeNodeId;
       setIsTimerRunning(false)
-      // Don't auto-advance if this is the last node
-      if (!isLastNode && outgoingEdges.length > 0) {
-        setTimeout(() => {
-          nextNode()
-        }, 1500)
-      }
+      
+      // nextNode handles both advancing and completing, so always call it
+      advanceTimeout = setTimeout(() => {
+        nextNode()
+      }, 1500)
     }
-    return () => clearInterval(interval)
-  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, isLastNode])
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-
-  const updateNodes = (nodes: ProtocolNode[]) => {
-    setGraph(prev => ({ ...prev, nodes }))
-  }
-
-  const addNode = (type: NodeType, toolId?: 'atomizer' | 'emergency') => {
-    const newNode: ProtocolNode = {
-      id: Math.random().toString(36).substr(2, 9),
-      type,
-      label: type === 'tool' ? `New ${toolId} Node` : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
-      position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
-      data: toolId ? { toolId } : (type === 'timer' ? { duration: 25 } : {})
+    return () => {
+      clearInterval(interval)
+      if (advanceTimeout) clearTimeout(advanceTimeout)
     }
-    setGraph(prev => ({
-      ...prev,
-      nodes: [...prev.nodes, newNode]
-    }))
-    setActiveNodeId(newNode.id)
-  }
-
-  const updateNode = (id: string, updates: Partial<ProtocolNode>) => {
-    setGraph(prev => ({
-      ...prev,
-      nodes: prev.nodes.map(n => n.id === id ? { ...n, ...updates } : n)
-    }))
-  }
-
-  const deleteNode = (id: string) => {
-    setGraph(prev => ({
-      nodes: prev.nodes.filter(n => n.id !== id),
-      edges: prev.edges.filter(e => e.source !== id && e.target !== id)
-    }))
-    if (activeNodeId === id) setActiveNodeId(null)
-  }
-
-  const addEdge = (source: string, target: string) => {
-    const newEdge = { id: `e-${source}-${target}-${Date.now()}`, source, target }
-    setGraph(prev => ({
-      ...prev,
-      edges: [...prev.edges, newEdge]
-    }))
-  }
-
-  const deleteEdge = (id: string) => {
-    setGraph(prev => ({
-      ...prev,
-      edges: prev.edges.filter(e => e.id !== id)
-    }))
-  }
+  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, graph.nodes, activeNodeId])
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
@@ -287,26 +295,20 @@ export default function ProtocolBuilderPage() {
       
       {/* HUD: Task Controls */}
       <div className="absolute top-24 left-8 z-10 flex flex-col gap-6 max-w-sm">
-        {mode === 'flow' && (
+        {mode === 'flow' && activeNodeId && !isProtocolComplete && (
           <div className="flex gap-2">
-            {outgoingEdges.length <= 1 && (
-              <button 
-                onClick={nextNode}
-                disabled={isLastNode === true}
-                className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
-                  isLastNode
-                    ? 'bg-white/10 border border-white/10 text-white/30 cursor-not-allowed opacity-50'
-                    : 'bg-white border-white text-black hover:bg-transparent hover:text-white'
-                }`}
-              >
-                {isLastNode 
-                  ? (isTimerRunningOnLastNode ? 'Next Step →' : '✓ Protocol Complete')
-                  : 'Next Step →'
-                }
-              </button>
-            )}
+            {/* Always show Next Step button when in flow mode with active node */}
             <button 
-              onClick={() => setMode('build')}
+              onClick={nextNode}
+              disabled={isActuallyLast}
+              className={`px-4 py-2 bg-white border-white text-black text-xs font-mono uppercase tracking-widest hover:bg-transparent hover:text-white transition-colors ${
+                isActuallyLast ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isActuallyLast ? 'Complete Protocol ✓' : 'Next Step →'}
+            </button>
+            <button 
+              onClick={stopFlow}
               className="px-4 py-2 bg-black/40 border border-white/10 text-white/50 text-xs font-mono uppercase tracking-widest hover:bg-white/10 transition-colors"
             >
               Stop Flow
@@ -314,10 +316,31 @@ export default function ProtocolBuilderPage() {
           </div>
         )}
 
-        {/* Branching Options */}
-        {mode === 'flow' && outgoingEdges.length > 1 && (
+        {/* Protocol Complete State */}
+        {isProtocolComplete && (
+          <div className="p-6 bg-emerald-500/20 border border-emerald-500/50 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
+            <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-[0.2em] mb-1">
+              Protocol Complete
+            </p>
+            <h2 className="text-xl font-bold text-white uppercase tracking-tight mb-2">
+              Session Complete
+            </h2>
+            <p className="text-xs text-white/70 mb-4">
+              You have completed all steps in this protocol.
+            </p>
+            <button 
+              onClick={stopFlow}
+              className="w-full px-4 py-3 bg-emerald-500 text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white transition-all"
+            >
+              Exit Flow Mode
+            </button>
+          </div>
+        )}
+
+        {/* Branching Options - shown when paths available */}
+        {mode === 'flow' && outgoingEdges.length > 0 && !isProtocolComplete && (
           <div className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-300">
-            <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest text-shadow-sm">Select Next Path:</p>
+            <p className="text-[10px] text-white/40 uppercase font-mono tracking-widest text-shadow-sm">Select Path:</p>
             <div className="grid grid-cols-1 gap-2">
               {outgoingEdges.map(edge => {
                 const targetNode = graph.nodes.find(n => n.id === edge.target)
@@ -337,7 +360,7 @@ export default function ProtocolBuilderPage() {
         )}
 
         {/* Node Information Panel */}
-        {activeNode && mode === 'flow' && (
+        {activeNode && mode === 'flow' && !isProtocolComplete && (
           <div className="p-6 bg-black/40 border border-white/10 rounded-lg backdrop-blur-xl animate-in fade-in slide-in-from-left-4 duration-500 shadow-2xl">
             <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-[0.2em] mb-1">
               {activeNode.type} Node
@@ -369,16 +392,25 @@ export default function ProtocolBuilderPage() {
                 </div>
                 <button 
                   onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  disabled={timeLeft === 0}
                   className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    isTimerRunning 
-                      ? 'bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
-                      : 'bg-cyan-500/20 border border-cyan-500 text-cyan-500 hover:bg-cyan-500 hover:text-black'
+                    timeLeft === 0
+                      ? 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
+                      : isTimerRunning 
+                        ? 'bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
+                        : 'bg-cyan-500/20 border border-cyan-500 text-cyan-500 hover:bg-cyan-500 hover:text-black'
                   }`}
                 >
-                  {isTimerRunning ? 'Pause Protocol' : 'Initialize Countdown'}
+                  {timeLeft === 0 
+                    ? 'Protocol Done' 
+                    : (isTimerRunning 
+                      ? 'Pause Protocol' 
+                      : (timeLeft === (activeNode.data?.duration || 25) * 60 
+                        ? 'Initialize Countdown' 
+                        : 'Resume Protocol'))}
                 </button>
                 <p className="text-[10px] text-white/40 uppercase font-mono text-center">
-                  Focus Maintenance Protocol {isTimerRunning ? 'Running' : 'Paused'}
+                  Focus Maintenance Protocol {timeLeft === 0 ? 'Finished' : (isTimerRunning ? 'Running' : 'Paused')}
                 </p>
               </div>
             )}
