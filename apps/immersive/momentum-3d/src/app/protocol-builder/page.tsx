@@ -1,11 +1,19 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import ProtocolScene from '@/components/ProtocolBuilder/ProtocolScene'
+import dynamic from 'next/dynamic'
+import { SceneLoader } from '@/components/shared/SceneLoader'
+
+const ProtocolScene = dynamic(() => import('@/components/ProtocolBuilder/ProtocolScene'), {
+  ssr: false,
+  loading: () => <SceneLoader />
+})
+
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
 import SystemBar from '@/components/ProtocolBuilder/SystemBar'
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
 import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
+import IntroSlides, { useIntroSlides } from '@/components/ProtocolBuilder/IntroSlides'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 import { useIgnitionStore } from '@/lib/ignition-store'
 
@@ -13,6 +21,7 @@ const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
 export default function ProtocolBuilderPage() {
   const router = useRouter()
+  const { show: showIntro, done: doneIntro } = useIntroSlides()
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
@@ -421,6 +430,7 @@ export default function ProtocolBuilderPage() {
 
       {/* Ignition Overlay */}
       <IgnitionOverlay />
+      {showIntro && <IntroSlides onDone={doneIntro} />}
     </main>
   )
 }
