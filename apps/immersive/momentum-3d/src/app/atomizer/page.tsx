@@ -5,9 +5,16 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask } from '@/lib/atomizer';
 import AtomizerList from '@/components/AtomizerList';
-import AtomizerScene from '@/components/AtomizerScene';
 import EnergyCheck from '@/components/EnergyCheck';
 import SystemBar from '@/components/ProtocolBuilder/SystemBar';
+import dynamic from 'next/dynamic';
+import { SceneLoader } from '@/components/shared/SceneLoader';
+
+const AtomizerScene = dynamic(() => import('@/components/AtomizerScene'), {
+  ssr: false,
+  loading: () => <SceneLoader />
+});
+
 import SystemFooter from '@/components/ProtocolBuilder/SystemFooter';
 import SystemGate from '@/components/SystemGate';
 import { ET } from '@/lib/theme';
