@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Adduckivity - Duck OS | Life Architecture for Neurodivergent Creators",
-  description: "Systems over willpower. Build your life operating system with Duck OS protocols for ADHD/MDD creators who need more than motivation.",
+  description: "Systems over willpower. Build your life operating system with Duck OS protocols for ADHD/MDD/Burnout creators who need more than motivation.",
 };
 
 export default function RootLayout({

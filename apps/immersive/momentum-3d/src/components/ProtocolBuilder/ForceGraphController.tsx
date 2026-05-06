@@ -52,10 +52,10 @@ export default function ForceGraphController({
   }, [nodes, nodeStates]);
 
   // Physics constants
-  const REPULSION = 50.0;     // Push nodes apart
-  const SPRING_LENGTH = 5.0;   // Desired distance between connected nodes
+  const REPULSION = 25.0;     // Push nodes apart
+  const SPRING_LENGTH = 3.0;   // Desired distance between connected nodes
   const SPRING_STRENGTH = 0.8; // Pull/push strength for connections
-  const GRAVITY = 0.3;         // Pull towards center (0,0,0)
+  const GRAVITY = 0.4;         // Pull towards center (0,0,0)
   const DAMPING = 0.92;        // Friction to eventually stop movement
   const MAX_VELOCITY = 0.5;    // Prevent explosive movement
 

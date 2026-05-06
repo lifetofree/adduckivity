@@ -116,21 +116,29 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
 
       {/* Node name below */}
       {!hideLabel && (
-        <Html position={[0, -1.1, 0]} center distanceFactor={8} zIndexRange={[10, 0]}>
-          <p style={{
-            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-            fontSize: 10,
-            letterSpacing: '0.04em',
-            color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
-            whiteSpace: 'nowrap',
+        <Html position={[0, -0.52, 0]} center distanceFactor={8} zIndexRange={[10, 0]}>
+          <div style={{
+            display: 'inline-block',
+            backgroundColor: isActive ? `${color}22` : `${color}12`,
+            border: `1px solid ${isActive ? color + '55' : color + '25'}`,
+            borderRadius: 4,
+            padding: '2px 7px',
+            backdropFilter: 'blur(4px)',
             pointerEvents: 'none',
             userSelect: 'none',
-            margin: 0,
-            textShadow: isActive ? `0 0 8px ${color}88` : '0 1px 3px rgba(0,0,0,0.8)',
-            fontWeight: isActive ? 600 : 400,
           }}>
-            {node.label}
-          </p>
+            <p style={{
+              fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+              fontSize: 10,
+              letterSpacing: '0.04em',
+              color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.65)',
+              whiteSpace: 'nowrap',
+              margin: 0,
+              fontWeight: isActive ? 600 : 400,
+            }}>
+              {node.label}
+            </p>
+          </div>
         </Html>
       )}
     </group>
