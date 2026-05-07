@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "codebase-exploration": {
+      "source": "giancarloerra/socraticode",
+      "sourceType": "github",
+      "skillPath": "skills/codebase-exploration/SKILL.md",
+      "computedHash": "0cab6e4e199ba091504f77583364a0f81c76664b4a085d190732c482e4a96e15"
+    }
+  }
+}
