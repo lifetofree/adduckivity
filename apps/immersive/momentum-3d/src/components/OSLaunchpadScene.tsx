@@ -18,7 +18,7 @@ const tools = [
     color: '#ff4444',
     type: 'sphere' as const,
     complexity: 'low',
-    position: [-3, 0, 0] as [number, number, number]
+    position: [-8, 0, -2] as [number, number, number]
   },
   {
     title: 'Protocol Builder',
@@ -27,7 +27,7 @@ const tools = [
     color: ET.accent,
     type: 'octahedron' as const,
     complexity: 'high',
-    position: [0, 2, -1] as [number, number, number]
+    position: [-3, 5, -4] as [number, number, number]
   },
   {
     title: 'The Atomizer',
@@ -36,7 +36,7 @@ const tools = [
     color: '#a78bfa',
     type: 'tetrahedron' as const,
     complexity: 'high',
-    position: [3, 0, 0] as [number, number, number]
+    position: [8, 2, -3] as [number, number, number]
   },
   {
     title: 'Ignite Momentum',
@@ -45,7 +45,7 @@ const tools = [
     color: '#f43f5e',
     type: 'dodecahedron' as const,
     complexity: 'medium',
-    position: [0, -2, -1] as [number, number, number]
+    position: [6, -4, -2] as [number, number, number]
   }
 ]
 
@@ -93,7 +93,7 @@ export default function OSLaunchpadScene() {
           {process.env.NODE_ENV === 'development' && (
             <>
               <RoadmapNode 
-                position={[0, 0, 3]} 
+                position={[0, 0, 5]} 
                 isExpanded={isRoadmapExpanded}
                 onToggle={() => setIsRoadmapExpanded(!isRoadmapExpanded)}
               />
