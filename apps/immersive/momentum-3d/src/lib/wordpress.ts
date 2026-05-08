@@ -27,6 +27,11 @@ export interface WordPressPost {
     title?: string
     description?: string
   }
+  // Jetpack SEO fields (from meta)
+  meta?: {
+    jetpack_seo_html_title?: string
+    advanced_seo_description?: string
+  }
   _embedded?: {
     'wp:featuredmedia'?: Array<{
       source_url: string
@@ -92,7 +97,8 @@ export async function getWordPressPosts(options: {
     throw new Error(`WordPress API error: ${response.status}`)
   }
 
-  return response.json()
+  const posts: WordPressPost[] = await response.json()
+  return posts
 }
 
 /**
@@ -252,8 +258,10 @@ export function isEnglishPost(post: WordPressPost): boolean {
  * Convert WordPress post to a format compatible with the blog page
  */
 export function formatWordPressPost(post: WordPressPost) {
-  const seoTitle = post.yoast_head_json?.title?.trim()
-  const seoDescription = post.yoast_head_json?.description?.trim()
+  // Try Jetpack SEO first (from meta), then Yoast, then null
+  const jetpackSeoTitle = post.meta?.jetpack_seo_html_title || post.yoast_head_json?.title?.trim() || null
+  const jetpackSeoDescription = post.meta?.advanced_seo_description || post.yoast_head_json?.description?.trim() || null
+  const plainTitle = post.title.rendered
   const plainExcerpt = stripHtml(post.excerpt.rendered)
   const featuredImage = getFeaturedImageUrl(post)
   const category = getCategoryName(post)
@@ -261,10 +269,10 @@ export function formatWordPressPost(post: WordPressPost) {
 
   return {
     slug: post.slug,
-    title: seoTitle || post.title.rendered,
-    excerpt: seoDescription || plainExcerpt,
-    seoTitle: seoTitle || null,
-    seoDesc: seoDescription || null,
+    title: plainTitle,
+    excerpt: plainExcerpt,
+    seoTitle: jetpackSeoTitle,
+    seoDesc: jetpackSeoDescription,
     date: new Date(post.date).toISOString().split('T')[0],
     featuredImage,
     imageAlt: getFeaturedImageAlt(post),
