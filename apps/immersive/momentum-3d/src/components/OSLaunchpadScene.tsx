@@ -97,7 +97,7 @@ export default function OSLaunchpadScene() {
                 isExpanded={isRoadmapExpanded}
                 onToggle={() => setIsRoadmapExpanded(!isRoadmapExpanded)}
               />
-              <RoadmapWeb isVisible={isRoadmapExpanded} />
+              {isRoadmapExpanded && <RoadmapWeb isVisible={isRoadmapExpanded} />}
             </>
           )}
 
