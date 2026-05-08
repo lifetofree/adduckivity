@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SystemProvider } from "@/lib/system-context";
+import SystemBar from "@/components/shared/SystemBar";
+import SystemFooter from "@/components/shared/SystemFooter";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,8 +32,14 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
-        <SystemProvider>{children}</SystemProvider>
+      <body className="min-h-full flex flex-col font-sans bg-zinc-950">
+        <SystemProvider>
+          <SystemBar />
+          <main className="flex-1 flex flex-col relative">
+            {children}
+          </main>
+          <SystemFooter />
+        </SystemProvider>
       </body>
     </html>
   );

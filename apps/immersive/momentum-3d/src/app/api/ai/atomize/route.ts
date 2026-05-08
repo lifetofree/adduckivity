@@ -49,9 +49,9 @@ Return ONLY a JSON array of strings. Example: ["Open the website", "Find the log
       }
 
       const data = await response.json() as {
-        choices?: Array<{ messages?: Array<{ text?: string }> }>;
+        choices?: Array<{ message?: { content?: string } }>;
       };
-      const text = data.choices?.[0]?.messages?.[0]?.text || '';
+      const text = data.choices?.[0]?.message?.content || '';
 
       if (!text) throw new Error('Empty response from MiniMax');
 
@@ -202,6 +202,9 @@ export async function POST(req: NextRequest) {
     if (!task) {
       return NextResponse.json({ error: 'Task required' }, { status: 400 });
     }
+    if (task.length > 500) {
+      return NextResponse.json({ error: 'Task too long (max 500 characters)' }, { status: 400 });
+    }
 
     let miniMaxKey: string | undefined;
     let geminiKey: string | undefined;
@@ -249,7 +252,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Static fallback — always succeeds.
-    console.log('[AI/Atomize] Using fallback steps for task:', task);
     return NextResponse.json({
       steps: getFallbackSteps(task),
       provider: 'fallback',

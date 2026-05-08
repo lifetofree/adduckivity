@@ -13,7 +13,9 @@ class IgnitionAudioManager {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AC = window.AudioContext
+        || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AC) this.audioContext = new AC();
     }
   }
 

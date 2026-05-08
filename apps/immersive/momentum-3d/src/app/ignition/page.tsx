@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useIgnitionStore } from '@/lib/ignition-store'
 import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
-import SystemBar from '@/components/ProtocolBuilder/SystemBar'
-import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
 import Link from 'next/link'
 import { Flame, ArrowRight } from 'lucide-react'
 
@@ -14,7 +12,6 @@ export default function IgnitionPage() {
   const { isActive, durationRemaining, currentPhase, start } = useIgnitionStore()
   const [mounted, setMounted] = useState(false)
   const [wasStarted, setWasStarted] = useState(false)
-  const wasStartedRef = useRef(false)
 
   useEffect(() => {
     setMounted(true)
@@ -24,22 +21,15 @@ export default function IgnitionPage() {
   useEffect(() => {
     if (isActive || durationRemaining > 0) {
       setWasStarted(true)
-      wasStartedRef.current = true
     }
   }, [isActive, durationRemaining])
 
   // Auto-return to landing when ignition completes (only if it was started)
   useEffect(() => {
-    if (!mounted) return
-    if (!wasStartedRef.current) return // Don't auto-return if never started
-    if (isActive) return // Still running
-    
-    // Ignition finished and was started - auto-return after 2s
-    const timer = setTimeout(() => {
-      router.push('/')
-    }, 2000)
+    if (!mounted || !wasStarted || isActive) return
+    const timer = setTimeout(() => router.push('/'), 2000)
     return () => clearTimeout(timer)
-  }, [mounted, isActive, router])
+  }, [mounted, wasStarted, isActive, router])
 
   const handleStartIgnition = () => {
     start(null) // Start without specific target node
@@ -49,10 +39,7 @@ export default function IgnitionPage() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden bg-[#0a0f1e]">
-      <SystemBar title="Ignite Momentum" />
-      
-      {/* Full screen background with flame visual */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      {/* Full screen background with flame visual */}      <div className="absolute inset-0 flex flex-col items-center justify-center">
         {/* Background glow */}
         <div 
           className={`absolute inset-0 transition-opacity duration-1000 ${
@@ -170,11 +157,6 @@ export default function IgnitionPage() {
       
       {/* Ignition Overlay */}
       <IgnitionOverlay />
-      
-      {/* System Footer */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <SystemFooter />
-      </div>
     </main>
   )
 }

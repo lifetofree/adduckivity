@@ -21,7 +21,7 @@ function TaskOrb({ shatter = false }) {
       p[i * 3 + 2] = radius * Math.cos(phi);
     }
     return p;
-  }, [count]);
+  }, []);
 
   useFrame((_, delta) => {
     if (!particlesRef.current) return;

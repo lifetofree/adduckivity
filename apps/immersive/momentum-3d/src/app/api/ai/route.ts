@@ -4,22 +4,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRequestContext } from '@cloudflare/next-on-pages'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// Simple in-memory rate limiter for edge runtime
+/**
+ * Best-effort rate limiter using a per-isolate in-memory Map.
+ *
+ * NOTE: Cloudflare Workers run in many short-lived isolates, so this Map is
+ * reset on cold starts and is NOT shared across regions. It only protects
+ * against bursts within a single warm isolate. For real per-IP throttling
+ * across regions, move to a KV-backed limiter or Cloudflare's built-in rules.
+ */
 const rateLimiter = new Map<string, { count: number; resetTime: number }>()
 
 function checkRateLimit(identifier: string, maxRequests = 5, windowMs = 60000): boolean {
   const now = Date.now()
   const record = rateLimiter.get(identifier)
-  
+
   if (!record || now > record.resetTime) {
     rateLimiter.set(identifier, { count: 1, resetTime: now + windowMs })
     return true
   }
-  
+
   if (record.count >= maxRequests) {
     return false
   }
-  
+
   record.count++
   return true
 }
@@ -46,9 +53,9 @@ async function askMiniMax(apiKey: string, prompt: string, retries = 2): Promise<
       }
 
       const data = await response.json() as {
-        choices?: Array<{ messages?: Array<{ text?: string }> }>
+        choices?: Array<{ message?: { content?: string } }>
       }
-      const text = data.choices?.[0]?.messages?.[0]?.text || ''
+      const text = data.choices?.[0]?.message?.content || ''
       if (!text) throw new Error('Empty response from MiniMax')
       return text
     } catch (err: unknown) {
@@ -75,29 +82,6 @@ async function askGemini(apiKey: string, prompt: string, retries = 2): Promise<s
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       if (msg.includes('429') && i < retries) {
-        const waitTime = Math.pow(2, i) * 1000
-        await new Promise(resolve => setTimeout(resolve, waitTime))
-        continue
-      }
-      throw err
-    }
-  }
-  throw new Error('Max retries exceeded')
-}
-
-async function ask(apiKey: string, prompt: string, retries = 2): Promise<string> {
-  const genAI = new GoogleGenerativeAI(apiKey)
-  // Use stable model with better rate limits
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-  
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const result = await model.generateContent(prompt)
-      return result.response.text().trim()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (msg.includes('429') && i < retries) {
-        // Exponential backoff: 1s, 2s, 4s...
         const waitTime = Math.pow(2, i) * 1000
         await new Promise(resolve => setTimeout(resolve, waitTime))
         continue
@@ -166,7 +150,6 @@ export async function POST(req: NextRequest) {
       excerpt?: string
       tags?: string[]
     }
-    type BodyType = typeof body
     const { action } = body
     let result: unknown
     let provider = 'gemini'

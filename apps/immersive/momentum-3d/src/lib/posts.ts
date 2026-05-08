@@ -149,10 +149,9 @@ export async function postToFacebook(
   env: CloudflareEnv,
   post: { title: string; excerpt: string; slug: string; featuredImage?: string }
 ): Promise<{ ok: boolean; error?: string }> {
-  // Check if we're in development mode - skip Facebook posting
-  // Note: In Cloudflare Pages, NODE_ENV is 'production' for edge functions
-  const isDev = process.env.NODE_ENV === 'development' || process.env.CF_PAGES === '1'
-  if (isDev) {
+  // Skip only in genuine local development. CF_PAGES=1 is set in Cloudflare
+  // Pages production deployments — we MUST post there.
+  if (process.env.NODE_ENV === 'development') {
     console.log('[Facebook] Skipping in development mode')
     return { ok: false, error: 'skipped in dev' }
   }

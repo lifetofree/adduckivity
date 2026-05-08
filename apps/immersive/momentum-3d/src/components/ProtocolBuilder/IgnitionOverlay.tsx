@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react';
-import { useIgnitionStore } from '../../lib/ignition-store';
+import { useIgnitionStore, type IgnitionPhase } from '../../lib/ignition-store';
 import { ignitionAudio } from '../../lib/ignition-audio';
 
 const SPARK_ACTIONS = [
@@ -57,17 +57,18 @@ export const IgnitionOverlay = () => {
     }
   }, [isActive, currentPhase, getRandomAction]);
 
+  // Start/transition audio whenever phase changes. Do NOT stop on cleanup —
+  // that would create an audible gap on every phase transition (#16).
   useEffect(() => {
     if (isActive && currentPhase !== 'idle') {
       ignitionAudio.playPhase(currentPhase);
     } else {
       ignitionAudio.stop();
     }
-
-    return () => {
-      ignitionAudio.stop();
-    };
   }, [isActive, currentPhase]);
+
+  // Stop audio only when the overlay actually unmounts.
+  useEffect(() => () => { ignitionAudio.stop(); }, []);
 
   if (!isActive) return null;
 
@@ -78,17 +79,30 @@ export const IgnitionOverlay = () => {
     idle: ""
   };
 
-  const phaseColors = {
+  // Static class strings so Tailwind's content scanner can keep them in production (#17).
+  const phaseColors: Record<IgnitionPhase, string> = {
     spark: "text-rose-500 border-rose-500",
     target: "text-cyan-400 border-cyan-400",
     launch: "text-emerald-400 border-emerald-400",
     idle: ""
   };
+  const progressColors: Record<IgnitionPhase, string> = {
+    spark:  'bg-rose-500',
+    target: 'bg-cyan-400',
+    launch: 'bg-emerald-400',
+    idle:   'bg-white/10',
+  };
+  const bgPulseColors: Record<IgnitionPhase, string> = {
+    spark:  'bg-rose-500',
+    target: 'bg-cyan-400',
+    launch: 'bg-emerald-400',
+    idle:   'bg-transparent',
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 font-mono overflow-hidden">
       {/* Background Pulse Effect */}
-      <div className={`absolute inset-0 opacity-10 animate-pulse bg-current ${phaseColors[currentPhase]}`} />
+      <div className={`absolute inset-0 opacity-10 animate-pulse ${bgPulseColors[currentPhase]}`} />
       
       {/* Audio Toggle */}
       <button 
@@ -125,8 +139,8 @@ export const IgnitionOverlay = () => {
 
       {/* Progress Bar */}
       <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full">
-        <div 
-          className={`h-full transition-all duration-1000 ${phaseColors[currentPhase].split(' ')[0].replace('text', 'bg')}`}
+        <div
+          className={`h-full transition-all duration-1000 ${progressColors[currentPhase]}`}
           style={{ width: `${(durationRemaining / 600) * 100}%` }}
         />
       </div>

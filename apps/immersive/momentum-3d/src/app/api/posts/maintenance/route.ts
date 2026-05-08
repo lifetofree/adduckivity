@@ -24,21 +24,14 @@ export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('x-maintenance-key')
   const env = process.env.NODE_ENV === 'development' ? { MAINTENANCE_KEY: 'dev-key' } as CloudflareEnv : getEnv()
   
-  console.log('[Maintenance] Received request, auth header:', authHeader ? 'present' : 'missing', 'env key:', env.MAINTENANCE_KEY?.substring(0, 3) + '...')
-  
   if (authHeader !== env.MAINTENANCE_KEY) {
-    console.log('[Maintenance] Unauthorized - invalid key')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const kv = getKV()
-    console.log('[Maintenance] Starting scheduled post promotion check...')
-    
     // getPublishedPosts calls promoteScheduledPosts internally
     const posts = await getPublishedPosts(kv, env)
-    
-    console.log('[Maintenance] Completed, total published posts:', posts.length)
     
     return NextResponse.json({ 
       success: true, 

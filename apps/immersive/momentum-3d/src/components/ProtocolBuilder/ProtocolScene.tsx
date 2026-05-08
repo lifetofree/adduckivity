@@ -231,7 +231,7 @@ export default function ProtocolScene({
         {mode === 'build' && (
           <mesh onClick={(e) => {
             e.stopPropagation()
-            if (activeNode) onSelectNode('')
+            if (activeNode) onSelectNode(null)
           }}>
             <planeGeometry args={[100, 100]} />
             <meshBasicMaterial transparent opacity={0} />

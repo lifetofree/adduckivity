@@ -51,4 +51,12 @@ describe('atomizer library', () => {
   it('returns null if no task is saved', () => {
     expect(loadAtomizerTask()).toBeNull()
   })
+
+  // Regression test for ISSUESTOFIX #2 — corrupted localStorage must not crash.
+  it('returns null and clears storage when stored JSON is corrupted', () => {
+    localStorage.setItem(STORAGE_KEY, '{not valid json')
+    expect(loadAtomizerTask()).toBeNull()
+    // The corrupted entry should be removed so subsequent loads start fresh.
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+  })
 })

@@ -21,9 +21,9 @@ export default function ContentClient() {
 
   useEffect(() => {
     fetch('/api/posts')
-      .then(res => res.json())
+      .then(res => res.json() as Promise<{ posts?: Post[] }>)
       .then(data => {
-        setPosts(data as Post[])
+        setPosts(data.posts || [])
         setLoading(false)
       })
       .catch(() => setLoading(false))

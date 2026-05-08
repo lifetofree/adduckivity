@@ -17,10 +17,13 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
   const [sensoryFeedback, setSensoryFeedback] = useState<{ key: string; enabled: boolean } | null>(null)
 
   // Show feedback when energy changes
+  // Note: setState in this effect is intentional for feedback animation
   useEffect(() => {
     if (isOpen && energy !== lastEnergy) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setShowEnergyFeedback(true)
       setLastEnergy(energy)
+      /* eslint-enable react-hooks/set-state-in-effect */
       const timer = setTimeout(() => setShowEnergyFeedback(false), 2000)
       return () => clearTimeout(timer)
     }
@@ -35,17 +38,22 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
   }, [sensoryFeedback, isOpen])
 
   const handleSensoryToggle = (key: string) => {
+    if (energy <= 2) {
+      setSensoryFeedback({ key, enabled: false })
+      return
+    }
     const newValue = !sensory[key as keyof typeof sensory]
     setSensory({ [key]: newValue })
     setSensoryFeedback({ key, enabled: newValue })
   }
 
+  // Static Tailwind class strings so the production purge keeps them (#52).
   const getEnergyLabel = (level: number) => {
-    if (level <= 2) return { text: 'Critical Low', color: 'text-red-500', bg: 'bg-red-500/20' }
-    if (level <= 4) return { text: 'Low Energy', color: 'text-orange-500', bg: 'bg-orange-500/20' }
-    if (level <= 6) return { text: 'Moderate', color: 'text-yellow-500', bg: 'bg-yellow-500/20' }
-    if (level <= 8) return { text: 'Good', color: 'text-cyan-500', bg: 'bg-cyan-500/20' }
-    return { text: 'Peak Performance', color: 'text-emerald-500', bg: 'bg-emerald-500/20' }
+    if (level <= 2) return { text: 'Critical Low', color: 'text-red-500', bg: 'bg-red-500/20', border: 'border-red-500/20' }
+    if (level <= 4) return { text: 'Low Energy', color: 'text-orange-500', bg: 'bg-orange-500/20', border: 'border-orange-500/20' }
+    if (level <= 6) return { text: 'Moderate', color: 'text-yellow-500', bg: 'bg-yellow-500/20', border: 'border-yellow-500/20' }
+    if (level <= 8) return { text: 'Good', color: 'text-cyan-500', bg: 'bg-cyan-500/20', border: 'border-cyan-500/20' }
+    return { text: 'Peak Performance', color: 'text-emerald-500', bg: 'bg-emerald-500/20', border: 'border-emerald-500/20' }
   }
 
   const energyInfo = getEnergyLabel(energy)
@@ -98,11 +106,15 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
                     <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider">System Lock Active</p>
-                      <p className="text-[10px] text-red-500/60 mt-0.5 leading-relaxed">Biological requirements not met. Access to execution tools restricted.</p>
+                      <p className="text-[10px] text-red-500/60 mt-0.5 leading-relaxed">
+                        {energy <= 2 
+                          ? 'Critical energy exhaustion detected. System shutdown enforced to prevent burnout.' 
+                          : 'Biological requirements not met. Access to execution tools restricted.'}
+                      </p>
                     </div>
                   </div>
                 )}
-                {isProtected && (
+                {isProtected && energy > 2 && (
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
                     <Zap className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                     <div>
@@ -129,7 +141,7 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className={`mb-4 px-4 py-2 rounded-xl ${energyInfo.bg} border ${energyInfo.color.replace('text', 'border')}/20`}
+                    className={`mb-4 px-4 py-2 rounded-xl ${energyInfo.bg} border ${energyInfo.border}`}
                   >
                     <p className={`text-xs font-bold ${energyInfo.color} uppercase tracking-wider`}>
                       {energyInfo.text}
@@ -164,7 +176,9 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
               <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.2em] block mb-6">Sensory Sync</span>
               {sensoryItems.map((item) => {
                 const isCheckPassed = sensory[item.key as keyof typeof sensory]
+                const isItemLocked = energy <= 2
                 const showFeedback = sensoryFeedback?.key === item.key
+                
                 return (
                   <div key={item.key} className="relative">
                     {showFeedback && (
@@ -173,22 +187,27 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         className={`absolute -right-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          isItemLocked ? 'bg-red-500 text-white' : 
                           sensoryFeedback.enabled ? 'bg-cyan-500 text-black' : 'bg-white/10 text-white/50'
                         }`}
                       >
-                        {sensoryFeedback.enabled ? '✓ Active' : '○ Inactive'}
+                        {isItemLocked ? 'Sync Offline' : sensoryFeedback.enabled ? '✓ Active' : '○ Inactive'}
                       </motion.div>
                     )}
-                    <button
+                    <motion.button
+                      whileTap={isItemLocked ? { x: [-4, 4, -4, 4, 0], transition: { duration: 0.4 } } : { scale: 0.98 }}
                       onClick={() => handleSensoryToggle(item.key)}
                       className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                        isCheckPassed 
-                          ? 'bg-white/5 border-white/10 text-white' 
-                          : 'bg-black/20 border-white/5 text-white/30 hover:border-white/10'
+                        isItemLocked
+                          ? 'bg-red-500/5 border-red-500/10 text-white/20 cursor-not-allowed'
+                          : isCheckPassed 
+                            ? 'bg-white/5 border-white/10 text-white' 
+                            : 'bg-black/20 border-white/5 text-white/30 hover:border-white/10'
                       }`}
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${
+                          isItemLocked ? 'bg-red-500/5 text-red-500/40' :
                           isCheckPassed ? 'bg-white/5 ' + item.color : 'bg-white/5'
                         }`}>
                           <item.icon className="w-5 h-5" />
@@ -196,11 +215,13 @@ export default function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
                         <span className="text-xs font-bold tracking-tight">{item.label}</span>
                       </div>
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        isItemLocked ? 'border border-red-500/20 text-red-500/40' :
                         isCheckPassed ? 'bg-cyan-500 text-black' : 'border border-white/10'
                       }`}>
-                        {isCheckPassed && <CheckCircle2 className="w-4 h-4" />}
+                        {isCheckPassed && !isItemLocked && <CheckCircle2 className="w-4 h-4" />}
+                        {isItemLocked && <X className="w-3 h-3" />}
                       </div>
-                    </button>
+                    </motion.button>
                   </div>
                 )
               })}

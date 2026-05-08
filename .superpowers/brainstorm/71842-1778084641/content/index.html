@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Roadmap Mockup - Duck OS</title>
+    <style>
+        :root {
+            --bg: #09090b;
+            --accent: #00e5ff;
+            --sub: #71717a;
+            --ink: #ffffff;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: radial-gradient(circle at center, rgba(0, 229, 255, 0.05) 0%, transparent 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The Main Node */
+        .roadmap-node {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 2px solid var(--accent);
+            transform: rotate(45deg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+        }
+
+        .roadmap-node::before {
+            content: 'ROADMAP';
+            transform: rotate(-45deg);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        /* The Sub-Nodes (Phases) */
+        .sub-node {
+            position: absolute;
+            width: 140px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .sub-node h3 {
+            margin: 0;
+            font-size: 10px;
+            color: var(--ink);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sub-node .status {
+            font-size: 8px;
+            color: var(--accent);
+            margin-top: 4px;
+            font-family: monospace;
+        }
+
+        .sub-node.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+            transform-origin: left center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .line.active {
+            opacity: 0.3;
+        }
+
+        /* Expanded State Positions */
+        .node-p1 { transform: translate(-220px, -140px); }
+        .node-p2 { transform: translate(220px, -140px); }
+        .node-p3 { transform: translate(-220px, 140px); }
+        .node-p4 { transform: translate(220px, 140px); }
+
+        /* UI HUD */
+        .hud {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            pointer-events: none;
+        }
+
+        .hud h1 {
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin: 0;
+            color: var(--sub);
+        }
+
+        .info {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .info p {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--sub);
+            margin: 4px 0;
+        }
+
+        .info span {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .instruction {
+            margin-top: 40px;
+            color: var(--sub);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hud">
+        <h1>System Architecture v0.1</h1>
+    </div>
+
+    <div class="container">
+        <!-- Lines -->
+        <div id="line1" class="line" style="width: 260px; top: 300px; left: 400px; transform: rotate(212deg);"></div>
+        <div id="line2" class="line" style="width: 260px; top: 300px; left: 400px; transform: rotate(-32deg);"></div>
+        <div id="line3" class="line" style="width: 260px; top: 300px; left: 400px; transform: rotate(148deg);"></div>
+        <div id="line4" class="line" style="width: 260px; top: 300px; left: 400px; transform: rotate(32deg);"></div>
+
+        <!-- Main Node -->
+        <div class="roadmap-node" onclick="toggleRoadmap()"></div>
+
+        <!-- Sub Nodes -->
+        <div id="p1" class="sub-node node-p1">
+            <h3>Phase 1: Foundation</h3>
+            <span class="status">[COMPLETE]</span>
+        </div>
+        <div id="p2" class="sub-node node-p2">
+            <h3>Phase 2: Optimization</h3>
+            <span class="status">[IN PROGRESS]</span>
+        </div>
+        <div id="p3" class="sub-node node-p3">
+            <h3>Phase 3: Biological</h3>
+            <span class="status">[90% STABLE]</span>
+        </div>
+        <div id="p4" class="sub-node node-p4">
+            <h3>Phase 4: Revenue</h3>
+            <span class="status">[PENDING]</span>
+        </div>
+    </div>
+
+    <div class="info">
+        <p>SOURCE: <span>ROADMAP.md</span></p>
+        <p>MODE: <span>Live Sync Active</span></p>
+    </div>
+
+    <div class="instruction">Click the Roadmap Node to Test the Unfolding animation</div>
+
+    <script>
+        let isExpanded = false;
+        function toggleRoadmap() {
+            isExpanded = !isExpanded;
+            const nodes = ['p1', 'p2', 'p3', 'p4'];
+            const lines = ['line1', 'line2', 'line3', 'line4'];
+            
+            nodes.forEach(id => {
+                document.getElementById(id).classList.toggle('active', isExpanded);
+            });
+            lines.forEach(id => {
+                document.getElementById(id).classList.toggle('active', isExpanded);
+            });
+
+            const mainNode = document.querySelector('.roadmap-node');
+            if (isExpanded) {
+                mainNode.style.transform = 'rotate(135deg) scale(0.8)';
+                mainNode.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            } else {
+                mainNode.style.transform = 'rotate(45deg) scale(1)';
+                mainNode.style.borderColor = '#00e5ff';
+            }
+        }
+    </script>
+</body>
+</html>

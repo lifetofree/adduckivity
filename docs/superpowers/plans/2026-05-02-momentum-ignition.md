@@ -17,7 +17,7 @@
 - Test: `apps/immersive/momentum-3d/src/__tests__/ignition.test.ts`
 
 - [x] **Step 1: Define types and initial state**
-- [x] **Step 2: Create a simple state hook (or use existing store pattern)**
+- [ ] **Step 2: Create a simple state hook (or use existing store pattern)**
 - [x] **Step 3: Write test for state transitions**
 - [x] **Step 4: Run tests**
 - [x] **Step 5: Commit**
@@ -69,12 +69,12 @@
 
 ### Task 6: Post-Implementation Refinements (Bug Fixes & UI)
 
-- [x] **Step 1: Fix Navigation Bounce**
+- [ ] **Step 1: Fix Navigation Bounce**
     - Ensure `stopIgnitionState()` is called immediately after handoff in `page.tsx`.
     - Add cleanup for `advanceTimeout` in the timer's `useEffect` to prevent ghost navigation.
-- [x] **Step 2: Refine Timer UI**
+- [ ] **Step 2: Refine Timer UI**
     - Disable countdown button immediately when `timeLeft === 0`.
     - Change label to "Resume Timer" when paused mid-session.
-- [x] **Step 3: Final Node Logic**
+- [ ] **Step 3: Final Node Logic**
     - Disable "Next Step" button on the final node to ensure the protocol ends correctly.
     - Implement automatic transition to the "Protocol Complete" overlay when the final task finishes.

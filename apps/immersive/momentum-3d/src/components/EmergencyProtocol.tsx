@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ET } from '@/lib/theme'
 
@@ -175,7 +176,8 @@ const Step4 = ({ onNext }: StepProps) => {
     setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t))
   }
 
-  const allDone = tasks.some(t => t.done)
+  // Step 4 only requires the user to complete ONE task ("Pick ONE"), not all of them.
+  const anyDone = tasks.some(t => t.done)
 
   return (
     <motion.div 
@@ -207,8 +209,8 @@ const Step4 = ({ onNext }: StepProps) => {
         ))}
       </div>
 
-      <button 
-        disabled={!allDone}
+      <button
+        disabled={!anyDone}
         onClick={onNext}
         className="w-full py-4 rounded-xl font-bold disabled:opacity-50"
         style={{ backgroundColor: ET.accent, color: ET.bg }}
@@ -358,7 +360,13 @@ const Checkout = () => (
     <div className="p-8 rounded-2xl bg-white border-2 border-dashed border-cyan-500/30 mb-8 text-center shadow-[0_0_40px_rgba(255,255,255,0.05)]">
       <p className="text-xs uppercase tracking-widest mb-6 font-bold" style={{ color: '#0A0F1E' }}>Scan with Banking App</p>
       <div className="w-64 h-64 mx-auto bg-white rounded-xl flex items-center justify-center mb-6 overflow-hidden p-2">
-        <img src="/PayQR.webp" alt="PromptPay QR Code" className="w-full h-full object-contain" />
+        <Image
+          src="/PayQR.webp"
+          alt="PromptPay QR Code"
+          width={240}
+          height={240}
+          className="w-full h-full object-contain"
+        />
       </div>
       <p className="text-4xl font-bold text-[#0A0F1E] mb-1">299 THB</p>
       <p className="text-xs font-medium" style={{ color: '#6B9BB8' }}>Transfer to: Chonlaphon (PromptPay)</p>
@@ -390,17 +398,15 @@ const Checkout = () => (
   </motion.div>
 )
 
-const trackEvent = async (event: string) => {
-  try {
-    fetch('/api/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event }),
-    })
-  } catch (err) {
-    // Non-blocking error
-    console.error('Tracking failed', err)
-  }
+const trackEvent = (event: string): void => {
+  // Fire-and-forget. Errors should not block the UI but must be logged (#49).
+  fetch('/api/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event }),
+  }).catch(err => {
+    console.error('[Track] Tracking failed:', err)
+  })
 }
 
 export default function EmergencyProtocol() {

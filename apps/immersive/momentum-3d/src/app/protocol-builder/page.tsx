@@ -10,22 +10,22 @@ const ProtocolScene = dynamic(() => import('@/components/ProtocolBuilder/Protoco
 })
 
 import ArchitectSidebar from '@/components/ProtocolBuilder/ArchitectSidebar'
-import SystemBar from '@/components/ProtocolBuilder/SystemBar'
-import SystemFooter from '@/components/ProtocolBuilder/SystemFooter'
 import { IgnitionOverlay } from '@/components/ProtocolBuilder/IgnitionOverlay'
 import IntroSlides, { useIntroSlides } from '@/components/ProtocolBuilder/IntroSlides'
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 import { useIgnitionStore } from '@/lib/ignition-store'
+import { useSystem } from '@/lib/system-context'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 
 export default function ProtocolBuilderPage() {
   const router = useRouter()
+  const { isLocked, setSystemBarNode, setSyncing, setFooterVisible } = useSystem()
   const { show: showIntro, done: doneIntro } = useIntroSlides()
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
-  const [isSyncing, setIsSyncing] = useState(false)
+  const [isSyncing, setIsSyncingLocal] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const timerProcessedRef = useRef<string | null>(null)
 
@@ -79,7 +79,7 @@ export default function ProtocolBuilderPage() {
 
   const addNode = (type: NodeType, toolId?: 'atomizer' | 'emergency') => {
     const newNode: ProtocolNode = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).slice(2, 11),
       type,
       label: type === 'tool' ? `New ${toolId} Node` : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
       position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
@@ -123,6 +123,60 @@ export default function ProtocolBuilderPage() {
   }
 
   // -- Effects --
+
+  // Inject Mode Switcher into Global SystemBar
+  useEffect(() => {
+    const ModeSwitcher = (
+      <div className="flex items-center bg-black/40 border border-white/5 rounded-full p-1 gap-1">
+        <button
+          onClick={() => setMode('build')}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+            mode === 'build' 
+              ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
+              : 'text-white/40 hover:text-white/70'
+          }`}
+        >
+          Architect
+        </button>
+        <button
+          onClick={() => {
+            if (!activeNodeId) {
+              alert('Please select a node first before entering Pilot mode')
+              return
+            }
+            if (isLocked) {
+              alert('System is locked. Complete your biological requirements (water, light, noise) first.')
+              return
+            }
+            setMode('flow')
+          }}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+            mode === 'flow' 
+              ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' 
+              : isLocked
+                ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                : 'text-white/40 hover:text-white/70'
+          }`}
+        >
+          Pilot
+        </button>
+      </div>
+    )
+
+    setSystemBarNode(ModeSwitcher)
+    return () => setSystemBarNode(null)
+  }, [mode, activeNodeId, isLocked, setSystemBarNode])
+
+  // Sync local syncing state to global
+  useEffect(() => {
+    setSyncing(isSyncing)
+  }, [isSyncing, setSyncing])
+
+  // Manage Footer Visibility
+  useEffect(() => {
+    setFooterVisible(mode !== 'flow')
+    return () => setFooterVisible(true) // Ensure it comes back when leaving
+  }, [mode, setFooterVisible])
 
   // Handle Ignition Completion Handoff
   useEffect(() => {
@@ -179,8 +233,8 @@ export default function ProtocolBuilderPage() {
   useEffect(() => {
     if (!isInitialized) return // Prevent overwriting with initial state
     saveProtocol(graph)
-    setIsSyncing(true)
-    const timer = setTimeout(() => setIsSyncing(false), 800)
+    setIsSyncingLocal(true)
+    const timer = setTimeout(() => setIsSyncingLocal(false), 800)
     return () => clearTimeout(timer)
   }, [graph, isInitialized])
 
@@ -190,15 +244,16 @@ export default function ProtocolBuilderPage() {
     localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify({ mode, activeNodeId }))
   }, [mode, activeNodeId, isInitialized])
 
-  // Ignition Auto-Trigger: Only triggers when switching TO flow mode with an ignition node selected
-  const [prevMode, setPrevMode] = useState<'build' | 'flow'>('build')
+  // Ignition Auto-Trigger: Only triggers when switching TO flow mode with an ignition node selected.
+  // Use refs (not state) so we don't trigger an extra render just to track the previous value (#15).
+  const prevModeRef = useRef<'build' | 'flow'>('build')
   useEffect(() => {
     if (!isInitialized) return
-    // Only trigger when transitioning TO flow mode (not every render)
-    if (mode === 'flow' && prevMode === 'build') {
+    if (mode === 'flow' && prevModeRef.current === 'build') {
       // Auto-select first node if none selected when entering flow mode
       if (!activeNodeId && graph.nodes.length > 0) {
         setActiveNodeId(graph.nodes[0].id)
+        prevModeRef.current = mode
         return
       }
       const node = graph.nodes.find(n => n.id === activeNodeId)
@@ -207,23 +262,22 @@ export default function ProtocolBuilderPage() {
         startIgnition(firstTarget)
       }
     }
-    setPrevMode(mode)
-  }, [mode, isInitialized, graph.nodes, graph.edges, activeNodeId, isIgnitionActive, startIgnition, prevMode])
+    prevModeRef.current = mode
+  }, [mode, isInitialized, graph.nodes, graph.edges, activeNodeId, isIgnitionActive, startIgnition])
 
   // Ignition Auto-Trigger: When activeNodeId changes TO an ignition node (while already in flow mode)
-  const [prevActiveNodeId, setPrevActiveNodeId] = useState<string | null>(null)
+  const prevActiveNodeIdRef = useRef<string | null>(null)
   useEffect(() => {
     if (!isInitialized) return
-    // Trigger when navigating to ignition node via Next Step (already in flow mode)
-    if (mode === 'flow' && activeNodeId !== prevActiveNodeId) {
+    if (mode === 'flow' && activeNodeId !== prevActiveNodeIdRef.current) {
       const node = graph.nodes.find(n => n.id === activeNodeId)
       if (node?.type === 'ignition' && !isIgnitionActive) {
         const firstTarget = graph.edges.find(edge => edge.source === node.id)?.target
         startIgnition(firstTarget)
       }
     }
-    setPrevActiveNodeId(activeNodeId)
-  }, [activeNodeId, mode, isInitialized, graph.nodes, graph.edges, isIgnitionActive, startIgnition, prevActiveNodeId])
+    prevActiveNodeIdRef.current = activeNodeId
+  }, [activeNodeId, mode, isInitialized, graph.nodes, graph.edges, isIgnitionActive, startIgnition])
 
   // Reset completion state when active node changes
   useEffect(() => {
@@ -272,15 +326,6 @@ export default function ProtocolBuilderPage() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
-      <SystemBar 
-        title="Architect" 
-        mode={mode} 
-        setMode={setMode} 
-        isSyncing={isSyncing} 
-        showModeSwitcher={true}
-        activeNodeId={activeNodeId}
-      />
-
       <div className={mode === 'build' && activeNode?.type === 'tool' ? 'pointer-events-none' : ''}>
         <ProtocolScene 
           nodes={graph.nodes} 
@@ -298,9 +343,11 @@ export default function ProtocolBuilderPage() {
           <div className="flex gap-2">
             <button
               onClick={nextNode}
+              disabled={isActuallyLast}
+              aria-disabled={isActuallyLast}
               className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
                 isActuallyLast
-                  ? 'bg-emerald-500/20 border border-emerald-500/60 text-emerald-400 hover:bg-emerald-500/30'
+                  ? 'bg-emerald-500/20 border border-emerald-500/60 text-emerald-400 cursor-not-allowed'
                   : 'bg-white border-white text-black hover:bg-transparent hover:text-white'
               }`}
             >
@@ -421,11 +468,6 @@ export default function ProtocolBuilderPage() {
       <div className="absolute bottom-8 right-8 z-10 text-right pointer-events-none opacity-30">
         <p className="text-[10px] text-white font-mono uppercase tracking-widest">Protocol Visualization Engine v1.1</p>
         <p className="text-[10px] text-cyan-500 font-mono uppercase tracking-widest">Constellation Mapping Active</p>
-      </div>
-
-      {/* System Footer (Hidden in Flow Mode for full immersion) */}
-      <div className={`mt-auto transition-opacity duration-700 ${mode === 'flow' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        <SystemFooter />
       </div>
 
       {/* Ignition Overlay */}

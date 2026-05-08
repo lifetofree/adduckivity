@@ -54,6 +54,9 @@ export interface WordPressCategory {
 
 const WP_API_BASE = 'https://wp.adduckivity.com/wp-json/wp/v2'
 
+/** Hostnames the server is allowed to fetch from. SSRF protection for getPostSeoFromHtml. */
+const ALLOWED_FETCH_HOSTS = new Set(['wp.adduckivity.com'])
+
 /**
  * Fetch published posts from WordPress with embedded media and terms
  */
@@ -114,6 +117,11 @@ function decodeHtmlEntities(str: string | null): string | null {
  */
 export async function getPostSeoFromHtml(link: string): Promise<{ seoTitle: string | null; seoDesc: string | null }> {
   try {
+    // SSRF guard: only fetch from allowlisted hosts.
+    let parsed: URL
+    try { parsed = new URL(link) } catch { return { seoTitle: null, seoDesc: null } }
+    if (!ALLOWED_FETCH_HOSTS.has(parsed.host)) return { seoTitle: null, seoDesc: null }
+
     const response = await fetch(link, {
       next: { revalidate: 300 }
     })
@@ -140,39 +148,6 @@ export async function getPostSeoFromHtml(link: string): Promise<{ seoTitle: stri
   } catch {
     return { seoTitle: null, seoDesc: null }
   }
-}
-export async function getWordPressPostBySlug(slug: string): Promise<WordPressPost | null> {
-  const params = new URLSearchParams()
-  params.append('_embed', 'wp:featuredmedia,wp:term')
-  params.append('content', 'true')
-  params.append('slug', slug)
-  params.append('status', 'publish')
-
-  const response = await fetch(`${WP_API_BASE}/posts?${params.toString()}`, {
-    next: { revalidate: 300 }
-  })
-
-  if (!response.ok) {
-    throw new Error(`WordPress API error: ${response.status}`)
-  }
-
-  const posts = await response.json() as WordPressPost[]
-  return posts.length > 0 ? posts[0] : null
-}
-
-/**
- * Fetch categories from WordPress
- */
-export async function getWordPressCategories(): Promise<WordPressCategory[]> {
-  const response = await fetch(`${WP_API_BASE}/categories?per_page=50&hide_empty=true`, {
-    next: { revalidate: 600 } // Cache for 10 minutes
-  })
-
-  if (!response.ok) {
-    throw new Error(`WordPress categories API error: ${response.status}`)
-  }
-
-  return response.json()
 }
 
 /**

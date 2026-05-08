@@ -41,12 +41,19 @@ export function saveAtomizerTask(task: AtomizerTask | null): void {
 
 /**
  * Loads the active atomized task from localStorage.
- * Returns `null` if no task is stored or if called server-side.
+ * Returns `null` if no task is stored, called server-side, or stored data is corrupted.
+ * On corrupted JSON, removes the bad entry so subsequent loads succeed.
  *
  * @returns The persisted `AtomizerTask`, or `null`.
  */
 export function loadAtomizerTask(): AtomizerTask | null {
   if (typeof window === 'undefined') return null;
   const saved = localStorage.getItem(STORAGE_KEY);
-  return saved ? (JSON.parse(saved) as AtomizerTask) : null;
+  if (!saved) return null;
+  try {
+    return JSON.parse(saved) as AtomizerTask;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
 }

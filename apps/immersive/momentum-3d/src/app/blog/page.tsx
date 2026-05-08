@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ET } from '@/lib/theme'
-import { getWordPressPosts, formatWordPressPost, getPostSeoFromHtml } from '@/lib/wordpress'
+import { getWordPressPosts, formatWordPressPost } from '@/lib/wordpress'
 import SiteFooter from '@/components/SiteFooter'
 
 const PlaceholderImage = () => (
@@ -20,15 +20,9 @@ const PlaceholderImage = () => (
 export default async function BlogPage() {
   const wpPosts = await getWordPressPosts({ perPage: 9 })
 
-  const posts = await Promise.all(
-    wpPosts.map(async (p) => {
-      const formatted = formatWordPressPost(p)
-      const { seoTitle, seoDesc } = await getPostSeoFromHtml(p.link)
-      formatted.seoTitle = seoTitle || formatted.title
-      formatted.seoDesc = seoDesc || formatted.excerpt
-      return formatted
-    })
-  )
+  // formatWordPressPost already pulls SEO from yoast_head_json embedded in
+  // the original payload, so no per-post HTML fetch is needed (#65).
+  const posts = wpPosts.map(formatWordPressPost)
 
   const [featured, ...rest] = posts
 

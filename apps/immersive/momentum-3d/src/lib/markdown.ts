@@ -52,12 +52,13 @@ function extractGoogleDriveId(url: string): string | null {
   return null
 }
 
-function convertGoogleDriveUrl(url: string): string {
-  const fileId = extractGoogleDriveId(url)
-  if (!fileId) return url
-  if (url.includes('uc?export=view') || url.includes('drive.usercontent.google.com')) return url
-  return `https://drive.google.com/uc?export=view&id=${fileId}`
-}
+// convertGoogleDriveUrl kept for potential future use
+// function convertGoogleDriveUrl(url: string): string {
+//   const fileId = extractGoogleDriveId(url)
+//   if (!fileId) return url
+//   if (url.includes('uc?export=view') || url.includes('drive.usercontent.google.com')) return url
+//   return `https://drive.google.com/uc?export=view&id=${fileId}`
+// }
 
 /**
  * Extracts all h1-h3 headings from markdown content.
@@ -77,25 +78,51 @@ export function extractHeadings(md: string): Heading[] {
   return result
 }
 
+/**
+ * Escapes HTML attribute values to prevent attribute injection / XSS.
+ */
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/**
+ * Returns a safe href: only http(s) and relative URLs are allowed.
+ * Strips javascript:, data:, vbscript:, and other dangerous schemes.
+ */
+function sanitizeUrl(url: string): string {
+  const trimmed = url.trim()
+  // Allow protocol-relative, root-relative, hash, and explicit http(s)/mailto.
+  if (/^(https?:|mailto:|\/|#|\?)/i.test(trimmed)) return trimmed
+  // Disallow anything with a colon that wasn't matched above (catches javascript:, data:, etc.)
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return '#'
+  // Treat as relative path
+  return trimmed
+}
+
 function applyInline(s: string): string {
   // Process images - convert Google Drive sharing URLs to direct export URLs
   s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+    const safeAlt = escapeAttr(alt)
+    let finalUrl = url
     if (url.includes('drive.google.com') && !url.includes('uc?export=view') && !url.includes('drive.usercontent.google.com')) {
       const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/open\?id=([a-zA-Z0-9_-]+)/)
       if (fileIdMatch) {
-        const convertedUrl = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`
-        return `<img src="${convertedUrl}" alt="${alt}" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" loading="lazy" />`
+        finalUrl = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`
       }
     }
-    return `<img src="${url}" alt="${alt}" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" loading="lazy" />`
+    const safeUrl = escapeAttr(sanitizeUrl(finalUrl))
+    return `<img src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;border-radius:0.5rem;margin:1rem 0;" loading="lazy" />`
   })
-  
+
   return s
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,         '<em>$1</em>')
     .replace(/`([^`]+)`/g,         '<code>$1</code>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,  '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+      const safeUrl = escapeAttr(sanitizeUrl(url))
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`
+    })
 }
 
 function parseTable(block: string): string {

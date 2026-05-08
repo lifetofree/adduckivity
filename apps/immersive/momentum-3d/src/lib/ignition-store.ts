@@ -37,36 +37,37 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
   stop: () => set(INITIAL_IGNITION_STATE),
   setPhase: (phase) => set({ currentPhase: phase }),
   tick: () => {
-    const { durationRemaining, currentPhase } = get();
-    if (!get().isActive) return;
+    const state = get();
+    if (!state.isActive) return;
+    // If the timer already ran out, do not reset — preserve targetNodeId
+    // so the handoff effect in page.tsx can still read it (#13).
+    if (state.durationRemaining <= 0) return;
 
-    if (durationRemaining <= 0) {
-      set(INITIAL_IGNITION_STATE);
-      return;
-    }
-
-    const nextRemaining = durationRemaining - 1;
+    // Drift-free remaining time: compute from startTime instead of decrementing (#25).
+    const elapsed = state.startTime
+      ? Math.floor((Date.now() - state.startTime) / 1000)
+      : 0;
+    const nextRemaining = Math.max(0, 600 - elapsed);
 
     if (nextRemaining === 0) {
-      set({ 
-        isActive: false, 
-        currentPhase: 'idle', 
+      set({
+        isActive: false,
+        currentPhase: 'idle',
         durationRemaining: 0,
-        // We preserve targetNodeId here so the handoff effect in page.tsx can read it
+        // Preserve targetNodeId for the handoff effect.
       });
       return;
     }
 
-    let nextPhase = currentPhase;
     // Phase logic for 600s:
     // 480-600s: Spark (120s) - Physical Activation
-    // 300-480s: Target (180s) - Mental Alignment  
+    // 300-480s: Target (180s) - Mental Alignment
     // 0-300s: Launch (300s) - Deep Work Ignition
-    
+    let nextPhase: IgnitionPhase = state.currentPhase;
     if (nextRemaining > 480) nextPhase = 'spark';
     else if (nextRemaining > 300) nextPhase = 'target';
     else nextPhase = 'launch';
-    
+
     set({ durationRemaining: nextRemaining, currentPhase: nextPhase });
   }
 }));

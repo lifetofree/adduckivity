@@ -37,10 +37,10 @@ describe('Analytics API', () => {
     process.env.NODE_ENV = 'development'
   })
 
-  it('tracks an event successfully', async () => {
+  it('tracks an allowlisted event successfully', async () => {
     const req = new NextRequest('http://localhost/api/track', {
       method: 'POST',
-      body: JSON.stringify({ event: 'test_event' })
+      body: JSON.stringify({ event: 'emergency_start' })
     })
 
     const res = await POST(req)
@@ -49,7 +49,7 @@ describe('Analytics API', () => {
     expect(data.success).toBe(true)
 
     expect(mockKV.put).toHaveBeenCalledWith(
-      expect.stringContaining('stats:hit:test_event:'),
+      expect.stringContaining('stats:hit:emergency_start:'),
       expect.any(String)
     )
   })
@@ -62,6 +62,18 @@ describe('Analytics API', () => {
 
     const res = await POST(req)
     expect(res.status).toBe(400)
+  })
+
+  // Regression test for ISSUESTOFIX #35 — non-allowlisted events must be rejected.
+  it('rejects events not on the allowlist (#35)', async () => {
+    const req = new NextRequest('http://localhost/api/track', {
+      method: 'POST',
+      body: JSON.stringify({ event: 'arbitrary_attacker_payload' })
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+    expect(mockKV.put).not.toHaveBeenCalled()
   })
 
   it('retrieves stats correctly', async () => {

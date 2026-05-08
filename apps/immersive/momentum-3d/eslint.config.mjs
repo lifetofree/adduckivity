@@ -13,6 +13,10 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".vercel/**",
+    // Scripts use CommonJS require for wrangler compatibility
+    "scripts/**",
+    // Test files use explicit any for mocking
+    "src/__tests__/**",
   ]),
 ]);
 

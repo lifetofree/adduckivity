@@ -217,13 +217,13 @@ export default function Home() {
             >
               ⚠️ Emergency Reset — 2 min
             </Link>
-            <a
-              href="#tools"
+            <Link
+              href="/os"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:border-white/20 border"
               style={{ borderColor: ET.border, color: ET.mid }}
             >
-              Explore the OS ↓
-            </a>
+              Enter the Launchpad ↓
+            </Link>
           </div>
 
           {/* Scroll indicator */}

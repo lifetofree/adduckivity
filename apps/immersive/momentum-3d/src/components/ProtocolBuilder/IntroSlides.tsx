@@ -4,6 +4,11 @@ import { ET } from '@/lib/theme'
 
 const STORAGE_KEY = 'duckos:protocol:intro-seen'
 
+/** Safe localStorage write — silently ignores quota / private-mode failures (#57). */
+function markIntroSeen(): void {
+  try { markIntroSeen() } catch { /* ignore */ }
+}
+
 // ── Slide content ────────────────────────────────────────────────────────────
 const SLIDES = [
   {
@@ -190,7 +195,7 @@ export default function IntroSlides({ onDone }: { onDone: () => void }) {
     if (isLast) {
       setExiting(true)
       setTimeout(() => {
-        localStorage.setItem(STORAGE_KEY, '1')
+        markIntroSeen()
         onDone()
       }, 280)
     } else {
@@ -205,7 +210,7 @@ export default function IntroSlides({ onDone }: { onDone: () => void }) {
       if (e.key === 'ArrowRight' || e.key === 'Enter') advance()
       if (e.key === 'ArrowLeft') back()
       if (e.key === 'Escape') {
-        localStorage.setItem(STORAGE_KEY, '1')
+        markIntroSeen()
         onDone()
       }
     }
@@ -304,7 +309,7 @@ export default function IntroSlides({ onDone }: { onDone: () => void }) {
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <button
-              onClick={() => { localStorage.setItem(STORAGE_KEY, '1'); onDone() }}
+              onClick={() => { markIntroSeen(); onDone() }}
               style={{
                 fontFamily: 'monospace', fontSize: 10, background: 'none', border: 'none',
                 color: ET.sub, cursor: 'pointer',
@@ -339,7 +344,9 @@ export function useIntroSlides() {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) setShow(true)
+    try {
+      if (!localStorage.getItem(STORAGE_KEY)) setShow(true)
+    } catch { /* private mode / no storage — fall back to not showing */ }
   }, [])
 
   return { show, done: () => setShow(false) }

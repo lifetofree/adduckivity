@@ -25,6 +25,7 @@
 - ✅ **Interactive 3D Protocols**: Momentum Flywheel (ACT-04) and Emergency Recovery (FAIL-SAFE).
 - ✅ **The Atomizer (EXEC-01)**: AI-powered task decomposition with Multi-provider AI system
 - ✅ **Protocol Builder (SYS-02)**: 3D momentum constellation tool with Architect/Pilot modes
+- ✅ **Immersive Launchpad (/os)**: 3D biological shield web and central command center.
 - ✅ **Dynamic CMS Dashboard**: Custom-built Next.js admin UI for managing posts (`/content`).
 - ✅ **AI Writing Assistant**: Multi-provider AI (MiniMax primary, Gemini fallback)
 - ✅ **Robust Scheduling**: Automated promotion of scheduled posts with secret-protected maintenance API.

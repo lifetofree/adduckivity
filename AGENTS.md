@@ -83,6 +83,27 @@ Compact bottom bar — mirrors SystemBar exactly.
 
 ---
 
+### System Lock: Gradient Model (`src/lib/system-context.tsx`)
+
+Duck OS uses a **gradient lock model** that adjusts sensory requirements based on energy level:
+
+| Energy Level | Sensory Required | Lock Condition |
+|--------------|------------------|-----------------|
+| 7-10 (High) | Any 1 of 3 | Never locked by sensory alone |
+| 4-6 (Medium) | Any 2 of 3 | Locked if < 2 sensory |
+| 1-3 (Low) | All 3 required | Locked if < 3 sensory |
+| 0-2 (Critical) | — | Hard lock regardless |
+
+**Context Values:**
+- `sensoryRequired` — Number of sensory checks needed (1, 2, or 3)
+- `lockProximity` — 0-1 value showing how close to lock (1 = safe, 0 = about to lock)
+- `isLocked` — Boolean, true if locked out of tools
+- `isProtected` — True when energy ≤ 3
+
+**Fail-Safe:** Critical energy (≤2) always triggers hard lock regardless of sensory checks.
+
+---
+
 ### Homepage (`/`)
 
 **Pinned feature cards** (in order):
@@ -236,7 +257,7 @@ interface Post {
 | `src/__tests__/posts.schedule.test.ts` | hides future, promotes past, facebookPosted flag, race condition lock |
 | `src/lib/atomizer.test.ts` | AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask |
 
-**Total:** 42 tests passing
+**Total:** 94 tests passing
 
 ---
 

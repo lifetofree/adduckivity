@@ -17,6 +17,22 @@ function getEnv(): CloudflareEnv {
   return getRequestContext<CloudflareEnv>().env
 }
 
+/** Verifies `x-admin-key` header. Returns null on success, 401 NextResponse on failure. */
+function requireAdmin(req: NextRequest): NextResponse | null {
+  const provided = req.headers.get('x-admin-key')
+  let expected: string | undefined
+  try {
+    expected = (getRequestContext<CloudflareEnv>().env as { ADMIN_KEY?: string }).ADMIN_KEY
+  } catch {
+    expected = process.env.ADMIN_KEY
+  }
+  if (!expected && process.env.NODE_ENV === 'development') expected = 'dev-key'
+  if (!expected || provided !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  return null
+}
+
 /**
  * POST /api/posts/save
  *
@@ -37,6 +53,9 @@ function getEnv(): CloudflareEnv {
  *   on unexpected errors.
  */
 export async function POST(req: NextRequest) {
+  const unauthorized = requireAdmin(req)
+  if (unauthorized) return unauthorized
+
   const kv = getKV()
   const env = process.env.NODE_ENV === 'development' ? undefined : getEnv()
 
@@ -64,9 +83,9 @@ export async function POST(req: NextRequest) {
 
     let facebook: { ok: boolean; error?: string } | undefined
     if (shouldPostToFacebook) {
-      const env = (process.env.NODE_ENV === 'development' || process.env.CF_PAGES === '1') ? undefined : getEnv()
-      if (env) {
-        facebook = await postToFacebook(env, post)
+      const fbEnv = process.env.NODE_ENV === 'development' ? undefined : getEnv()
+      if (fbEnv) {
+        facebook = await postToFacebook(fbEnv, post)
         if (facebook.ok) {
           // Update the post with the flag
           await updatePost(kv, post.slug, { facebookPosted: true })

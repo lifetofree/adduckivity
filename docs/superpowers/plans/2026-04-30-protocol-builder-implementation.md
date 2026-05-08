@@ -85,7 +85,7 @@ describe('Protocol Store', () => {
 Run: `npx vitest apps/immersive/momentum-3d/src/__tests__/protocol.test.ts`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 `git add apps/immersive/momentum-3d/src/lib/protocol-store.ts apps/immersive/momentum-3d/src/__tests__/protocol.test.ts && git commit -m "feat: protocol store and types"`
 
 ---
@@ -96,7 +96,7 @@ Expected: PASS
 - Create: `apps/immersive/momentum-3d/src/components/ProtocolBuilder/ProtocolScene.tsx`
 - Create: `apps/immersive/momentum-3d/src/app/protocol-builder/page.tsx`
 
-- [ ] **Step 1: Implement the 3D Scene with R3F**
+- [x] **Step 1: Implement the 3D Scene with R3F**
 
 ```tsx
 // apps/immersive/momentum-3d/src/components/ProtocolBuilder/ProtocolScene.tsx
@@ -136,7 +136,7 @@ export default function ProtocolScene({ nodes }: { nodes: ProtocolNode[] }) {
 }
 ```
 
-- [ ] **Step 2: Create the entry page**
+- [x] **Step 2: Create the entry page**
 
 ```tsx
 // apps/immersive/momentum-3d/src/app/protocol-builder/page.tsx
@@ -173,7 +173,7 @@ export default function ProtocolBuilderPage() {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 `git commit -m "feat: basic 3d protocol scene and entry page"`
 
 ---
@@ -183,7 +183,7 @@ export default function ProtocolBuilderPage() {
 **Files:**
 - Modify: `apps/immersive/momentum-3d/src/components/ProtocolBuilder/ProtocolScene.tsx`
 
-- [ ] **Step 1: Add Edge rendering to the scene**
+- [x] **Step 1: Add Edge rendering to the scene**
 
 ```tsx
 // Inside ProtocolScene.tsx

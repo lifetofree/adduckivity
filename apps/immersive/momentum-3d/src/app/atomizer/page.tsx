@@ -1,12 +1,9 @@
 'use client'
 import React, { useState, useEffect, Suspense } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask } from '@/lib/atomizer';
 import AtomizerList from '@/components/AtomizerList';
 import EnergyCheck from '@/components/EnergyCheck';
-import SystemBar from '@/components/ProtocolBuilder/SystemBar';
 import dynamic from 'next/dynamic';
 import { SceneLoader } from '@/components/shared/SceneLoader';
 
@@ -15,28 +12,31 @@ const AtomizerScene = dynamic(() => import('@/components/AtomizerScene'), {
   loading: () => <SceneLoader />
 });
 
-import SystemFooter from '@/components/ProtocolBuilder/SystemFooter';
-import SystemGate from '@/components/SystemGate';
-import { ET } from '@/lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSystem } from '@/lib/system-context';
+import SystemGate from '@/components/SystemGate';
 
 function AtomizerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
-  const { isProtected } = useSystem();
+  const { isProtected, setFooterVisible } = useSystem();
   
   const [input, setInput] = useState('');
-  const [task, setTask] = useState<AtomizerTask | null>(null);
+  const [task, setTask] = useState<AtomizerTask | null>(() => loadAtomizerTask());
   const [loading, setLoading] = useState(false);
   const [shatter, setShatter] = useState(false);
   const [showEnergyCheck, setShowEnergyCheck] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const MAX_TASK_LENGTH = 500;
+
+  // Manage Footer Visibility
   useEffect(() => {
-    setTask(loadAtomizerTask());
-  }, []);
+    setFooterVisible(!task)
+    return () => setFooterVisible(true)
+  }, [task, setFooterVisible])
 
   // Reliable Auto-Redirect Protocol
   useEffect(() => {
@@ -51,39 +51,47 @@ function AtomizerContent() {
   }, [showSuccess, returnTo, router]);
 
   const handleAtomize = async () => {
-    if (!input.trim()) return;
+    const trimmed = input.trim();
+    if (!trimmed) return;
+    if (trimmed.length > MAX_TASK_LENGTH) {
+      setError(`Task is too long (max ${MAX_TASK_LENGTH} characters).`);
+      return;
+    }
+    setError(null);
     setLoading(true);
     try {
       const res = await fetch('/api/ai/atomize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task: input }),
+        body: JSON.stringify({ task: trimmed }),
       });
       const data = await res.json() as { steps?: string[]; error?: string };
-      
+
       if (!data.steps || data.error) {
         throw new Error(data.error || 'No steps returned');
       }
-      
+
       const newTask: AtomizerTask = {
-        originalTask: input,
-        steps: data.steps.map((text: string, i: number) => ({
-          id: Math.random().toString(36).substr(2, 9),
+        originalTask: trimmed,
+        steps: data.steps.map((text: string) => ({
+          id: Math.random().toString(36).slice(2, 11),
           text,
           completed: false,
         })),
         energyCheckCount: 0,
         createdAt: new Date().toISOString(),
       };
-      
+
       setShatter(true);
       setTimeout(() => {
         setTask(newTask);
         saveAtomizerTask(newTask);
+        setInput('');
         setShatter(false);
       }, 1000);
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : 'Could not atomize task. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -93,32 +101,34 @@ function AtomizerContent() {
     if (!task) return;
     const currentCompleted = task.steps.filter(s => s.completed).length + 1;
     const newSteps = task.steps.map(s => s.id === id ? { ...s, completed: true } : s);
-    const updatedTask = { ...task, steps: newSteps };
-    
+
+    // Law 3: Energy check threshold — standard 6, Protected Mode 3.
+    const threshold = isProtected ? 3 : 6;
+    const allDone = newSteps.every(s => s.completed);
+    const energyCheckTriggered = !allDone && currentCompleted % threshold === 0;
+
+    const updatedTask = {
+      ...task,
+      steps: newSteps,
+      energyCheckCount: task.energyCheckCount + (energyCheckTriggered ? 1 : 0),
+    };
+
     setTask(updatedTask);
     saveAtomizerTask(updatedTask);
-    
+
     // Quick burst on completion
     setShatter(true);
     setTimeout(() => setShatter(false), 500);
 
-    // Check if all steps completed
-    if (newSteps.every(s => s.completed)) {
-        setShowSuccess(true);
-    } else {
-        // Law 3: Energy check threshold
-        // Standard: 6 steps. Protected Mode: 3 steps.
-        const threshold = isProtected ? 3 : 6;
-        if (currentCompleted % threshold === 0) {
-            setShowEnergyCheck(true);
-        }
+    if (allDone) {
+      setShowSuccess(true);
+    } else if (energyCheckTriggered) {
+      setShowEnergyCheck(true);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
-      <SystemBar title="Atomizer" />
-
       {/* 3D Background — now always visible for atmosphere */}
       <AtomizerScene shatter={shatter} />
       
@@ -188,6 +198,8 @@ function AtomizerContent() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAtomize()}
                 placeholder="e.g., Do my taxes..."
+                maxLength={MAX_TASK_LENGTH}
+                aria-label="Scary task to atomize"
                 className="flex-1 bg-transparent border-0 border-b-2 border-white/10 pb-3 text-lg outline-none transition-colors focus:border-cyan-500 text-white"
                 autoFocus
               />
@@ -199,6 +211,11 @@ function AtomizerContent() {
                 {loading ? 'Atomizing...' : 'Atomize'}
               </button>
             </div>
+            {error && (
+              <p role="alert" className="text-sm text-red-400 mt-4">
+                {error}
+              </p>
+            )}
           </motion.div>
         ) : (
           <div className="w-full flex flex-col items-center">
@@ -216,11 +233,6 @@ function AtomizerContent() {
           </div>
         )}
       </main>
-
-      {/* System Footer (Hidden when task is active for focus) */}
-      <div className={`mt-auto transition-opacity duration-700 ${task ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        <SystemFooter />
-      </div>
     </div>
   );
 }
