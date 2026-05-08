@@ -76,8 +76,8 @@ export default function OSLaunchpadScene() {
           {/* Geodesic Shield Layer */}
           <ShieldWeb />
 
-          {/* Core Tool Constellation */}
-          {!isRoadmapExpanded && (
+          {/* Core Tool Constellation - hidden when locked */}
+          {!isRoadmapExpanded && !isLocked && (
             <group>
               {tools.map((tool, i) => (
                 <ToolNode
