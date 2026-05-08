@@ -18,7 +18,7 @@ const PlaceholderImage = () => (
 )
 
 export default async function BlogPage() {
-  const wpPosts = await getWordPressPosts({ perPage: 9 })
+  const wpPosts = await getWordPressPosts({ perPage: 10 })
 
   // formatWordPressPost already pulls SEO from yoast_head_json embedded in
   // the original payload, so no per-post HTML fetch is needed (#65).
