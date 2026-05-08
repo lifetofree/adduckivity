@@ -26,6 +26,11 @@ function AtomizerContent() {
   const [task, setTask] = useState<AtomizerTask | null>(() => loadAtomizerTask());
   const [loading, setLoading] = useState(false);
   const [shatter, setShatter] = useState(false);
+
+  const triggerShatter = React.useCallback((durationMs = 1000) => {
+    setShatter(true);
+    setTimeout(() => setShatter(false), durationMs);
+  }, []);
   const [showEnergyCheck, setShowEnergyCheck] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,12 +87,11 @@ function AtomizerContent() {
         createdAt: new Date().toISOString(),
       };
 
-      setShatter(true);
+      triggerShatter(1000);
       setTimeout(() => {
         setTask(newTask);
         saveAtomizerTask(newTask);
         setInput('');
-        setShatter(false);
       }, 1000);
     } catch (err) {
       console.error(err);
@@ -117,8 +121,7 @@ function AtomizerContent() {
     saveAtomizerTask(updatedTask);
 
     // Quick burst on completion
-    setShatter(true);
-    setTimeout(() => setShatter(false), 500);
+    triggerShatter(500);
 
     if (allDone) {
       setShowSuccess(true);

@@ -1,6 +1,6 @@
 export const runtime = 'edge'
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 interface Task {
   id: string
@@ -16,36 +16,14 @@ interface Phase {
 
 /**
  * GET /api/roadmap
- * Returns parsed roadmap data from ROADMAP.md
- * 
- * In local development: reads directly from markdown files
- * In production: returns static milestone data
+ * Returns static roadmap milestone data.
+ *
+ * File-system reads are not safe in an edge runtime — any host that sets
+ * `Host: localhost` could trigger them on production workers. Static data
+ * is always returned instead.
  */
-export async function GET(req: NextRequest) {
-  // Localhost only check
-  const host = req.headers.get('host') || ''
-  const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1')
-  
-  if (!isLocalhost) {
-    return NextResponse.json({ phases: getStaticRoadmap() })
-  }
-
-  try {
-    // Dynamic import for Node.js modules (only works in local dev)
-    const { readFileSync } = await import('fs')
-    const pathModule = await import('path')
-    
-    const PROJECT_ROOT = pathModule.resolve(process.cwd(), '../../..')
-    const ROADMAP_PATH = pathModule.join(PROJECT_ROOT, 'ROADMAP.md')
-    
-    const content = readFileSync(ROADMAP_PATH, 'utf-8')
-    const phases = parseMarkdownRoadmap(content)
-
-    return NextResponse.json({ phases })
-  } catch (err) {
-    console.error('Failed to read roadmap, using static:', err)
-    return NextResponse.json({ phases: getStaticRoadmap() })
-  }
+export async function GET() {
+  return NextResponse.json({ phases: getStaticRoadmap() })
 }
 
 function getStaticRoadmap(): Phase[] {
@@ -92,41 +70,4 @@ function getStaticRoadmap(): Phase[] {
       ]
     }
   ]
-}
-
-function parseMarkdownRoadmap(content: string): Phase[] {
-  const phases: Phase[] = []
-  const lines = content.split('\n')
-  let currentPhase: Phase | null = null
-  let taskIndex = 0
-
-  for (const line of lines) {
-    const headerMatch = line.match(/^#{2,3}\s+(.+)$/)
-    if (headerMatch) {
-      if (currentPhase) {
-        phases.push(currentPhase)
-      }
-      currentPhase = { title: headerMatch[1], tasks: [] }
-      taskIndex = 0
-      continue
-    }
-
-    const taskMatch = line.match(/^\s*[-*]\s+\[([ xX])\]\s+(.+)$/)
-    if (taskMatch && currentPhase) {
-      const completed = taskMatch[1].toLowerCase() === 'x'
-      const text = taskMatch[2].trim()
-      currentPhase.tasks.push({
-        id: `task-${phases.length}-${taskIndex++}`,
-        text,
-        completed,
-        filePath: 'ROADMAP.md'
-      })
-    }
-  }
-
-  if (currentPhase) {
-    phases.push(currentPhase)
-  }
-
-  return phases.length > 0 ? phases : getStaticRoadmap()
 }

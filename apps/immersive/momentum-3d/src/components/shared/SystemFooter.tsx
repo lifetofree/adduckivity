@@ -26,7 +26,7 @@ export default function SystemFooter() {
 
           {/* Center: brand or dynamic slot */}
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
-            {footerNode || (
+            {footerNode ?? (
               <Link href="/" className="flex items-center gap-2 group">
                 <div className="relative w-5 h-5 overflow-hidden rounded-md border border-white/10 group-hover:border-cyan-500/50 transition-colors">
                   <Image src="/logo.png" alt="Duck OS" fill className="object-cover opacity-60 group-hover:opacity-100 transition-opacity" />

@@ -57,11 +57,8 @@ class MockKVNamespace {
     } else if (value instanceof ArrayBuffer) {
       stringValue = new TextDecoder().decode(value)
     } else if (value instanceof ReadableStream) {
-      const reader = value.getReader()
       const chunks: Uint8Array[] = []
-      while (true) {
-        const { done, value: chunk } = await reader.read()
-        if (done) break
+      for await (const chunk of value as AsyncIterable<Uint8Array>) {
         chunks.push(chunk)
       }
       const combined = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0))

@@ -28,19 +28,18 @@ export default function RoadmapWeb({ isVisible }: RoadmapWebProps) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isVisible) {
-      setLoading(true)
-      fetch('/api/roadmap')
-        .then(res => res.json() as Promise<{ phases?: Phase[] }>)
-        .then(data => {
-          setPhases(data.phases || [])
-          setLoading(false)
-        })
-        .catch(err => {
-          console.error('Failed to fetch roadmap:', err)
-          setLoading(false)
-        })
-    }
+    if (!isVisible) return
+    setLoading(true)
+    fetch('/api/roadmap')
+      .then(res => res.json() as Promise<{ phases?: Phase[] }>)
+      .then(data => {
+        setPhases(data.phases || [])
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch roadmap:', err)
+        setLoading(false)
+      })
   }, [isVisible])
 
   const toggleTask = async (task: Task) => {

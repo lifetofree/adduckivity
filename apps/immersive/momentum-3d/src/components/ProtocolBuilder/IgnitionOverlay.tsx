@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useIgnitionStore, type IgnitionPhase } from '../../lib/ignition-store';
 import { ignitionAudio } from '../../lib/ignition-audio';
 
@@ -35,17 +35,16 @@ export const IgnitionOverlay = () => {
     setAudioEnabled(newState);
   };
 
+  // Keep a ref to the latest tick so the interval doesn't restart every time
+  // Zustand produces a new function reference (#H8).
+  const tickRef = useRef<() => void>(tick);
+  useEffect(() => { tickRef.current = tick; }, [tick]);
+
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isActive) {
-      interval = setInterval(() => {
-        tick();
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, tick]);
+    if (!isActive) return;
+    const interval = setInterval(() => { tickRef.current(); }, 1000);
+    return () => clearInterval(interval);
+  }, [isActive]);
 
   useEffect(() => {
     if (isActive && currentPhase === 'spark') {

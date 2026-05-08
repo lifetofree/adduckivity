@@ -84,16 +84,14 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
   }, [energy, sensory, isLoaded])
 
   // Biological Crash Recovery: If energy hits critical (<= 2), reset all sensory checks.
-  // This forces a manual stabilization ritual once the user recovers.
+  // Only fires when any sensory is still true — avoids re-triggering after the reset (#M1).
   useEffect(() => {
-    if (isLoaded && energy <= 2) {
-      const allSensoryMissing = !sensory.water && !sensory.light && !sensory.noise
-      if (!allSensoryMissing) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSensoryState({ water: false, light: false, noise: false })
-      }
+    if (isLoaded && energy <= 2 && (sensory.water || sensory.light || sensory.noise)) {
+      setSensoryState({ water: false, light: false, noise: false })
     }
-  }, [energy, isLoaded, sensory.water, sensory.light, sensory.noise])
+    // Intentionally omit sensory fields — we only want to re-run when energy or isLoaded changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [energy, isLoaded])
 
   // System Lock: Gradient model based on Duck OS philosophy
   // Higher energy = lenient (only 1 sensory required)

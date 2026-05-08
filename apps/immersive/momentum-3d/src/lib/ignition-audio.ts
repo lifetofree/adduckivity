@@ -103,10 +103,11 @@ class IgnitionAudioManager {
     }, 50);
   }
 
-  cleanup() {
+  async cleanup() {
     this.stop();
     if (this.audioContext) {
-      this.audioContext.close();
+      await this.audioContext.close().catch(() => {});
+      this.audioContext = null;
     }
   }
 }

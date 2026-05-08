@@ -8,6 +8,9 @@ import { useSystem } from '@/lib/system-context'
 import { Droplets, Eye, Headphones, Check } from 'lucide-react'
 import { ET } from '@/lib/theme'
 
+// Reusable scratch vector to avoid per-frame heap allocations in useFrame (#53).
+const _shieldScaleTarget = new THREE.Vector3()
+
 // Singleton audio element shared across all bio nodes — avoids 3× duplicate
 // allocations and leaks per shield mount (#55).
 let _bioAudio: HTMLAudioElement | null = null
@@ -124,10 +127,10 @@ export default function ShieldWeb() {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.002
       meshRef.current.rotation.x += 0.001
-      
-      // Retraction animation
-      const targetScale = isLocked ? 1 : 0
-      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.05)
+
+      // Retraction animation — reuse scratch vector to avoid per-frame allocation
+      const t = isLocked ? 1 : 0
+      meshRef.current.scale.lerp(_shieldScaleTarget.set(t, t, t), 0.05)
     }
   })
 

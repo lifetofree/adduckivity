@@ -1,10 +1,10 @@
-# 🦆 Duck OS - Adduckivity Monorepo
+# Duck OS - Adduckivity Monorepo
 
 **Life Architecture for Neurodivergent Creators**
 
 Built with systems thinking, not willpower.
 
-## 🏗️ Architecture
+## Architecture
 
 This is a **monorepo** containing all Adduckivity applications and shared packages.
 
@@ -14,38 +14,28 @@ adduckivity/
 │   └── immersive/
 │       └── momentum-3d/    # → immersive.adduckivity.com (3D content studio)
 ├── docs/                   # Project documentation and specs
-├── skills/                 # AI agent skills and workflows
 ├── AGENTS.md               # Project specifications and tech stack
-├── UDO-SYSTEM.md           # AI co-founder system instruction
 ├── DEPLOYMENT.md           # Deployment guide
 └── README.md               # This file
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Development
 ```bash
-# Install dependencies
 npm install
-
-# Run immersive app locally
 cd apps/immersive/momentum-3d
 npm run dev                # http://localhost:3000
 ```
 
 ### Build & Deploy
 ```bash
-# Run test suite (42 tests)
-npm run test
-
-# Build for production
+npm run test               # 94 tests across 11 files
 npm run build
-
-# Deploy to Cloudflare Pages
-npm run deploy
+npm run deploy             # typecheck + build + deploy to Cloudflare Pages
 ```
 
-## 🌐 Deployment
+## Deployment
 
 **Production:** https://immersive.adduckivity.com  
 **Platform:** Cloudflare Pages with Edge Functions  
@@ -58,21 +48,21 @@ npm run deploy
 4. Output directory: `.vercel/output/static` (next-on-pages)
 5. Environment variables: See `DEPLOYMENT.md`
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Framework** | Next.js 16.2 (App Router, Turbopack) |
+| **Framework** | Next.js 16.2.4 (App Router, Turbopack) |
 | **UI** | React 19, TypeScript 5 |
-| **3D** | Three.js 0.184, React Three Fiber 9, Drei 10 |
+| **3D** | Three.js 0.184, React Three Fiber 9.6, Drei 10.7, Postprocessing 3.0 |
 | **Styling** | Tailwind CSS 4, Framer Motion 12 |
-| **Testing** | Vitest 4 + jsdom (42 tests passing) |
-| **Content** | Markdown + gray-matter, KV-based CMS |
+| **Testing** | Vitest 4.1 + jsdom 29 + Testing Library (94 tests, 11 files) |
+| **Blog** | WordPress REST API (wp.adduckivity.com) |
 | **AI** | MiniMax abab6.5s-chat (primary) + Gemini 1.5 Flash (fallback) |
 | **Storage** | Cloudflare KV + R2 |
 | **Deployment** | Cloudflare Pages (edge runtime) |
 
-## 🧠 Philosophy
+## Philosophy
 
 **Duck OS Core Principles:**
 - **System > Emotion** — Build systems that run regardless of how you feel
@@ -83,28 +73,36 @@ npm run deploy
 - **Momentum (ACT-04)**: Visualized 3D flywheel syncing action with scroll
 - **Emergency Recovery (FAIL-SAFE)**: 5-step interactive reset for burnout spirals
 - **The Atomizer (EXEC-01)**: AI-powered task decomposition into atomic steps
-- **Protocol Builder (SYS-02)**: 3D momentum constellation tool
+- **Protocol Builder (SYS-02)**: 3D momentum constellation tool with Architect/Pilot modes
+- **Ignition Sequence**: 600-second power-up ritual with audio crossfade
+- **OS Launchpad**: 3D biological shield web (localhost only)
 
-## 📝 Content System
+## Content System
 
-Posts are managed via a built-in CMS and stored in Cloudflare KV. The homepage grid is dynamically generated from these posts.
+Blog posts are fetched from `wp.adduckivity.com` via WordPress REST API. The CMS dashboard at `/content` manages posts stored in Cloudflare KV.
 
 ### Public Routes
 | Route | Purpose |
 |---|---|
 | `/` | Homepage — hero, protocol grid, email CTA |
-| `/blog` | Published posts grid |
-| `/blog/[slug]` | Article reading view (drafts → 404) |
+| `/blog` | WordPress-powered published posts grid |
+| `/blog/[slug]` | Post reading view |
 | `/momentum` | Momentum Protocol + Emergency Recovery |
+| `/momentum/guide` | Emergency Recovery guide |
 | `/atomizer` | The Atomizer — AI task decomposition |
+| `/atomizer/guide` | Atomizer guide |
 | `/protocol-builder` | Protocol Builder — 3D momentum constellation |
+| `/protocol-builder/guide` | Protocol Builder guide |
+| `/ignition` | Ignition Sequence — 600s power-up ritual |
+| `/ignition/guide` | Ignition guide |
+| `/os` | OS Launchpad (localhost only) |
 
 ### Admin Routes (Owner Only)
 | Route | Purpose |
 |---|---|
-| `/content` | CMS dashboard — delete buttons, status badges |
+| `/content` | CMS dashboard |
 | `/content/new` | New post — auto-save, AI assist, Unsplash/R2 |
-| `/content/edit?slug=` | Edit post — auto-save (4s), Publish/Unpublish modals |
+| `/content/edit?slug=` | Edit post — auto-save, Publish/Unpublish |
 
 ### API Routes
 | Route | Method | Purpose |
@@ -121,7 +119,7 @@ Posts are managed via a built-in CMS and stored in Cloudflare KV. The homepage g
 | `/api/stats` | GET | Analytics from KV |
 | `/api/track` | GET/POST | Event tracking |
 
-## 🔧 Environment Variables
+## Environment Variables
 
 Required in Cloudflare Dashboard (see `DEPLOYMENT.md`):
 ```
@@ -136,27 +134,27 @@ SENDFOX_LIST_ID             # SendFox list ID
 MAINTENANCE_KEY             # Scheduled post promotion
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 cd apps/immersive/momentum-3d
-npm run test               # Run 42 tests
+npm run test               # 94 tests across 11 files
 ```
 
 **Test Coverage:**
-- Post CRUD operations (KV)
-- Scheduled post promotion
-- Reading time calculation
-- Slug generation
-- Atomizer task persistence
-- Facebook posting integration
+- Post CRUD operations (KV) — 18 tests
+- Scheduled post promotion — 4 tests
+- Reading time calculation — 17 tests
+- Slug generation — 7 tests
+- Atomizer task persistence — 4 tests
+- Markdown rendering — 10 tests
+- System provider / gradient lock — 8 tests
+- Protocol store — 4 tests
+- Ignition state — 6 tests
+- Analytics tracking — 4 tests
+- Post utilities — 18 tests
 
-## 🦆 UDO - AI Co-Founder
-
-This project uses UDO (Unbreakable Duck Operator) as an AI partner system.
-See `UDO-SYSTEM.md` for the complete system instruction.
-
-## 📄 License
+## License
 
 MIT
 

@@ -16,7 +16,7 @@ export default function OSPage() {
   const [checked, setChecked] = useState(false)
 
   useEffect(() => {
-    setAllowed(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    setAllowed(process.env.NODE_ENV === 'development')
     setChecked(true)
   }, [])
 

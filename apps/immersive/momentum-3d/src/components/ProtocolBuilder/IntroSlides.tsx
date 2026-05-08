@@ -6,7 +6,7 @@ const STORAGE_KEY = 'duckos:protocol:intro-seen'
 
 /** Safe localStorage write — silently ignores quota / private-mode failures (#57). */
 function markIntroSeen(): void {
-  try { markIntroSeen() } catch { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, 'true') } catch { /* ignore */ }
 }
 
 // ── Slide content ────────────────────────────────────────────────────────────

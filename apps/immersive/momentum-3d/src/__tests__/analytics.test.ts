@@ -82,7 +82,10 @@ describe('Analytics API', () => {
     await mockKV.put('stats:hit:step1:456', '1')
     await mockKV.put('stats:hit:step2:789', '1')
 
-    const res = await GET()
+    const req = new Request('http://localhost/api/stats', {
+      headers: { 'x-admin-key': 'dev-key' },
+    }) as unknown as import('next/server').NextRequest
+    const res = await GET(req)
     expect(res.status).toBe(200)
     const data = await res.json()
 

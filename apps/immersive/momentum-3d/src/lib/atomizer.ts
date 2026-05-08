@@ -46,12 +46,28 @@ export function saveAtomizerTask(task: AtomizerTask | null): void {
  *
  * @returns The persisted `AtomizerTask`, or `null`.
  */
+function isValidAtomizerTask(v: unknown): v is AtomizerTask {
+  if (!v || typeof v !== 'object') return false
+  const t = v as Record<string, unknown>
+  return (
+    typeof t.originalTask === 'string' &&
+    Array.isArray(t.steps) &&
+    typeof t.energyCheckCount === 'number' &&
+    typeof t.createdAt === 'string'
+  )
+}
+
 export function loadAtomizerTask(): AtomizerTask | null {
   if (typeof window === 'undefined') return null;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return null;
   try {
-    return JSON.parse(saved) as AtomizerTask;
+    const parsed = JSON.parse(saved);
+    if (!isValidAtomizerTask(parsed)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     localStorage.removeItem(STORAGE_KEY);
     return null;

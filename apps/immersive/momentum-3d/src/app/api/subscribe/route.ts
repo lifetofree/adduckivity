@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: data.message || 'SendFox error' }, { status: 500 })
   }
 
-  // 422 = email already subscribed — treat as success
+  // 422 = email already subscribed
+  if (res.status === 422) {
+    return NextResponse.json({ success: true, alreadySubscribed: true })
+  }
   return NextResponse.json({ success: true })
 }

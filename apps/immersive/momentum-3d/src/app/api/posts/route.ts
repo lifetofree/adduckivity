@@ -17,13 +17,23 @@ function getEnv(): CloudflareEnv {
   return getRequestContext<CloudflareEnv>().env
 }
 
+/** Constant-time string comparison to prevent timing attacks on secret keys. */
+function timingSafeEqual(a: string, b: string): boolean {
+  let diff = a.length ^ b.length
+  const len = Math.max(a.length, b.length)
+  for (let i = 0; i < len; i++) {
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0)
+  }
+  return diff === 0
+}
+
 /**
  * Verifies the request carries a valid `x-admin-key` header matching `ADMIN_KEY` env.
  * In development falls back to `dev-key` if the env var is missing.
  * Returns null on success, or a 401 NextResponse on failure.
  */
 function requireAdmin(req: NextRequest): NextResponse | null {
-  const provided = req.headers.get('x-admin-key')
+  const provided = req.headers.get('x-admin-key') || ''
   let expected: string | undefined
   try {
     expected = (getRequestContext<CloudflareEnv>().env as { ADMIN_KEY?: string }).ADMIN_KEY
@@ -31,7 +41,7 @@ function requireAdmin(req: NextRequest): NextResponse | null {
     expected = process.env.ADMIN_KEY
   }
   if (!expected && process.env.NODE_ENV === 'development') expected = 'dev-key'
-  if (!expected || provided !== expected) {
+  if (!expected || !timingSafeEqual(provided, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   return null

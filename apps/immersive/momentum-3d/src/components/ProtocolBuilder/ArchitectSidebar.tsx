@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock, Zap, Flame } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useIgnitionStore } from '@/lib/ignition-store'
 
 interface ArchitectSidebarProps {
@@ -29,7 +29,7 @@ export default function ArchitectSidebar({
   onAddEdge,
   onDeleteEdge,
 }: ArchitectSidebarProps) {
-  const activeNode = nodes.find(n => n.id === activeNodeId)
+  const activeNode = useMemo(() => nodes.find(n => n.id === activeNodeId), [nodes, activeNodeId])
   const [targetNodeId, setTargetNodeId] = useState<string>('')
   const { start: startIgnition } = useIgnitionStore()
 

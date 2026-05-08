@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Cpu, ChevronRight } from 'lucide-react'
 import { useSystem } from '@/lib/system-context'
+import { energyBars } from '@/lib/theme'
 import ControlCenter from './ControlCenter'
 
 export default function SystemBar() {
@@ -90,7 +91,7 @@ export default function SystemBar() {
                   }`}>Energy Level</span>
                   <div className="flex gap-0.5 mt-0.5">
                       {[1, 2, 3, 4, 5].map((i) => {
-                        const level = Math.ceil(energy / 2)
+                        const level = energyBars(energy)
                         const isCritical = energy <= 2
                         return (
                           <div key={i} className={`w-2 h-1 rounded-full transition-all ${
