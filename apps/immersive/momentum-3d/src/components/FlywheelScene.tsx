@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { PerspectiveCamera } from '@react-three/drei'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 
 function Flywheel({ scrollProgress }: { scrollProgress: number }) {
@@ -60,7 +60,7 @@ function ParticleField({ scrollProgress }: { scrollProgress: number }) {
 
   useEffect(() => { progressRef.current = scrollProgress }, [scrollProgress])
 
-  const positions = useRef(() => {
+  const positions = useMemo(() => {
     const count = 700
     const arr = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
@@ -69,7 +69,7 @@ function ParticleField({ scrollProgress }: { scrollProgress: number }) {
       arr[i * 3 + 2] = (Math.random() - 0.5) * 22
     }
     return arr
-  }).current()
+  }, [])
 
   useFrame((_, delta) => {
     if (pointsRef.current) pointsRef.current.rotation.y += delta * 0.025
@@ -95,7 +95,7 @@ function ParticleField({ scrollProgress }: { scrollProgress: number }) {
 export default function FlywheelScene({ scrollProgress = 0 }: { scrollProgress?: number }) {
   return (
     <div className="w-full h-screen fixed top-0 left-0 -z-10">
-      <Canvas>
+      <Canvas dpr={[1, 1.5]}>
         <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={55} />
         <ambientLight intensity={0.2} />
         <pointLight position={[8, 8, 8]} intensity={2} color="#00E5FF" />

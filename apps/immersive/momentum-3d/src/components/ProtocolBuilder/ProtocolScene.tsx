@@ -218,7 +218,7 @@ export default function ProtocolScene({
 }) {
   return (
     <div className="w-full h-screen bg-[#0a0f1e]">
-      <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
+      <Canvas camera={{ position: [0, 0, 10], fov: 75 }} dpr={[1, 1.5]}>
         <SceneContent
           nodes={nodes}
           edges={edges}

@@ -27,10 +27,10 @@ interface IgnitionStore extends IgnitionState {
 
 export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
   ...INITIAL_IGNITION_STATE,
-  start: (targetNodeId = null) => set({ 
-    isActive: true, 
-    currentPhase: 'spark', 
-    durationRemaining: 600,
+  start: (targetNodeId = null) => set({
+    isActive: true,
+    currentPhase: 'spark',
+    durationRemaining: 60,
     startTime: Date.now(),
     targetNodeId
   }),
@@ -47,7 +47,7 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
     const elapsed = state.startTime
       ? Math.floor((Date.now() - state.startTime) / 1000)
       : 0;
-    const nextRemaining = Math.max(0, 600 - elapsed);
+    const nextRemaining = Math.max(0, 60 - elapsed);
 
     if (nextRemaining === 0) {
       set({
@@ -59,13 +59,13 @@ export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
       return;
     }
 
-    // Phase logic for 600s:
-    // 480-600s: Spark (120s) - Physical Activation
-    // 300-480s: Target (180s) - Mental Alignment
-    // 0-300s: Launch (300s) - Deep Work Ignition
+    // Phase logic for 60s (test mode — scaled from 600s):
+    // 48-60s: Spark (12s) - Physical Activation
+    // 30-48s: Target (18s) - Mental Alignment
+    // 0-30s: Launch (30s) - Deep Work Ignition
     let nextPhase: IgnitionPhase = state.currentPhase;
-    if (nextRemaining > 480) nextPhase = 'spark';
-    else if (nextRemaining > 300) nextPhase = 'target';
+    if (nextRemaining > 48) nextPhase = 'spark';
+    else if (nextRemaining > 30) nextPhase = 'target';
     else nextPhase = 'launch';
 
     set({ durationRemaining: nextRemaining, currentPhase: nextPhase });

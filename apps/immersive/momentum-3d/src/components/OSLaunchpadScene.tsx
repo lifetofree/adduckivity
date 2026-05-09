@@ -55,7 +55,7 @@ export default function OSLaunchpadScene() {
 
   return (
     <div className="w-full h-full bg-zinc-950">
-      <Canvas shadows>
+      <Canvas dpr={[1, 1.5]}>
         <PerspectiveCamera makeDefault position={[0, 0, isRoadmapExpanded ? 15 : 10]} fov={50} />
         <OrbitControls 
           enablePan={false} 
@@ -67,7 +67,7 @@ export default function OSLaunchpadScene() {
         />
 
         <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
+        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} />
         <pointLight position={[-10, -10, -10]} intensity={1} />
 
         <Suspense fallback={null}>

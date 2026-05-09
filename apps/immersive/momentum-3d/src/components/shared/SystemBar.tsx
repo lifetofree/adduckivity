@@ -22,6 +22,7 @@ export default function SystemBar() {
     if (pathname.startsWith('/ignition')) return 'Ignition'
     if (pathname.startsWith('/blog')) return 'Archive'
     if (pathname.startsWith('/os')) return 'Launchpad'
+    if (pathname.startsWith('/start')) return 'Daily'
     return 'Core'
   }
 

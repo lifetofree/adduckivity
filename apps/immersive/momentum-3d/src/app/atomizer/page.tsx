@@ -23,7 +23,13 @@ function AtomizerContent() {
   const { isProtected, setFooterVisible } = useSystem();
   
   const [input, setInput] = useState('');
-  const [task, setTask] = useState<AtomizerTask | null>(() => loadAtomizerTask());
+  const [task, setTask] = useState<AtomizerTask | null>(() => {
+    const loaded = loadAtomizerTask();
+    if (!loaded) return null;
+    // Don't restore a fully-completed task — always start fresh
+    if (loaded.steps.length > 0 && loaded.steps.every(s => s.completed)) return null;
+    return loaded;
+  });
   const [loading, setLoading] = useState(false);
   const [shatter, setShatter] = useState(false);
 
@@ -124,6 +130,7 @@ function AtomizerContent() {
     triggerShatter(500);
 
     if (allDone) {
+      saveAtomizerTask(null); // Clear immediately — returning visits always get a fresh input
       setShowSuccess(true);
     } else if (energyCheckTriggered) {
       setShowEnergyCheck(true);

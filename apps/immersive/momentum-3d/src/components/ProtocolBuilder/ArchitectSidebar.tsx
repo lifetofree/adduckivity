@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock, Zap, Flame } from 'lucide-react'
+import { Plus, Trash2, Link as LinkIcon, Edit2, Settings2, Box, Clock, Zap, Flame, RotateCcw } from 'lucide-react'
 import { ProtocolNode, ProtocolEdge, NodeType } from '@/lib/protocol-store'
 import { useState, useMemo } from 'react'
 import { useIgnitionStore } from '@/lib/ignition-store'
@@ -16,6 +16,7 @@ interface ArchitectSidebarProps {
   onDeleteNode: (id: string) => void;
   onAddEdge: (source: string, target: string) => void;
   onDeleteEdge: (id: string) => void;
+  onStartFresh: () => void;
 }
 
 export default function ArchitectSidebar({
@@ -28,6 +29,7 @@ export default function ArchitectSidebar({
   onDeleteNode,
   onAddEdge,
   onDeleteEdge,
+  onStartFresh,
 }: ArchitectSidebarProps) {
   const activeNode = useMemo(() => nodes.find(n => n.id === activeNodeId), [nodes, activeNodeId])
   const [targetNodeId, setTargetNodeId] = useState<string>('')
@@ -271,6 +273,21 @@ export default function ArchitectSidebar({
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Start Fresh — sticky footer, always visible */}
+      <div className="p-4 border-t border-white/5">
+        <button
+          onClick={() => {
+            if (window.confirm('Start fresh? This will permanently clear your current protocol.')) {
+              onStartFresh()
+            }
+          }}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-mono uppercase tracking-widest text-red-500/50 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
+        >
+          <RotateCcw className="w-3 h-3" />
+          Start Fresh
+        </button>
       </div>
     </motion.div>
   )
