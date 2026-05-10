@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSystem } from '@/lib/system-context'
@@ -22,7 +22,7 @@ const ALL_TOOLS = [
   { name: 'Protocol Builder',   route: '/protocol-builder', color: '#8b5cf6', desc: 'Map your system',  complexity: 'high' },
 ]
 
-export default function StartPage() {
+function StartContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const forceReset = searchParams.get('reset') === 'true'
@@ -428,5 +428,13 @@ export default function StartPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function StartPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0f1e]" />}>
+      <StartContent />
+    </Suspense>
   )
 }
