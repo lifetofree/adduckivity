@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSystem } from '@/lib/system-context'
+import { energyBars } from '@/lib/theme'
 import { Droplets, Eye, Headphones, X, Zap, ShieldAlert, CheckCircle2 } from 'lucide-react'
 
 interface ControlCenterProps {

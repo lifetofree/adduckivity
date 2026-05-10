@@ -108,6 +108,7 @@ isProtected: boolean    // true when energy <= 3
 | 33 | `RoadmapWeb.tsx` | Rollback uses stale closure | Changed to functional `setPhases(prev => ...)` |
 | 34 | `ControlCenter.tsx` | Tailwind dynamic-class purge | Added `border` to `getEnergyLabel` |
 | 35 | `ProtocolScene.tsx` | Background click passed `''` | Changed to `null` |
+| 36 | — | **Task 6: Reviewer Rules** | Audited for Edge-Safe compliance, Vitest coverage (94/94), and Sensory-Aware UX. |
 
 ### Minor/Performance
 

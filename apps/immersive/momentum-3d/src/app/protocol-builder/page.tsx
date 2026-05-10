@@ -15,13 +15,17 @@ import IntroSlides, { useIntroSlides } from '@/components/ProtocolBuilder/IntroS
 import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } from '@/lib/protocol-store'
 import { useIgnitionStore } from '@/lib/ignition-store'
 import { useSystem } from '@/lib/system-context'
+import { Flame } from 'lucide-react'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
+const PROTOCOL_VISITED_KEY  = 'duckos:protocol:visited'
+const IGNITION_DONE_KEY = () => `duckos:ignition:done:${new Date().toDateString()}`
 
 export default function ProtocolBuilderPage() {
   const router = useRouter()
   const { isLocked, setSystemBarNode, setSyncing, setFooterVisible } = useSystem()
   const { show: showIntro, done: doneIntro } = useIntroSlides()
+  const [showIgnitionNudge, setShowIgnitionNudge] = useState(false)
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
   const [mode, setMode] = useState<'build' | 'flow'>('build')
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
@@ -31,6 +35,11 @@ export default function ProtocolBuilderPage() {
 
   // Ignition State
   const { isActive: isIgnitionActive, targetNodeId, start: startIgnition, stop: stopIgnitionState } = useIgnitionStore()
+
+  // Soft nudge: show once per day if user hasn't run Ignition yet
+  useEffect(() => {
+    if (!localStorage.getItem(IGNITION_DONE_KEY())) setShowIgnitionNudge(true)
+  }, [])
 
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
@@ -122,6 +131,12 @@ export default function ProtocolBuilderPage() {
     }))
   }
 
+  const startFresh = () => {
+    setGraph({ nodes: [], edges: [] })
+    setActiveNodeId(null)
+    setMode('build')
+  }
+
   // -- Effects --
 
   // Inject Mode Switcher into Global SystemBar
@@ -193,21 +208,24 @@ export default function ProtocolBuilderPage() {
   useEffect(() => {
     const init = async () => {
       const loaded = loadProtocol()
-      if (loaded.nodes.length === 0) {
-        // Seed initial nodes if none exist
+      const hasVisited = localStorage.getItem(PROTOCOL_VISITED_KEY)
+
+      if (!hasVisited && loaded.nodes.length === 0) {
+        // First visit only — seed example nodes so the canvas isn't blank
         const nodes: ProtocolNode[] = [
           { id: '1', type: 'action', label: 'Morning Ritual', position: [0, 0, 0], data: {} },
           { id: '2', type: 'tool', label: 'Deep Work Session', position: [5, 2, -5], data: { toolId: 'atomizer' } },
           { id: '3', type: 'action', label: 'Recovery Walk', position: [2, -3, -10], data: {} },
-        ];
+        ]
         const edges = [
           { id: 'e1-2', source: '1', target: '2' },
           { id: 'e2-3', source: '2', target: '3' },
-        ];
+        ]
         setGraph({ nodes, edges })
       } else {
         setGraph(loaded)
       }
+      localStorage.setItem(PROTOCOL_VISITED_KEY, '1')
 
       // Load Execution State
       const savedExecution = localStorage.getItem(EXECUTION_STORAGE_KEY)
@@ -451,7 +469,7 @@ export default function ProtocolBuilderPage() {
 
       {/* Architect Sidebar */}
       {mode === 'build' && (
-        <ArchitectSidebar 
+        <ArchitectSidebar
           nodes={graph.nodes}
           edges={graph.edges}
           activeNodeId={activeNodeId}
@@ -461,6 +479,7 @@ export default function ProtocolBuilderPage() {
           onDeleteNode={deleteNode}
           onAddEdge={addEdge}
           onDeleteEdge={deleteEdge}
+          onStartFresh={startFresh}
         />
       )}
 
@@ -473,6 +492,39 @@ export default function ProtocolBuilderPage() {
       {/* Ignition Overlay */}
       <IgnitionOverlay />
       {showIntro && <IntroSlides onDone={doneIntro} />}
+
+      {/* Ignition soft nudge — shown once per day if Ignition wasn't run */}
+      {showIgnitionNudge && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="flex flex-col items-center text-center gap-6 max-w-sm px-8 py-10 rounded-2xl bg-[#0a0f1e] border border-white/10 shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-rose-500/20 flex items-center justify-center">
+              <Flame className="w-7 h-7 text-rose-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white uppercase tracking-tight mb-2">
+                Pre-flight check
+              </h2>
+              <p className="text-sm text-white/50 leading-relaxed">
+                You haven&apos;t run Ignition today. 10 minutes of focus ritual before designing your system?
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 w-full">
+              <button
+                onClick={() => router.push('/ignition')}
+                className="w-full py-3 rounded-xl font-bold text-sm uppercase tracking-widest text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 transition-all"
+              >
+                Run Ignition (10 min)
+              </button>
+              <button
+                onClick={() => setShowIgnitionNudge(false)}
+                className="w-full py-3 rounded-xl text-sm text-white/40 hover:text-white/70 transition-colors"
+              >
+                Go straight to Builder
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

@@ -30,7 +30,7 @@ function isValidEvent(event: string): boolean {
 async function recordEvent(event: string) {
   const kv = getKV()
   const timestamp = Date.now()
-  const randomId = Math.random().toString(36).substring(2, 8)
+  const randomId = crypto.randomUUID().replace(/-/g, '').slice(0, 12)
   const key = `stats:hit:${event}:${timestamp}-${randomId}`
   await kv.put(key, timestamp.toString())
 }

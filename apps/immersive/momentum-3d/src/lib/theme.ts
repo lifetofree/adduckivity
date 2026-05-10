@@ -15,6 +15,24 @@ export const ET = {
 } as const
 
 /**
+ * Maps a 1-10 energy value to a 1-5 bar count for compact UI indicators.
+ * Shared between SystemBar and ControlCenter to keep them in sync.
+ */
+export function energyBars(energy: number): number {
+  return Math.ceil(energy / 2)
+}
+
+/**
+ * Returns Tailwind color class names for a given system status.
+ * Extracted so SystemBar dot and label stay identical (#M13).
+ */
+export function statusColorClass(isLocked: boolean, isProtected: boolean): string {
+  if (isLocked) return 'red'
+  if (isProtected) return 'amber'
+  return 'stable'
+}
+
+/**
  * Generates CSS utility class strings for form elements.
  * Applies consistent styling to input fields and select dropdowns.
  *

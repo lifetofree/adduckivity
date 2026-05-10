@@ -21,15 +21,16 @@ export async function GET(req: NextRequest) {
 
   const data = await res.json() as { results?: Record<string, unknown>[] }
   const photos = (data.results || []).map((p: Record<string, unknown>) => {
-    const urls = p.urls as Record<string, string>
-    const user = p.user as Record<string, string>
+    const urls = p.urls as Record<string, string> | undefined
+    const user = p.user as Record<string, unknown> | undefined
+    const links = user?.links as Record<string, string> | undefined
     return {
       id:         p.id,
-      thumb:      urls.small,
-      full:       urls.regular,
-      alt:        p.alt_description || p.description || '',
-      credit:     user.name,
-      creditLink: user.links ? (user.links as unknown as Record<string, string>).html : '',
+      thumb:      urls?.small ?? '',
+      full:       urls?.regular ?? '',
+      alt:        (p.alt_description || p.description || '') as string,
+      credit:     (user?.name ?? '') as string,
+      creditLink: links?.html ?? '',
     }
   })
 

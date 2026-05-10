@@ -2,6 +2,7 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
  * Calls the MiniMax `abab6.5s-chat` model to decompose a task into 12-15
@@ -231,7 +232,6 @@ export async function POST(req: NextRequest) {
     // 2. Gemini
     if (geminiKey) {
       try {
-        const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(geminiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const result = await model.generateContent(

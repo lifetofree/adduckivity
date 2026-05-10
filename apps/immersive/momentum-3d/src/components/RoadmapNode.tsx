@@ -53,12 +53,19 @@ export default function RoadmapNode({ position, isExpanded, onToggle }: RoadmapN
           />
         </mesh>
 
+        {/* Low opacity background for label */}
+        <mesh position={[0, -1.5, -0.01]}>
+          <planeGeometry args={[3.5, 0.6]} />
+          <meshBasicMaterial color="#000000" transparent opacity={0.4} />
+        </mesh>
         <Text
           position={[0, -1.5, 0]}
           fontSize={0.25}
           color="white"
           anchorX="center"
           anchorY="middle"
+          outlineWidth={0.02}
+          outlineColor="#000000"
         >
           {isExpanded ? 'SYSTEM BLUEPRINT' : 'ROADMAP'}
         </Text>

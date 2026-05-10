@@ -205,7 +205,7 @@ export default function Home() {
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <Link
               href="/momentum"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-sm transition-all hover:scale-105 active:scale-95 border border-red-500/40"
@@ -218,13 +218,14 @@ export default function Home() {
               ⚠️ Emergency Reset — 2 min
             </Link>
             <Link
-              href="/os"
+              href="/start"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-sm transition-all hover:border-white/20 border"
               style={{ borderColor: ET.border, color: ET.mid }}
             >
-              Enter the Launchpad ↓
+              Start Your Day →
             </Link>
           </div>
+          <div className="mb-16" />
 
           {/* Scroll indicator */}
           <div style={{ color: ET.sub, animation: 'bounce-y 2.5s ease-in-out infinite', display: 'inline-block' }} aria-hidden>

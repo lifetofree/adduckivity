@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ET } from '@/lib/theme'
 
@@ -108,24 +109,22 @@ const Step2 = ({ onNext }: StepProps) => {
         {formatTime(seconds)}
       </div>
 
-      <div className="flex gap-4">
-        {!isActive ? (
-          <button 
-            onClick={() => setIsActive(true)}
-            className="flex-1 py-4 rounded-xl font-bold"
-            style={{ backgroundColor: ET.accent, color: ET.bg }}
-          >
-            Start Maintenance
-          </button>
-        ) : (
-          <button 
-            onClick={onNext}
-            className="flex-1 py-4 rounded-xl font-bold border"
-            style={{ borderColor: ET.border, color: ET.mid }}
-          >
-            Skip to Step 3
-          </button>
-        )}
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={() => setIsActive(true)}
+          disabled={isActive}
+          className="w-full py-4 rounded-xl font-bold disabled:opacity-40"
+          style={{ backgroundColor: ET.accent, color: ET.bg }}
+        >
+          {isActive ? 'Timer Running…' : 'Start Maintenance'}
+        </button>
+        <button
+          onClick={onNext}
+          className="w-full py-3 rounded-xl font-semibold border transition-opacity hover:opacity-80"
+          style={{ borderColor: ET.border, color: ET.mid }}
+        >
+          Skip to Step 3
+        </button>
       </div>
     </motion.div>
   )
@@ -224,7 +223,7 @@ const Step4 = ({ onNext }: StepProps) => {
 const Step5 = ({ onNext }: StepProps) => {
   const [task, setTask] = useState('')
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
@@ -232,11 +231,11 @@ const Step5 = ({ onNext }: StepProps) => {
       <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: ET.accent }}>Step 05</p>
       <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Ask the System</h3>
       <p className="text-sm mb-6" style={{ color: ET.sub }}>
-        What is the fastest thing you can finish right now? <br/>
-        Don&apos;t plan. Just execute.
+        What is the fastest thing you can finish right now?
+        Don&apos;t plan. Just execute. (Optional — skip if nothing comes.)
       </p>
-      
-      <input 
+
+      <input
         type="text"
         value={task}
         onChange={e => setTask(e.target.value)}
@@ -245,13 +244,12 @@ const Step5 = ({ onNext }: StepProps) => {
         style={{ color: ET.ink, border: `1px solid ${ET.border}` }}
       />
 
-      <button 
-        disabled={!task}
+      <button
         onClick={onNext}
-        className="w-full py-4 rounded-xl font-bold disabled:opacity-50"
+        className="w-full py-4 rounded-xl font-bold"
         style={{ backgroundColor: ET.accent, color: ET.bg }}
       >
-        Execute & Return to Momentum
+        {task.trim() ? 'Execute & Return to Momentum' : 'Complete Protocol →'}
       </button>
     </motion.div>
   )
@@ -268,9 +266,10 @@ const Success = ({ onNext }: StepProps) => {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, source: 'emergency-protocol' }),
       })
-      if (res.ok) {
+      const data = await res.json() as { success?: boolean; error?: string }
+      if (data.success) {
         setStatus('success')
         trackEvent('emergency_subscribe')
       } else {
@@ -282,7 +281,7 @@ const Success = ({ onNext }: StepProps) => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       className="text-center"
@@ -291,14 +290,14 @@ const Success = ({ onNext }: StepProps) => {
         <span className="text-3xl">🚀</span>
       </div>
       <h3 className="text-2xl font-bold mb-4" style={{ color: ET.ink }}>Momentum Restored</h3>
-      
+
       {status === 'success' ? (
         <div className="py-4">
           <p className="text-lg font-bold text-cyan-400 mb-2">System Updated.</p>
           <p className="text-sm mb-8" style={{ color: ET.mid }}>Check your inbox for the Duck OS Starter Kit.</p>
-          <button 
+          <button
             onClick={onNext}
-            className="w-full py-4 rounded-xl font-bold animate-pulse"
+            className="w-full py-4 rounded-xl font-bold"
             style={{ backgroundColor: ET.accent, color: ET.bg }}
           >
             Level Up: The Recovery Protocol
@@ -309,30 +308,35 @@ const Success = ({ onNext }: StepProps) => {
           <p className="text-sm mb-6 text-center" style={{ color: ET.mid }}>
             Protocol complete. Claim your <strong style={{ color: ET.ink }}>Duck OS Starter Kit</strong> (Free) to maintain this momentum.
           </p>
-          <input 
+          <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
             className="w-full p-4 rounded-xl mb-3 bg-black/40 outline-none border"
-            style={{ color: ET.ink, borderColor: ET.border }}
+            style={{ color: ET.ink, borderColor: status === 'error' ? '#ff4444' : ET.border }}
           />
-          <button 
+          {status === 'error' && (
+            <p className="text-xs mb-3" style={{ color: '#ff4444' }}>
+              Could not connect to send kit — check your email and try again, or skip for now.
+            </p>
+          )}
+          <button
             type="submit"
             disabled={status === 'loading'}
-            className="w-full py-4 rounded-xl font-bold mb-4"
+            className="w-full py-4 rounded-xl font-bold mb-4 disabled:opacity-50"
             style={{ backgroundColor: ET.accent, color: ET.bg }}
           >
-            {status === 'loading' ? 'Processing...' : 'Claim Starter Kit (Free)'}
+            {status === 'loading' ? 'Processing…' : status === 'error' ? 'Try Again' : 'Claim Starter Kit (Free)'}
           </button>
-          <button 
+          <button
             type="button"
             onClick={onNext}
-            className="w-full text-xs opacity-50 hover:opacity-100 transition-opacity"
+            className="w-full py-3 text-xs transition-opacity hover:opacity-100 opacity-60"
             style={{ color: ET.mid }}
           >
-            Skip to next step
+            Skip — go to next step
           </button>
         </form>
       )}
@@ -340,8 +344,10 @@ const Success = ({ onNext }: StepProps) => {
   )
 }
 
-const Checkout = () => (
-  <motion.div 
+const Checkout = () => {
+  const router = useRouter()
+  return (
+  <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
   >
@@ -383,12 +389,12 @@ const Checkout = () => (
       >
         <span>💬</span> Send Slip to Facebook Inbox
       </a>
-      <button 
-        onClick={() => window.location.reload()}
+      <button
+        onClick={() => router.push('/start?reset=true')}
         className="w-full py-4 rounded-xl font-bold border"
         style={{ borderColor: ET.border, color: ET.mid }}
       >
-        Return to Home
+        Re-check My State →
       </button>
     </div>
     <p className="text-[10px] text-center mt-6 opacity-40 leading-relaxed" style={{ color: ET.sub }}>
@@ -396,7 +402,8 @@ const Checkout = () => (
       Includes Lifetime System Updates.
     </p>
   </motion.div>
-)
+  )
+}
 
 const trackEvent = (event: string): void => {
   // Fire-and-forget. Errors should not block the UI but must be logged (#49).

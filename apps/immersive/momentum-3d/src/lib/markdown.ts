@@ -87,14 +87,16 @@ function escapeAttr(s: string): string {
 
 /**
  * Returns a safe href: only http(s) and relative URLs are allowed.
- * Strips javascript:, data:, vbscript:, and other dangerous schemes.
+ * Strips javascript:, data:, vbscript:, protocol-relative (//), and other dangerous schemes.
  */
 function sanitizeUrl(url: string): string {
   const trimmed = url.trim()
-  // Allow protocol-relative, root-relative, hash, and explicit http(s)/mailto.
-  if (/^(https?:|mailto:|\/|#|\?)/i.test(trimmed)) return trimmed
-  // Disallow anything with a colon that wasn't matched above (catches javascript:, data:, etc.)
+  // Allow root-relative, hash, query, and explicit http(s)/mailto — NOT protocol-relative (//)
+  if (/^(https?:|mailto:)/i.test(trimmed)) return trimmed
+  if (/^(\/[^/]|#|\?)/.test(trimmed)) return trimmed
+  // Disallow anything with a colon or double-slash (catches javascript:, data:, //, etc.)
   if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return '#'
+  if (trimmed.startsWith('//')) return '#'
   // Treat as relative path
   return trimmed
 }
@@ -151,10 +153,15 @@ function parseTable(block: string): string {
  * @param md - Raw markdown content.
  * @returns HTML string.
  */
+/** Escapes HTML special characters inside code block content to prevent XSS. */
+function escapeCode(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 export function renderMarkdown(md: string): string {
   // Pre-process: fenced code blocks and block-level elements (preserve as-is)
   const processed = md
-    .replace(/```[\w]*\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/```[\w]*\n([\s\S]*?)```/g, (_, code) => `<pre><code>${escapeCode(code)}</code></pre>`)
     .replace(/^### (.+)$/gm, (_, t) => `<h3 id="${toId(t)}">${applyInline(t)}</h3>`)
     .replace(/^## (.+)$/gm,  (_, t) => `<h2 id="${toId(t)}">${applyInline(t)}</h2>`)
     .replace(/^# (.+)$/gm,   (_, t) => `<h1 id="${toId(t)}">${applyInline(t)}</h1>`)

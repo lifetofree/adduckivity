@@ -23,9 +23,20 @@ function AtomizerContent() {
   const { isProtected, setFooterVisible } = useSystem();
   
   const [input, setInput] = useState('');
-  const [task, setTask] = useState<AtomizerTask | null>(() => loadAtomizerTask());
+  const [task, setTask] = useState<AtomizerTask | null>(() => {
+    const loaded = loadAtomizerTask();
+    if (!loaded) return null;
+    // Don't restore a fully-completed task — always start fresh
+    if (loaded.steps.length > 0 && loaded.steps.every(s => s.completed)) return null;
+    return loaded;
+  });
   const [loading, setLoading] = useState(false);
   const [shatter, setShatter] = useState(false);
+
+  const triggerShatter = React.useCallback((durationMs = 1000) => {
+    setShatter(true);
+    setTimeout(() => setShatter(false), durationMs);
+  }, []);
   const [showEnergyCheck, setShowEnergyCheck] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,12 +93,11 @@ function AtomizerContent() {
         createdAt: new Date().toISOString(),
       };
 
-      setShatter(true);
+      triggerShatter(1000);
       setTimeout(() => {
         setTask(newTask);
         saveAtomizerTask(newTask);
         setInput('');
-        setShatter(false);
       }, 1000);
     } catch (err) {
       console.error(err);
@@ -117,10 +127,10 @@ function AtomizerContent() {
     saveAtomizerTask(updatedTask);
 
     // Quick burst on completion
-    setShatter(true);
-    setTimeout(() => setShatter(false), 500);
+    triggerShatter(500);
 
     if (allDone) {
+      saveAtomizerTask(null); // Clear immediately — returning visits always get a fresh input
       setShowSuccess(true);
     } else if (energyCheckTriggered) {
       setShowEnergyCheck(true);

@@ -27,9 +27,9 @@ interface IgnitionStore extends IgnitionState {
 
 export const useIgnitionStore = create<IgnitionStore>((set, get) => ({
   ...INITIAL_IGNITION_STATE,
-  start: (targetNodeId = null) => set({ 
-    isActive: true, 
-    currentPhase: 'spark', 
+  start: (targetNodeId = null) => set({
+    isActive: true,
+    currentPhase: 'spark',
     durationRemaining: 600,
     startTime: Date.now(),
     targetNodeId

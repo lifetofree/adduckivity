@@ -49,7 +49,14 @@ export function isPostLive(post: Post): boolean {
  * @returns Formatted string, e.g. `"5 min read"` or `"< 1 min read"`.
  */
 export function readingTime(content: string): string {
-  const words = content.replace(/[#*`[\]]/g, '').split(/\s+/).filter(Boolean).length
+  const stripped = content
+    .replace(/```[\s\S]*?```/g, '')       // fenced code blocks
+    .replace(/`[^`]*`/g, '')              // inline code
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // images
+    .replace(/\[[^\]]*\]\([^)]*\)/g, '$1') // links → text
+    .replace(/^#{1,6}\s+/gm, '')          // headings
+    .replace(/[*_~>#|]/g, '')             // formatting chars
+  const words = stripped.split(/\s+/).filter(Boolean).length
   if (words < 200) return '< 1 min read'
   return `${Math.ceil(words / 200)} min read`
 }
@@ -64,6 +71,8 @@ export function readingTime(content: string): string {
  */
 export function toSlug(title: string): string {
   return title
+    .normalize('NFD')                      // decompose accented chars
+    .replace(/[̀-ͯ]/g, '')       // strip combining diacritical marks
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -205,9 +214,12 @@ export async function postToFacebook(
  */
 export async function getAllPosts(kv: KVNamespace): Promise<Post[]> {
   const list = await kv.list({ prefix: 'post:' })
-  const posts = await Promise.all(
+  const results = await Promise.allSettled(
     list.keys.map(({ name }) => kv.get(name, 'json') as Promise<Post | null>)
   )
+  const posts = results
+    .filter((r): r is PromiseFulfilledResult<Post | null> => r.status === 'fulfilled')
+    .map(r => r.value)
   return posts
     .filter((p): p is Post => p !== null)
     .sort((a, b) => {
@@ -268,8 +280,9 @@ export async function promoteScheduledPosts(kv: KVNamespace, posts: Post[], env?
       const lockKey = `lock:fb:${post.slug}`
       const locked = await kv.get(lockKey)
       if (!locked) {
-        console.log(`[Scheduled Posts] Attempting Facebook post for: ${post.slug}`)
+        // Write lock BEFORE calling Facebook to close the TOCTOU window
         await kv.put(lockKey, '1', { expirationTtl: 600 })
+        console.log(`[Scheduled Posts] Attempting Facebook post for: ${post.slug}`)
         const fb = await postToFacebook(env, { ...post, slug: post.slug })
         if (fb.ok) {
           facebookPosted = true

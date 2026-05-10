@@ -24,10 +24,11 @@ export default function IgnitionPage() {
     }
   }, [isActive, durationRemaining])
 
-  // Auto-return to landing when ignition completes (only if it was started)
+  // Auto-route to Protocol Builder when ignition completes
   useEffect(() => {
     if (!mounted || !wasStarted || isActive) return
-    const timer = setTimeout(() => router.push('/'), 2000)
+    localStorage.setItem(`duckos:ignition:done:${new Date().toDateString()}`, '1')
+    const timer = setTimeout(() => router.push('/protocol-builder'), 2000)
     return () => clearTimeout(timer)
   }, [mounted, wasStarted, isActive, router])
 
@@ -144,11 +145,11 @@ export default function IgnitionPage() {
               </button>
               
               {/* Back link */}
-              <Link 
-                href="/"
+              <Link
+                href="/protocol-builder"
                 className="mt-12 text-white/30 hover:text-white/60 transition-colors text-sm font-mono uppercase tracking-wider"
               >
-                ← Back to Duck OS
+                Open Protocol Builder →
               </Link>
             </>
           )}

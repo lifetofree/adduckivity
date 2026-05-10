@@ -63,7 +63,7 @@ function TaskOrb({ shatter = false }) {
 export default function AtomizerScene({ shatter = false }) {
   return (
     <div className="fixed inset-0 pointer-events-none -z-10">
-      <Canvas camera={{ position: [0, 0, 7], fov: 55 }}>
+      <Canvas camera={{ position: [0, 0, 7], fov: 55 }} dpr={[1, 1.5]}>
         <color attach="background" args={[ET.bg]} />
         <Float speed={1.0} rotationIntensity={0.2} floatIntensity={0.2}>
           <TaskOrb shatter={shatter} />

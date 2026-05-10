@@ -13,22 +13,22 @@
 ## Current Projects
 
 ### 1. Immersive 3D Content Studio (`apps/immersive/momentum-3d`)
-**Status:** ✅ **PRODUCTION LIVE** — All Features Operational  
+**Status:** PRODUCTION LIVE — All Features Operational  
 **URL:** https://immersive.adduckivity.com  
-**Tech:** Next.js 16 + React Three Fiber + Cloudflare Pages + KV
+**Tech:** Next.js 16.2 + React Three Fiber 9 + Cloudflare Pages + KV
 
 ---
 
-### Featured Protocols & Tools
+## Featured Protocols & Tools
 
-#### Momentum Protocol (ACT-04)
-✅ Visualized 3D flywheel syncing action with scroll. Interactive Emergency Recovery — 5-step fail-safe for burnout spirals.  
+### Momentum Protocol (ACT-04)
+Visualized 3D flywheel syncing action with scroll. Interactive Emergency Recovery — 5-step fail-safe for burnout spirals.  
 **URL:** `/momentum`
 
 ---
 
-#### The Atomizer (EXEC-01)
-✅ **PRODUCTION LIVE** — AI-powered task decomposition. Completed: 2026-04-30  
+### The Atomizer (EXEC-01)
+PRODUCTION LIVE — AI-powered task decomposition. Completed: 2026-04-30  
 **URL:** `/atomizer`
 
 **Features:**
@@ -41,14 +41,11 @@
 - **Energy Check Safety:** Mandatory interrupt every 6 completed steps
 - **Auto-return:** After all steps completed, redirects back to Protocol Builder if launched from there (`?returnTo=` param)
 - **localStorage Persistence:** Cross-session task recovery
-- **SystemBar:** Fixed top nav — "System › Atomizer" breadcrumb, energy level indicator, sync status
-- **SystemFooter:** Compact `h-14` bar — mirrors SystemBar style (border-white/5, backdrop-blur-md)
-- **42 Tests Passing**
 
 ---
 
-#### Protocol Builder (SYS-02)
-✅ **PRODUCTION LIVE** — 3D momentum constellation tool. Completed: 2026-05-01  
+### Protocol Builder (SYS-02)
+PRODUCTION LIVE — 3D momentum constellation tool. Completed: 2026-05-01  
 **URL:** `/protocol-builder`
 
 **Features:**
@@ -60,30 +57,104 @@
 - **Flow Persistence:** Protocol graph saved to localStorage
 - **Graph Engine:** Respects directed connections, supports looping and branching
 - **Integration:** Atomizer launched from action nodes via `?returnTo=/protocol-builder`; auto-returns on task completion
-- **SystemBar:** Mode switcher pill (Architect/Pilot), sync status indicator
-- **SystemFooter:** Compact `h-14` bar — same style as Atomizer
+- **IntroSlides:** Onboarding slides for first-time users
 
 ---
 
-### Shared UI Components (`src/components/ProtocolBuilder/`)
+### Ignition Sequence
+PRODUCTION LIVE — 600-second power-up ritual  
+**URL:** `/ignition`
+
+**Features:**
+- **Three Phases:** Spark → Target → Launch — phase transitions with audio crossfade
+- **Audio Manager:** `ignition-audio.ts` — handles background music with smooth transitions
+- **State Management:** Zustand store (`ignition-store.ts`) — phase, timer, target node
+- **Guide Page:** `/ignition/guide` — full documentation of the ignition ritual
+
+---
+
+### OS Launchpad
+LOCALHOST ONLY — 3D biological shield web and central command center  
+**URL:** `/os` (restricted to localhost/127.0.0.1 via client-side check)
+
+**Features:**
+- **Shield Web:** 3D sensory check visualization (water, light, noise)
+- **Tool Nodes:** Launchable tool shortcuts with animations
+- **Roadmap Web:** 3D roadmap visualization with task toggling
+- **Launchpad Overlay:** 2D UI overlay for navigation
+
+---
+
+### Guide Pages
+Each tool has a companion guide page with full documentation:
+- `/momentum/guide` — Emergency Recovery guide
+- `/atomizer/guide` — Atomizer guide
+- `/protocol-builder/guide` — Protocol Builder guide
+- `/ignition/guide` — Ignition ritual guide
+
+---
+
+## Shared UI Components
+
+### `src/components/shared/` (global components)
 
 #### `SystemBar.tsx`
-Fixed top navigation bar used across all Duck OS tools.
+Fixed top navigation bar used across all Duck OS tools. Rendered in root `layout.tsx`.
 - `h-14`, `border-b border-white/5`, `bg-black/20 backdrop-blur-md`
 - Left: Duck OS logo + breadcrumb (`System › [Tool Name]`)
 - Center: Optional mode switcher pill (Architect / Pilot)
 - Right: Energy level bars + sync status dot
 
 #### `SystemFooter.tsx`
-Compact bottom bar — mirrors SystemBar exactly.
+Compact bottom bar — mirrors SystemBar exactly. Rendered in root `layout.tsx`.
 - `h-14`, `border-t border-white/5`, `bg-black/20 backdrop-blur-md`
 - Left: `Duck OS // v1.0.4-STABLE`
 - Center: Logo + `Adduckivity › Momentum Protocol` link
 - Right: `© 2026 Adduckivity`
 
+#### `ControlCenter.tsx`
+Energy/sensory control panel — adjusts energy level and toggles sensory checks.
+
+#### `SceneLoader.tsx`
+Thin cyan progress bar for 3D scene loading states.
+
 ---
 
-### System Lock: Gradient Model (`src/lib/system-context.tsx`)
+### `src/components/ProtocolBuilder/`
+
+#### `IntroSlides.tsx`
+Onboarding slides for Protocol Builder — introduces Architect/Pilot modes.
+
+#### `IgnitionOverlay.tsx`
+Overlay for Ignition phase transitions and controls.
+
+#### `useIgnitionScene.ts`
+React hook for ignition scene effects and animations.
+
+---
+
+### `src/components/` (tool-specific)
+
+| Component | Purpose |
+|---|---|
+| `AtomizerList.tsx` | Step list with focus window (3 visible) |
+| `AtomizerScene.tsx` | Particle orb 3D background |
+| `EmergencyProtocol.tsx` | 5-step fail-safe UI |
+| `FlywheelScene.tsx` | 3D momentum flywheel |
+| `LaunchpadOverlay.tsx` | 2D overlay for `/os` launchpad |
+| `OSLaunchpadScene.tsx` | 3D scene for `/os` — tool nodes + shield + roadmap |
+| `RoadmapWeb.tsx` | 3D roadmap visualization with task toggling |
+| `RoadmapNode.tsx` | Single 3D icosahedron node for roadmap |
+| `ShieldWeb.tsx` | 3D bio-feedback shield (sensory checks) |
+| `ToolNode.tsx` | 3D tool node with launch animation |
+| `SystemGate.tsx` | Energy/sensory gate for tool access |
+| `EmailCTA.tsx` | Email capture component |
+| `EnergyCheck.tsx` | Energy level check component |
+| `SiteFooter.tsx` | Homepage footer component |
+
+---
+
+## System Lock: Gradient Model (`src/lib/system-context.tsx`)
 
 Duck OS uses a **gradient lock model** that adjusts sensory requirements based on energy level:
 
@@ -99,12 +170,50 @@ Duck OS uses a **gradient lock model** that adjusts sensory requirements based o
 - `lockProximity` — 0-1 value showing how close to lock (1 = safe, 0 = about to lock)
 - `isLocked` — Boolean, true if locked out of tools
 - `isProtected` — True when energy ≤ 3
+- `isLoaded` — True after initial state hydration from localStorage
+- `isSyncing` — Sync status indicator
+- `isFooterVisible` — Footer visibility toggle
+- `systemBarNode` / `footerNode` — Slot nodes for per-page customization
 
-**Fail-Safe:** Critical energy (≤2) always triggers hard lock regardless of sensory checks.
+**Default State:** First-time visitors default to sensory all-on (unlocked) so they are not blocked from tools.
+
+**Fail-Safe:** Critical energy (≤2) triggers biological crash recovery — resets all sensory checks and hard locks.
+
+**Storage:** `duckos:system:state` in localStorage (migrates from legacy `st8` key).
 
 ---
 
-### Homepage (`/`)
+## Root Layout (`src/app/layout.tsx`)
+
+All pages are wrapped by `SystemProvider` → `SystemBar` → `<main>` → `SystemFooter`. This provides:
+- Global navigation with breadcrumb
+- Energy level indicator always visible
+- System lock enforcement across all tools
+
+---
+
+## Theme System (`src/lib/theme.ts`)
+
+Centralized color palette — single source of truth for theming:
+
+```
+ET = {
+  bg: '#0A0F1E',      // page background
+  surface: '#0F1829',  // cards, sidebars, nav
+  muted: '#1A2840',    // subtle fills
+  border: '#1E3A5F',   // borders, dividers
+  ink: '#E8F4F8',      // primary text
+  mid: '#A8C8D8',      // secondary text
+  sub: '#6B9BB8',      // muted text, meta
+  accent: '#00E5FF',   // cyan neon — primary brand color
+}
+```
+
+Also provides `inputCss(ET)` for consistent form element styling.
+
+---
+
+## Homepage (`/`)
 
 **Pinned feature cards** (in order):
 | Card | Image | Badge | Route |
@@ -124,17 +233,39 @@ Duck OS uses a **gradient lock model** that adjusts sensory requirements based o
 
 ---
 
+## Blog System
+
+**Blog (`/blog`)** fetches posts from `wp.adduckivity.com` via WordPress REST API (`src/lib/wordpress.ts`).
+
+- **Featured post:** Full-width hero card with cover image, SEO title, tags, reading time
+- **Post grid:** 3-column responsive grid for remaining posts
+- **External links:** All posts link to the WordPress site (`post.link`)
+- **SEO:** Pulls Yoast/Jetpack SEO titles and descriptions from embedded post data
+- **Categories & Tags:** Extracted from `_embedded.wp:term`
+- **Reading Time:** Calculated from actual post content
+- **Revalidation:** 5-minute cache via Next.js `revalidate: 300`
+
+**Blog Post (`/blog/[slug]`)** renders individual posts from WordPress.
+
+---
+
 ## Routes
 
 ### Public Routes
 | Route | Purpose |
 |---|---|
 | `/` | Homepage — hero, protocol grid, principles, email CTA |
-| `/blog` | Published posts grid |
-| `/blog/[slug]` | Post reading view — drafts return 404 |
+| `/blog` | WordPress-powered published posts grid |
+| `/blog/[slug]` | Post reading view — renders WordPress content |
 | `/momentum` | Momentum Protocol + Emergency Recovery |
+| `/momentum/guide` | Emergency Recovery guide documentation |
 | `/atomizer` | The Atomizer — AI task decomposition |
+| `/atomizer/guide` | Atomizer guide documentation |
 | `/protocol-builder` | Protocol Builder — 3D momentum constellation |
+| `/protocol-builder/guide` | Protocol Builder guide documentation |
+| `/ignition` | Ignition Sequence — 600s power-up ritual |
+| `/ignition/guide` | Ignition guide documentation |
+| `/os` | OS Launchpad — **localhost only** (shows message on production) |
 
 ### Admin Routes (owner only)
 | Route | Purpose |
@@ -144,6 +275,8 @@ Duck OS uses a **gradient lock model** that adjusts sensory requirements based o
 | `/content/edit?slug=` | Edit post — auto-save (4s), Publish/Unpublish modals |
 
 ### API Routes (`src/app/api/`)
+All routes use `export const runtime = 'edge'` — required by Cloudflare Pages.
+
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/posts` | GET | List all posts or fetch by `?slug=` — sorts by publishedAt DESC, then date DESC |
@@ -153,7 +286,6 @@ Duck OS uses a **gradient lock model** that adjusts sensory requirements based o
 | `/api/posts/maintenance` | GET | Promote overdue scheduled posts (protected by key) |
 | `/api/ai` | POST | Multi-provider AI — titles, excerpt, outline, seo, tags |
 | `/api/ai/atomize` | POST | MiniMax/Gemini — break task into 12-15 atomic steps (≤2 min each) |
-| `/api/ai/debug` | POST | Debug endpoint for AI provider testing |
 | `/api/unsplash` | GET | Unsplash search proxy |
 | `/api/upload` | POST | Upload image to Cloudflare R2 |
 | `/api/assets/[...key]` | GET | Serve R2 asset by key |
@@ -164,6 +296,13 @@ Duck OS uses a **gradient lock model** that adjusts sensory requirements based o
 ---
 
 ## Integrations
+
+### WordPress Blog (`wp.adduckivity.com`)
+- Blog page fetches from `wp.adduckivity.com/wp-json/wp/v2/posts`
+- Embedded data: featured media, categories, tags
+- SEO: Yoast `yoast_head_json` + Jetpack `meta` fields
+- Thai content filtering via `isEnglishPost()`
+- **URL:** `https://wp.adduckivity.com`
 
 ### Facebook Auto-Post
 - Triggers on transition to `published` (manual or scheduled)
@@ -246,7 +385,7 @@ interface Post {
 
 ## Test Suite
 
-**Framework:** Vitest v4 + jsdom  
+**Framework:** Vitest v4.1 + jsdom + Testing Library  
 **Run:** `npm run test` from `apps/immersive/momentum-3d`
 
 | File | Coverage |
@@ -255,9 +394,15 @@ interface Post {
 | `src/__tests__/posts.pure.test.ts` | readingTime (5), toSlug (7) |
 | `src/__tests__/posts.kv.test.ts` | savePost, getPostBySlug, getAllPosts, getPublishedPosts, updatePost, deletePost, slugExists |
 | `src/__tests__/posts.schedule.test.ts` | hides future, promotes past, facebookPosted flag, race condition lock |
+| `src/__tests__/posts.utils.test.ts` | Post utility functions |
 | `src/lib/atomizer.test.ts` | AtomizerTask, AtomicStep, saveAtomizerTask, loadAtomizerTask |
+| `src/lib/markdown.test.ts` | renderMarkdown, extractHeadings, formatting, code blocks |
+| `src/__tests__/system.test.tsx` | SystemProvider, gradient lock, sensory requirements |
+| `src/__tests__/protocol.test.ts` | Protocol store and state management |
+| `src/__tests__/ignition.test.ts` | Ignition phases, timer, state transitions |
+| `src/__tests__/analytics.test.ts` | Analytics event tracking |
 
-**Total:** 94 tests passing
+**Total:** 94 tests passing across 11 test files
 
 ---
 
@@ -279,6 +424,18 @@ interface Post {
 - `toSlug()` — Converts titles to URL-safe slugs
 - `isPostLive()` — Checks if post is visible to public
 
+### `src/lib/wordpress.ts`
+**WordPress REST API Integration**
+- `getWordPressPosts()` — Fetches posts from `wp.adduckivity.com` with embedded media/terms
+- `formatWordPressPost()` — Converts WordPress post to blog page format
+- `getPostSeoFromHtml()` — Extracts og:title/og:description from post HTML (SSRF-protected)
+- `getCategoryName()` — Extracts category from embedded terms
+- `getPostTags()` — Extracts tags from embedded terms
+- `getFeaturedImageUrl()` / `getFeaturedImageAlt()` — Featured image helpers
+- `stripHtml()` — Strips HTML tags from rendered content
+- `calculateReadingTime()` / `getReadingTimeFromPost()` — Reading time from content
+- `isEnglishPost()` — Filters out Thai-language content
+
 ### `src/lib/atomizer.ts`
 **Task Decomposition Persistence**
 - `AtomizerTask` interface — Original task + atomic steps + metadata
@@ -296,14 +453,6 @@ interface Post {
 - Block elements — Headers, lists, blockquotes, tables, code blocks
 - Image handling — Responsive img tags with lazy loading
 
-### `src/lib/content.ts`
-**Build-time Content Loading**
-- `getAllPosts()` — Loads all markdown files from public/content
-- `getPostBySlug()` — Loads specific post by slug
-- `getPublishedPosts()` — Filters published posts only
-- Integrates with gray-matter for frontmatter parsing
-- Used for static build operations
-
 ### `src/lib/protocol-store.ts`
 **Protocol Builder State Management**
 - Protocol graph persistence to localStorage
@@ -311,21 +460,53 @@ interface Post {
 - Architect/Pilot mode switching
 - Flight path serialization
 
+### `src/lib/ignition-store.ts`
+**Ignition Sequence State Management (Zustand)**
+- `IgnitionPhase` — `'spark' | 'target' | 'launch' | 'idle'`
+- Phase transitions and timer management
+- Target node selection for launch phase
+
+### `src/lib/ignition-audio.ts`
+**Audio Manager for Ignition**
+- Background music with crossfade between phases
+- Audio element lifecycle management
+
+### `src/lib/system-context.tsx`
+**Global System State (React Context)**
+- Gradient lock model — energy-aware sensory requirements
+- localStorage persistence with legacy migration
+- Biological crash recovery on critical energy
+- Provides: energy, sensory, isLocked, isProtected, sensoryRequired, lockProximity
+
+### `src/lib/theme.ts`
+**Centralized Color Palette**
+- `ET` constant — single source of truth for all colors
+- `inputCss(ET)` — consistent form element styling utility
+
+### `src/lib/dev-kv.ts`
+**Local Development KV Mock**
+- In-memory implementation of Cloudflare KV API
+- Used when `NODE_ENV === 'development'`
+- Supports get/put/delete/list interface
+
 ---
 
 ## Tech Stack
 
 | Layer | Tech |
 |---|---|
-| Framework | Next.js 16.2 (App Router, Turbopack) |
-| 3D | Three.js 0.184, React Three Fiber 9, Drei 10 |
+| Framework | Next.js 16.2.4 (App Router, Turbopack) |
+| 3D | Three.js 0.184, React Three Fiber 9.6, Drei 10.7, Postprocessing 3.0 |
 | Styling | Tailwind CSS 4 |
 | Animation | Framer Motion 12 |
+| Icons | Lucide React 1.8 |
 | Language | TypeScript 5 |
+| State | Zustand 5 (via transitive dep) + React Context |
 | Storage | Cloudflare KV + Cloudflare R2 |
 | Deployment | Cloudflare Pages (edge runtime) |
-| Testing | Vitest 4 + jsdom |
+| Testing | Vitest 4.1 + jsdom 29 + Testing Library (DOM 10.4, React 16.3) |
 | AI | MiniMax abab6.5s-chat (primary) + Google Gemini 1.5 Flash (fallback) |
+| Blog | WordPress REST API (wp.adduckivity.com) |
 
 ---
 
@@ -354,8 +535,8 @@ localhost:3000  →  main branch  →  Cloudflare Pages
 ```bash
 cd apps/immersive/momentum-3d
 npm run dev       # localhost:3000
-npm run test      # run 42 tests
-npm run deploy    # build (next-on-pages) + deploy to Cloudflare Pages
+npm run test      # run 94 tests
+npm run deploy    # typecheck + build (next-on-pages) + deploy to Cloudflare Pages
 ```
 
 ---
@@ -381,10 +562,18 @@ Posts support `status: 'scheduled'` with `scheduledAt` ISO datetime.
 - **Status Indicators:** Disabled delete button for published posts with clear visual feedback
 
 ### Navigation Consistency
-- **Unified Header:** All pages (`/`, `/blog`, `/momentum`) use identical navigation styling
+- **Unified SystemBar:** All pages use the global SystemBar from `layout.tsx`
 - **Sticky Header:** Fixed positioning with backdrop blur and border
-- **Responsive:** Mobile menu button, desktop navigation links
-- **Consistent Links:** Blog, 3D Experience, Archive, Tools across all pages
+- **Responsive:** Desktop navigation links
+- **Consistent Links:** Blog, 3D Experience, Tools across all pages
+
+---
+
+## Cloudflare Pages Constraints
+
+All API routes and server-rendered pages MUST use `export const runtime = 'edge'`. Routes using `runtime = 'nodejs'` or depending on `fs`/`path`/`crypto` will fail deployment.
+
+The free tier has a 3 MiB worker bundle limit. Adding middleware may push the total over this limit — prefer client-side checks when possible (e.g., `/os` localhost restriction via hostname check).
 
 ---
 
@@ -411,4 +600,4 @@ Hero Reset Trigger → Interactive Protocol → Email Capture (Free Kit) → Ear
 
 ---
 
-*Last updated: 2026-05-01 — Enhanced with content management, navigation consistency, and timestamp sorting*
+*Last updated: 2026-05-08 — Full documentation audit: WordPress blog, Ignition sequence, OS Launchpad, gradient lock model, shared components, 94 tests, guide pages*

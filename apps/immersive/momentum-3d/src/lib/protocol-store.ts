@@ -38,6 +38,12 @@ export const saveProtocol = (graph: ProtocolGraph): void => {
  * Loads the protocol graph from localStorage.
  * Returns an empty graph if nothing is stored.
  */
+function isValidProtocolGraph(v: unknown): v is ProtocolGraph {
+  if (!v || typeof v !== 'object') return false
+  const g = v as Record<string, unknown>
+  return Array.isArray(g.nodes) && Array.isArray(g.edges)
+}
+
 export const loadProtocol = (): ProtocolGraph => {
   if (typeof window === 'undefined') return { nodes: [], edges: [] };
 
@@ -45,7 +51,13 @@ export const loadProtocol = (): ProtocolGraph => {
   if (!stored) return { nodes: [], edges: [] };
 
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    if (!isValidProtocolGraph(parsed)) {
+      console.warn('Protocol graph in localStorage has invalid shape — resetting.');
+      localStorage.removeItem(STORAGE_KEY);
+      return { nodes: [], edges: [] };
+    }
+    return parsed;
   } catch (e) {
     console.error('Failed to parse protocol from localStorage:', e);
     return { nodes: [], edges: [] };

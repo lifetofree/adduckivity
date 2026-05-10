@@ -1,6 +1,6 @@
 # Deployment Guide
 
-**Last updated:** 2026-05-01  
+**Last updated:** 2026-05-08  
 **Project:** immersive-adduckivity (Cloudflare Pages)  
 **Production:** https://immersive.adduckivity.com
 
@@ -26,7 +26,9 @@ git push origin main
 npm run deploy
 ```
 
-The `deploy` script runs `build:cf` (next-on-pages) then `wrangler pages deploy`.
+The `deploy` script runs typecheck, check-exports, `build:cf` (next-on-pages) then `wrangler pages deploy`.
+
+**Note:** The free tier has a 3 MiB worker bundle limit. If the deploy fails with a size error, reduce the number of dynamic routes or avoid adding Next.js middleware.
 
 ---
 
@@ -189,6 +191,9 @@ export default {
 - Check Node.js version (use 20.x)
 - Verify all dependencies installed: `npm install`
 - Check build logs in Cloudflare Dashboard
+- **Edge runtime required:** All API routes MUST use `export const runtime = 'edge'` — `nodejs` runtime will fail on Cloudflare Pages
+- **Bundle size limit:** Free tier has 3 MiB worker bundle limit — avoid adding middleware or heavy dynamic routes
+- **No `fs`/`path`/`crypto`:** Node.js built-in modules are not available in edge runtime
 
 ### Runtime Errors
 - Verify all environment variables set
@@ -219,7 +224,7 @@ cd apps/immersive/momentum-3d
 npm run dev          # http://localhost:3000
 
 # Testing
-npm run test         # Run 42 tests
+npm run test         # Run 94 tests
 
 # Build
 npm run build        # Production build

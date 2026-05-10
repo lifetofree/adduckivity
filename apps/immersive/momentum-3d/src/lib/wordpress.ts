@@ -97,7 +97,12 @@ export async function getWordPressPosts(options: {
     throw new Error(`WordPress API error: ${response.status}`)
   }
 
-  const posts: WordPressPost[] = await response.json()
+  let posts: WordPressPost[]
+  try {
+    posts = await response.json()
+  } catch {
+    throw new Error(`WordPress API returned non-JSON response (status ${response.status})`)
+  }
   return posts
 }
 
@@ -114,6 +119,8 @@ function decodeHtmlEntities(str: string | null): string | null {
     .replace(/&#039;/g, "'")
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
     .trim()
 }
 

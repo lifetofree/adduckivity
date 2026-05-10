@@ -10,7 +10,28 @@ function getKV(): KVNamespace {
     : getRequestContext<CloudflareEnv>().env.POSTS_KV
 }
 
-export async function GET() {
+/** Constant-time string comparison to prevent timing attacks on secret keys. */
+function timingSafeEqual(a: string, b: string): boolean {
+  let diff = a.length ^ b.length
+  const len = Math.max(a.length, b.length)
+  for (let i = 0; i < len; i++) {
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0)
+  }
+  return diff === 0
+}
+
+export async function GET(req: NextRequest) {
+  const provided = req.headers.get('x-admin-key') || ''
+  let expected: string | undefined
+  try {
+    expected = (getRequestContext<CloudflareEnv>().env as { ADMIN_KEY?: string }).ADMIN_KEY
+  } catch {
+    expected = process.env.ADMIN_KEY
+  }
+  if (!expected && process.env.NODE_ENV === 'development') expected = 'dev-key'
+  if (!expected || !timingSafeEqual(provided, expected)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   try {
     const kv = getKV()
     const counts: Record<string, number> = {}

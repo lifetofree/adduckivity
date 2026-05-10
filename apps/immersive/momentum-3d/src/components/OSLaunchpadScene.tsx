@@ -18,7 +18,7 @@ const tools = [
     color: '#ff4444',
     type: 'sphere' as const,
     complexity: 'low',
-    position: [-3, 0, 0] as [number, number, number]
+    position: [-8, 0, -2] as [number, number, number]
   },
   {
     title: 'Protocol Builder',
@@ -27,7 +27,7 @@ const tools = [
     color: ET.accent,
     type: 'octahedron' as const,
     complexity: 'high',
-    position: [0, 2, -1] as [number, number, number]
+    position: [-3, 5, -4] as [number, number, number]
   },
   {
     title: 'The Atomizer',
@@ -36,7 +36,7 @@ const tools = [
     color: '#a78bfa',
     type: 'tetrahedron' as const,
     complexity: 'high',
-    position: [3, 0, 0] as [number, number, number]
+    position: [8, 2, -3] as [number, number, number]
   },
   {
     title: 'Ignite Momentum',
@@ -45,7 +45,7 @@ const tools = [
     color: '#f43f5e',
     type: 'dodecahedron' as const,
     complexity: 'medium',
-    position: [0, -2, -1] as [number, number, number]
+    position: [6, -4, -2] as [number, number, number]
   }
 ]
 
@@ -55,7 +55,7 @@ export default function OSLaunchpadScene() {
 
   return (
     <div className="w-full h-full bg-zinc-950">
-      <Canvas shadows>
+      <Canvas dpr={[1, 1.5]}>
         <PerspectiveCamera makeDefault position={[0, 0, isRoadmapExpanded ? 15 : 10]} fov={50} />
         <OrbitControls 
           enablePan={false} 
@@ -67,7 +67,7 @@ export default function OSLaunchpadScene() {
         />
 
         <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
+        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} />
         <pointLight position={[-10, -10, -10]} intensity={1} />
 
         <Suspense fallback={null}>
@@ -76,8 +76,8 @@ export default function OSLaunchpadScene() {
           {/* Geodesic Shield Layer */}
           <ShieldWeb />
 
-          {/* Core Tool Constellation */}
-          {!isRoadmapExpanded && (
+          {/* Core Tool Constellation - hidden when locked */}
+          {!isRoadmapExpanded && !isLocked && (
             <group>
               {tools.map((tool, i) => (
                 <ToolNode
@@ -93,11 +93,11 @@ export default function OSLaunchpadScene() {
           {process.env.NODE_ENV === 'development' && (
             <>
               <RoadmapNode 
-                position={[0, 0, 3]} 
+                position={[0, 0, 5]} 
                 isExpanded={isRoadmapExpanded}
                 onToggle={() => setIsRoadmapExpanded(!isRoadmapExpanded)}
               />
-              <RoadmapWeb isVisible={isRoadmapExpanded} />
+              {isRoadmapExpanded && <RoadmapWeb isVisible={isRoadmapExpanded} />}
             </>
           )}
 
