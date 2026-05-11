@@ -20,16 +20,21 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0
 }
 
+function getEnv(): { MAINTENANCE_KEY?: string } {
+  if (process.env.NODE_ENV === 'development') {
+    return { MAINTENANCE_KEY: process.env.MAINTENANCE_KEY || 'dev-key' }
+  }
+  try {
+    return getRequestContext<CloudflareEnv>().env as { MAINTENANCE_KEY?: string }
+  } catch {
+    return { MAINTENANCE_KEY: process.env.MAINTENANCE_KEY }
+  }
+}
+
 export async function GET(req: NextRequest) {
   const provided = req.headers.get('x-admin-key') || ''
-  let expected: string | undefined
-  try {
-    expected = (getRequestContext<CloudflareEnv>().env as { ADMIN_KEY?: string }).ADMIN_KEY
-  } catch {
-    expected = process.env.ADMIN_KEY
-  }
-  if (!expected && process.env.NODE_ENV === 'development') expected = 'dev-key'
-  if (!expected || !timingSafeEqual(provided, expected)) {
+  const { MAINTENANCE_KEY } = getEnv()
+  if (!MAINTENANCE_KEY || !timingSafeEqual(provided, MAINTENANCE_KEY)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {

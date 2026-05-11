@@ -16,6 +16,7 @@ import { loadProtocol, saveProtocol, ProtocolGraph, ProtocolNode, NodeType } fro
 import { useIgnitionStore } from '@/lib/ignition-store'
 import { useSystem } from '@/lib/system-context'
 import { Flame } from 'lucide-react'
+import { playTimerComplete, getTimerSound, setTimerSound, TimerSound } from '@/lib/timer-audio'
 
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 const PROTOCOL_VISITED_KEY  = 'duckos:protocol:visited'
@@ -23,7 +24,7 @@ const IGNITION_DONE_KEY = () => `duckos:ignition:done:${new Date().toDateString(
 
 export default function ProtocolBuilderPage() {
   const router = useRouter()
-  const { isLocked, setSystemBarNode, setSyncing, setFooterVisible } = useSystem()
+  const { isLocked, isProtected, setSystemBarNode, setSyncing, setFooterVisible } = useSystem()
   const { show: showIntro, done: doneIntro } = useIntroSlides()
   const [showIgnitionNudge, setShowIgnitionNudge] = useState(false)
   const [graph, setGraph] = useState<ProtocolGraph>({ nodes: [], edges: [] })
@@ -44,6 +45,14 @@ export default function ProtocolBuilderPage() {
   // Timer State
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [timerSound, setTimerSoundState] = useState<TimerSound>('chime')
+
+  useEffect(() => { setTimerSoundState(getTimerSound()) }, [])
+
+  const handleSoundChange = (s: TimerSound) => {
+    setTimerSound(s)
+    setTimerSoundState(s)
+  }
 
   // -- Helpers & Callbacks --
 
@@ -327,11 +336,9 @@ export default function ProtocolBuilderPage() {
         setTimeLeft(prev => (prev !== null ? prev - 1 : null))
       }, 1000)
     } else if (timeLeft === 0 && activeNode?.type === 'timer' && isTimerRunning && timerProcessedRef.current !== activeNodeId) {
-      // Mark as processed immediately to prevent double-triggering during render cycles
       timerProcessedRef.current = activeNodeId;
       setIsTimerRunning(false)
-      
-      // nextNode handles both advancing and completing, so always call it
+      playTimerComplete(isProtected)
       advanceTimeout = setTimeout(() => {
         nextNode()
       }, 1500)
@@ -340,7 +347,7 @@ export default function ProtocolBuilderPage() {
       clearInterval(interval)
       if (advanceTimeout) clearTimeout(advanceTimeout)
     }
-  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, graph.nodes, activeNodeId])
+  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, graph.nodes, activeNodeId, isProtected])
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
@@ -430,28 +437,65 @@ export default function ProtocolBuilderPage() {
             {activeNode.type === 'timer' && (
               <div className="space-y-4">
                 <div className="h-px bg-cyan-500/30 w-full" />
-                <div className="text-4xl font-mono text-cyan-500 text-center py-4 bg-black/40 rounded-lg border border-white/5">
-                  {timeLeft !== null ? formatTime(timeLeft) : '00:00'}
-                </div>
-                <button 
+
+                {/* Timer display — flashes amber in final 5s */}
+                {(() => {
+                  const isWarning = isTimerRunning && timeLeft !== null && timeLeft <= 5 && timeLeft > 0
+                  return (
+                    <div className={`text-4xl font-mono text-center py-4 rounded-lg border transition-all duration-300 ${
+                      isWarning
+                        ? 'text-amber-400 bg-amber-500/10 border-amber-500/40 animate-pulse'
+                        : 'text-cyan-500 bg-black/40 border-white/5'
+                    }`}>
+                      {timeLeft !== null ? formatTime(timeLeft) : '00:00'}
+                      {isWarning && <p className="text-[9px] font-mono uppercase tracking-widest mt-1 text-amber-400/70">Finishing soon</p>}
+                    </div>
+                  )
+                })()}
+
+                <button
                   onClick={() => setIsTimerRunning(!isTimerRunning)}
                   disabled={timeLeft === 0}
                   className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
                     timeLeft === 0
                       ? 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
-                      : isTimerRunning 
-                        ? 'bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white' 
+                      : isTimerRunning
+                        ? 'bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white'
                         : 'bg-cyan-500/20 border border-cyan-500 text-cyan-500 hover:bg-cyan-500 hover:text-black'
                   }`}
                 >
-                  {timeLeft === 0 
-                    ? 'Protocol Done' 
-                    : (isTimerRunning 
-                      ? 'Pause Protocol' 
-                      : (timeLeft === (activeNode.data?.duration || 25) * 60 
-                        ? 'Initialize Countdown' 
+                  {timeLeft === 0
+                    ? 'Protocol Done'
+                    : (isTimerRunning
+                      ? 'Pause Protocol'
+                      : (timeLeft === (activeNode.data?.duration || 25) * 60
+                        ? 'Initialize Countdown'
                         : 'Resume Protocol'))}
                 </button>
+
+                {/* Sound selector */}
+                <div className="space-y-1.5">
+                  <p className="text-[9px] text-white/30 uppercase font-mono tracking-widest">
+                    {isProtected ? 'Sound — muted (protected mode)' : 'Completion sound'}
+                  </p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['chime', 'beep', 'duck'] as TimerSound[]).map(s => (
+                      <button
+                        key={s}
+                        onClick={() => handleSoundChange(s)}
+                        disabled={isProtected}
+                        className={`py-1.5 rounded text-[9px] font-mono uppercase tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+                          timerSound === s && !isProtected
+                            ? 'bg-cyan-500/20 border border-cyan-500/60 text-cyan-400'
+                            : 'bg-white/5 border border-white/10 text-white/40 hover:border-white/30'
+                        }`}
+                      >
+                        {s === 'duck' ? '🦆' : s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <p className="text-[10px] text-white/40 uppercase font-mono text-center">
                   Focus Maintenance Protocol {timeLeft === 0 ? 'Finished' : (isTimerRunning ? 'Running' : 'Paused')}
                 </p>
