@@ -1,7 +1,7 @@
 # Duck OS — Project Status
 
 **Last updated:** 2026-05-11  
-**Branch:** dev (13 commits ahead of main)  
+**Branch:** main (merged from dev — timer audio, /start, Protocol Builder improvements, STATUS.md)  
 **Deploy target:** Cloudflare Pages (Workers paid plan — bundle ~9.8 MiB)  
 **Tests:** 118 passing across 12 files (Vitest)
 
