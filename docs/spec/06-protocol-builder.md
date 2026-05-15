@@ -1,6 +1,6 @@
 # System Spec: Protocol Builder
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/lib/protocol-store.ts`, `src/app/protocol-builder/page.tsx`, `src/components/ProtocolBuilder/ProtocolScene.tsx`, `src/components/ProtocolBuilder/ArchitectSidebar.tsx`
 
 ---
@@ -21,7 +21,7 @@
 
 ## Purpose
 
-3D momentum constellation tool for building and executing personal protocols. Users design directed graphs of action nodes, then "fly through" them in sequence.
+3D momentum constellation tool for building and executing personal protocols. Users design directed graphs of action, tool, timer, and ignition nodes, then "fly through" them in sequence.
 
 ---
 
@@ -32,28 +32,34 @@
 - Sidebar with node configuration
 - Drag-to-connect edges between nodes
 - Node deletion
-- Node types: action, ignition, milestone, fork
+- Node types: `action`, `tool`, `timer`, `ignition`
+- Type change auto-initializes defaults: `timer` → `duration: 25`, `tool` → `toolId: 'atomizer'`
 
 ### Pilot Mode
 - Camera flight system through the node graph
 - Per-node timer with auto-advance
 - Auto-advance timer (configurable delay, default 1.5s after timer hits 0)
 - Branching path selection at fork nodes
-- Timer completion sounds (Web Audio API synthesis)
+- Timer completion sounds (Web Audio API)
+- Tool nodes show launch button (e.g. Atomizer) with fallback message for unconfigured tools
+- Action nodes show "Awaiting manual completion" message
 
 ---
 
 ## Data Model
 
 ```typescript
+type NodeType = 'action' | 'tool' | 'timer' | 'ignition'
+
 interface ProtocolNode {
   id: string
-  type: 'action' | 'ignition' | 'milestone' | 'fork'
+  type: NodeType
   label: string
-  duration?: number        // seconds
-  content?: string        // markdown
-  position?: { x: number; y: number }
-  color?: string
+  position: [number, number, number]
+  data: {
+    toolId?: 'atomizer' | 'emergency'   // for type: 'tool'
+    duration?: number                    // for type: 'timer' (minutes, default 25)
+  }
 }
 
 interface ProtocolEdge {
@@ -97,27 +103,39 @@ Sound preference stored in `duckos:timer:sound`. 5-second amber pulse warning be
 ## Default Seeding
 
 On first visit (flagged by `duckos:protocol:visited`), seeds default protocol nodes:
-- Duck OS Reset
-- Energy Check
-- Task Selection
-- Shutdown Sequence
+- Morning Ritual (action)
+- Deep Work Session (tool, toolId: atomizer)
+- Recovery Walk (action)
 
 Subsequent visits do NOT re-seed — preserves user modifications.
 
 ---
 
+## Node Type Behavior
+
+| Type | Architect Config | Pilot Display |
+|---|---|---|
+| `action` | Label only | "Awaiting manual completion of physical action." |
+| `tool` | Label + Tool ID selector (default: atomizer) | Launch Atomizer button, or fallback message if toolId missing |
+| `timer` | Label + Duration (1-120 min, default 25) | Countdown timer with sound selector, auto-advance on completion |
+| `ignition` | Label only | Auto-triggers Ignition Sequence, transitions to target node on completion |
+
+---
+
 ## Integration
 
-- **Atomizer launch:** Action nodes link to `/atomizer?returnTo=/protocol-builder`; on task completion, returns to Protocol Builder
-- **Ignition flow:** Completion of ignition sets `duckos:ignition:done:<date>`; Protocol Builder shows soft pre-flight nudge overlay if not done today
+- **Atomizer launch:** Tool nodes with `toolId: 'atomizer'` link to `/atomizer?returnTo=/protocol-builder`; on task completion, returns to Protocol Builder
+- **Ignition flow:** Ignition nodes auto-trigger the Ignition Sequence; completion transitions to the next connected node. Soft pre-flight nudge overlay shown if Ignition not run today.
 
 ---
 
 ## Key Files
 
-- `src/lib/protocol-store.ts` — Graph state, localStorage persistence
-- `src/app/protocol-builder/page.tsx` — Main page
+- `src/lib/protocol-store.ts` — Graph state, localStorage persistence, NodeType definition
+- `src/app/protocol-builder/page.tsx` — Main page with mode switching, timer logic, Pilot HUD
 - `src/components/ProtocolBuilder/ProtocolScene.tsx` — 3D scene with node graph
-- `src/components/ProtocolBuilder/ArchitectSidebar.tsx` — Config sidebar
+- `src/components/ProtocolBuilder/ArchitectSidebar.tsx` — Config sidebar with node editing, type switching
 - `src/components/ProtocolBuilder/IntroSlides.tsx` — First-visit onboarding slides
+- `src/components/ProtocolBuilder/IgnitionOverlay.tsx` — Ignition phase overlay
 - `src/lib/timer-audio.ts` — Web Audio API synthesis
+- `src/lib/ignition-store.ts` — Zustand store for Ignition state
