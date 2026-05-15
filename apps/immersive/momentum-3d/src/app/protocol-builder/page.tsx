@@ -434,6 +434,12 @@ export default function ProtocolBuilderPage() {
               </div>
             )}
 
+            {activeNode.type === 'tool' && activeNode.data?.toolId !== 'atomizer' && (
+              <p className="text-xs text-white/50 font-mono">
+                Tool node — select a tool in Architect mode to configure.
+              </p>
+            )}
+
             {activeNode.type === 'timer' && (
               <div className="space-y-4">
                 <div className="h-px bg-cyan-500/30 w-full" />

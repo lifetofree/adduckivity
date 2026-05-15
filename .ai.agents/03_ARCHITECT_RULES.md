@@ -29,6 +29,7 @@ Design Patterns:
 - ET theme constants (src/lib/theme.ts) for consistent styling — includes accentL, energyBars(), statusColorClass()
 - WordPress REST API integration (src/lib/wordpress.ts) for blog content
 - Markdown rendering (src/lib/markdown.ts) for post content
+- NodeType: 'action' | 'tool' | 'timer' | 'ignition' — type change auto-initializes defaults (timer→duration, tool→toolId)
 - Daily check-in step state is local (useState) — transient, resets on every page visit by design
 - 3D decoration pattern: StateCheckScene receives energy as prop, never owns state; its Canvas wrapper MUST have `pointer-events-none` — it is purely decorative and must not capture user taps
 - Absolute-positioned overlays inside page containers must clear the fixed SystemBar (h-14 = 56px). Use `top-[72px]` minimum for any `absolute top-*` element in page content areas
