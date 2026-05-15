@@ -20,6 +20,7 @@ UX Quality:
 - Verify "Sensory-Aware" UX and energy-level lock behavior via gradient lock model in system-context.tsx
 - Verify shared components render correctly: SystemBar (h-14, breadcrumb, mode switcher), SystemFooter (h-14, version info), ControlCenter (energy/sensory panel)
 - Verify theme consistency: all colors from ET constant in src/lib/theme.ts (includes accentL, energyBars(), statusColorClass())
+- Verify Protocol Builder node type transitions: type change must auto-initialize defaults (tool→toolId, timer→duration) and Pilot mode must render fallback content for all types
 - Verify all Canvas components have `dpr={[1, 1.5]}` (performance — capped device pixel ratio)
 - Verify decorative 3D Canvas wrappers (e.g. StateCheckScene) have `pointer-events-none` on their container div
 - Verify absolute-positioned overlays in page content areas use `top-[72px]` minimum (not top-6) to clear the fixed SystemBar

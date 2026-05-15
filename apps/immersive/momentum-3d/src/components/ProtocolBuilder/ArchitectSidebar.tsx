@@ -163,6 +163,7 @@ export default function ArchitectSidebar({
                       const newType = e.target.value as NodeType;
                       const newData = { ...activeNode.data };
                       if (newType === 'timer' && !newData.duration) newData.duration = 25;
+                      if (newType === 'tool' && !newData.toolId) newData.toolId = 'atomizer';
                       onUpdateNode(activeNode.id, { type: newType, data: newData });
                     }}
                     className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-colors cursor-pointer"
@@ -193,7 +194,7 @@ export default function ArchitectSidebar({
                   <div className="space-y-1.5">
                     <label className="text-[10px] text-white/40 uppercase font-mono">Tool ID</label>
                     <select 
-                      value={activeNode.data?.toolId || ''}
+                      value={activeNode.data?.toolId || 'atomizer'}
                       onChange={(e) => onUpdateNode(activeNode.id, { 
                         data: { ...activeNode.data, toolId: e.target.value as 'atomizer' } 
                       })}
