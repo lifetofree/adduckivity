@@ -5,6 +5,16 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| State | React Context + localStorage |
+| Architecture | Client-side (no KV dependency) |
+
+---
+
 ## Purpose
 
 Energy-aware tool access control. Duck OS adjusts how many sensory checks (water, light, noise) are required based on the user's current energy level. Lower energy = stricter lock requirements, protecting users from burnout spirals.

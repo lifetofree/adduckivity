@@ -5,6 +5,17 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| HTTP | WordPress REST API v2 (native `fetch`) |
+| Caching | Next.js `revalidate: 300` (5 min) |
+
+---
+
 ## Purpose
 
 Blog section (`/blog`) fetches published posts from a WordPress site (`wp.adduckivity.com`) via the WordPress REST API v2. WordPress is the content source; Duck OS renders them.

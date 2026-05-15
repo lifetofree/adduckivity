@@ -5,6 +5,19 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| 3D | Three.js 0.184, React Three Fiber 9.6, Drei 10.7, Postprocessing 3.0 |
+| Animation | Framer Motion 12 |
+| Access | Client-side hostname check (localhost/127.0.0.1 only) |
+| Persistence | localStorage (via system-context) |
+
+---
+
 ## Purpose
 
 3D biological shield web and central command center — localhost only. Provides a visual overview of all Duck OS tools, biological state visualization, and 3D roadmap of the project.

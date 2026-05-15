@@ -5,6 +5,20 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| Markdown | `gray-matter` (frontmatter parsing), custom `renderMarkdown()` |
+| AI | Gemini `gemini-1.5-flash` via `/api/ai` |
+| Images | Unsplash API via `/api/unsplash` + R2 via `/api/upload` |
+| Storage | Cloudflare KV (posts), R2 (images) |
+| Animation | Framer Motion 12 |
+
+---
+
 ## Purpose
 
 Owner-only CMS dashboard for managing Duck OS posts. Provides full CRUD with auto-save, Unsplash image search, AI assistant, and Facebook publishing.

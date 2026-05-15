@@ -5,6 +5,19 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime + `force-dynamic`) |
+| 3D | Three.js 0.184, React Three Fiber 9.6, Drei 10.7 (lazy-loaded, `ssr: false`) |
+| Email | SendFox REST API via `/api/subscribe` |
+| Persistence | localStorage |
+| Animation | Framer Motion 12 |
+
+---
+
 ## Purpose
 
 Entry point for the Duck OS system. A 3-question biological check-in that diagnoses user state and routes them to the appropriate tool based on energy level.

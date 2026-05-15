@@ -5,6 +5,19 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| Storage | Cloudflare KV (`POSTS_KV` binding) |
+| R2 | Cloudflare R2 (`ASSETS_BUCKET` binding) |
+| Mock | `src/lib/dev-kv.ts` (in-memory, `NODE_ENV=development`) |
+| HTTP | Facebook Graph API, native `fetch` |
+
+---
+
 ## Purpose
 
 Full CRUD for Duck OS content — posts stored in Cloudflare KV, with scheduled publishing, Facebook auto-post, and R2 image management.

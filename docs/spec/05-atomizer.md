@@ -5,6 +5,19 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| AI | MiniMax `abab6.5s-chat` (primary), Gemini `gemini-1.5-flash` (fallback) |
+| 3D | Three.js 0.184, React Three Fiber 9.6, Drei 10.7 |
+| Persistence | localStorage (`duckos:atomizer:active_task`) |
+| Animation | Framer Motion 12 |
+
+---
+
 ## Purpose
 
 AI-powered task decomposition tool. Breaks any "scary task" into 12–15 atomic steps (≤2 min each), surfaced 3 at a time to prevent overwhelm. Built around the "Focus Window" principle.

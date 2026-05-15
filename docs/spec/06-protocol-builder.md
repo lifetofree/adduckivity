@@ -5,6 +5,20 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| 3D | Three.js 0.184, React Three Fiber 9.6, Drei 10.7, Postprocessing 3.0 |
+| Persistence | localStorage (`duckos:protocol:visited`, `duckos:protocol:execution`) |
+| Animation | Framer Motion 12 |
+| Audio | Web Audio API (synthesized via `timer-audio.ts`) |
+| State | React Context + custom hook (no external state lib for graph) |
+
+---
+
 ## Purpose
 
 3D momentum constellation tool for building and executing personal protocols. Users design directed graphs of action nodes, then "fly through" them in sequence.

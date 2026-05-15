@@ -5,6 +5,19 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Framework | Next.js 16.2 App Router (Edge Runtime) |
+| State | Zustand 5 |
+| 3D | Three.js 0.184, React Three Fiber 9.6, Drei 10.7 |
+| Audio | HTML5 `<audio>` element managed by `ignition-audio.ts` |
+| Animation | Framer Motion 12 |
+
+---
+
 ## Purpose
 
 600-second power-up ritual divided into three phases: Spark (200s) → Target (200s) → Launch (200s). Uses audio crossfade between phases and a visual overlay for phase transitions.

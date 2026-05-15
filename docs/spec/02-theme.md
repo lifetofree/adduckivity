@@ -5,6 +5,16 @@
 
 ---
 
+## Tech Spec
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 + inline styles |
+| Architecture | Pure utility module (no framework dependency) |
+
+---
+
 ## Purpose
 
 Centralized color palette — single source of truth for all Duck OS theming. Ensures visual consistency across all tools and components.
