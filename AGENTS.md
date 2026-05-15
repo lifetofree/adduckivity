@@ -402,7 +402,7 @@ interface Post {
 | `src/__tests__/ignition.test.ts` | Ignition phases, timer, state transitions |
 | `src/__tests__/analytics.test.ts` | Analytics event tracking |
 
-**Total:** 94 tests passing across 11 test files
+**Total:** 118 tests passing across 12 test files
 
 ---
 
@@ -535,7 +535,7 @@ localhost:3000  →  main branch  →  Cloudflare Pages
 ```bash
 cd apps/immersive/momentum-3d
 npm run dev       # localhost:3000
-npm run test      # run 94 tests
+npm run test      # run 118 tests
 npm run deploy    # typecheck + build (next-on-pages) + deploy to Cloudflare Pages
 ```
 
@@ -600,4 +600,4 @@ Hero Reset Trigger → Interactive Protocol → Email Capture (Free Kit) → Ear
 
 ---
 
-*Last updated: 2026-05-08 — Full documentation audit: WordPress blog, Ignition sequence, OS Launchpad, gradient lock model, shared components, 94 tests, guide pages*
+*Last updated: 2026-05-15 — Full documentation audit: WordPress blog, Ignition sequence, OS Launchpad, gradient lock model, shared components, 118 tests, guide pages*

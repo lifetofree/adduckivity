@@ -1,6 +1,6 @@
 # Duck OS — Project Status
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Branch:** main (merged from dev — timer audio, /start, Protocol Builder improvements, STATUS.md)  
 **Deploy target:** Cloudflare Pages (Workers paid plan — bundle ~9.8 MiB)  
 **Tests:** 118 passing across 12 files (Vitest)
@@ -84,7 +84,7 @@
 | Item | Priority | Notes |
 |---|---|---|
 | Starter Kit delivery | High | Email gate promises "5 protocols + Notion template" — nothing is sent yet |
-| ROADMAP.md sync | Medium | Phase 3 marked as "next" but shipped; test count shows 94 (should be 118) |
+| ROADMAP.md sync | Medium | ✅ Resolved — test count updated to 118 across 12 files |
 | Mobile Protocol Builder | Medium | PO approved concept: Pilot mode only on mobile (skip graph, go straight to card flow) |
 
 ---

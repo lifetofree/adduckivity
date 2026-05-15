@@ -224,7 +224,7 @@ cd apps/immersive/momentum-3d
 npm run dev          # http://localhost:3000
 
 # Testing
-npm run test         # Run 94 tests
+npm run test         # Run 118 tests
 
 # Build
 npm run build        # Production build
