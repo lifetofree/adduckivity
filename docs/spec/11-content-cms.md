@@ -1,6 +1,6 @@
 # System Spec: CMS Content (/content)
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/app/content/page.tsx`, `src/app/content/new/page.tsx`, `src/app/content/edit/EditPostInner.tsx`
 
 ---
@@ -83,3 +83,12 @@ Built with:
 - `src/app/content/edit/EditPostInner.tsx` — Edit post inner (shared with new)
 - `src/components/editor/EditorShared.tsx` — Shared editor components
 - `src/components/editor/PreviewModal.tsx` — Markdown preview modal
+
+---
+
+## Known Issues
+
+| Issue | Location | Severity | Fix |
+|---|---|---|---|
+| `Buffer.from` in edge runtime | `api/upload/route.ts:40` | **High** | `Buffer` is Node.js-only. Currently inside `NODE_ENV=development` branch but still parsed by the edge bundler. Replace with: `btoa(String.fromCharCode(...new Uint8Array(bytes)))` |
+| Link text not escaped in `renderMarkdown` | `src/lib/markdown.ts:126` | Low | `[label](url)` label is passed to HTML unescaped. URL is sanitized but label is not. Low risk while CMS is admin-only; apply `escapeAttr(text)` if ever opened to contributors |

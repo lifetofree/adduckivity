@@ -81,7 +81,6 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              backdropFilter: 'blur(6px)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
               userSelect: 'none',
@@ -123,7 +122,6 @@ const Node = ({ node, isActive = false, onSelect, edges, hideLabel = false }: No
             border: `1px solid ${isActive ? color + '55' : color + '25'}`,
             borderRadius: 4,
             padding: '2px 7px',
-            backdropFilter: 'blur(4px)',
             pointerEvents: 'none',
             userSelect: 'none',
           }}>
@@ -163,7 +161,7 @@ function SceneContent({
   return (
     <>
       <color attach="background" args={[colors?.bg || '#0a0f1e']} />
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+      <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={0} />
       <ambientLight intensity={colors ? 0.8 + uniforms.pulseIntensity * 0.4 : 0.7} color={colors?.primary} />
       <pointLight position={[10, 10, 10]} intensity={colors ? 1.5 : 1} color={colors?.accent} />
 

@@ -1,6 +1,6 @@
 # System Spec: OS Launchpad
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/app/os/page.tsx`, `src/components/OSLaunchpadScene.tsx`, `src/components/LaunchpadOverlay.tsx`
 
 ---

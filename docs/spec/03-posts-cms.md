@@ -1,6 +1,6 @@
 # System Spec: Posts / CMS
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/lib/posts.ts`, `src/app/api/posts/route.ts`, `src/app/api/posts/save/route.ts`, `src/app/api/posts/maintenance/route.ts`
 
 ---
@@ -82,7 +82,7 @@ interface Post {
 - Triggers when a post transitions to `published` for the first time
 - `facebookPosted` flag + KV-based lock prevents duplicate posts
 - Uses `FACEBOOK_PAGE_ACCESS_TOKEN` and `FACEBOOK_PAGE_ID`
-- On CF Pages: `CF_PAGES=1` env var detected; Facebook posting skipped locally
+- **Local dev skip:** `NODE_ENV === 'development'` — posting is skipped in dev only. `CF_PAGES` is no longer used as a guard (removed in a prior fix).
 
 ---
 

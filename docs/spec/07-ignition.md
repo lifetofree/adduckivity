@@ -1,6 +1,6 @@
 # System Spec: Ignition Sequence
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/lib/ignition-store.ts`, `src/lib/ignition-audio.ts`, `src/app/ignition/page.tsx`, `src/components/IgnitionOverlay.tsx`
 
 ---
@@ -59,6 +59,14 @@ interface IgnitionState {
 
 ---
 
+## Post-Completion Flow
+
+On Launch phase completion:
+1. Writes `duckos:ignition:done:<date>` to localStorage
+2. Auto-redirects to `/protocol-builder` after **2 seconds** (not homepage)
+
+---
+
 ## localStorage Key
 
 | Key | Purpose |
@@ -80,5 +88,12 @@ Timer derives from `Date.now() - startTime` (not incrementing state) to prevent 
 - `src/lib/ignition-store.ts` — Zustand store for phase/timer state
 - `src/lib/ignition-audio.ts` — Audio manager with crossfade
 - `src/app/ignition/page.tsx` — Main ignition page
-- `src/components/IgnitionOverlay.tsx` — Phase transition overlay
-- `src/components/useIgnitionScene.ts` — R3F hook for ignition 3D effects
+- `src/components/ProtocolBuilder/IgnitionOverlay.tsx` — Phase transition overlay
+- `src/components/ProtocolBuilder/useIgnitionScene.ts` — R3F hook for ignition 3D effects
+
+## Known Issues
+
+| Issue | Location | Severity | Fix |
+|---|---|---|---|
+| `NodeJS.Timeout` type in browser file | `ignition-audio.ts:4` | Low | `setInterval` in browser returns `number`; change to `ReturnType<typeof setInterval>` |
+| Audio files missing | `ignition-audio.ts:8-12` | Low | Phase audio tracks (spark/target/launch MP3s) don't exist; code handles gracefully via `.catch()` |

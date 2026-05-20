@@ -1,7 +1,7 @@
 'use client'
 
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { ProtocolNode, ProtocolEdge } from '@/lib/protocol-store'
 
@@ -12,142 +12,130 @@ interface ForceGraphControllerProps {
   enabled?: boolean;
 }
 
-/**
- * A simple force-directed layout engine for the Protocol Builder.
- * Calculates repulsion, spring, and gravity forces to auto-arrange nodes.
- */
+// Physics constants — module-level to avoid re-evaluation per render
+const REPULSION = 25.0
+const SPRING_LENGTH = 3.0
+const SPRING_STRENGTH = 0.8
+const GRAVITY = 0.4
+const DAMPING = 0.92
+const MAX_VELOCITY = 0.5
+const SETTLE_THRESHOLD = 0.01  // total movement below this → pause simulation
+const MOVE_THRESHOLD = 0.005   // per-node velocity below this → skip position update
+
+// Module-level temp vectors — zero allocation in hot paths
+const _syncTemp = new THREE.Vector3()
+const _diff = new THREE.Vector3()
+const _forceVec = new THREE.Vector3()
+
 export default function ForceGraphController({
   nodes,
   edges,
   updateNodes,
   enabled = true,
 }: ForceGraphControllerProps) {
-  // Use a map to store the physical state of each node (position and velocity)
-  // Re-memoize only if the set of node IDs changes
+  // Re-memoize only when the set of node IDs changes
   const nodeIdsKey = nodes.map(n => n.id).join(',')
   const nodeStates = useMemo(() => {
-    const states = new Map<string, { pos: THREE.Vector3, vel: THREE.Vector3 }>();
+    const states = new Map<string, { pos: THREE.Vector3, vel: THREE.Vector3 }>()
     nodes.forEach(node => {
       states.set(node.id, {
         pos: new THREE.Vector3(...node.position),
-        vel: new THREE.Vector3(0, 0, 0)
-      });
-    });
-    return states;
-  }, [nodeIdsKey]);
+        vel: new THREE.Vector3(0, 0, 0),
+      })
+    })
+    return states
+  }, [nodeIdsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync internal positions if nodes are moved externally (e.g. on initial load or manual edit)
+  // Wake the simulation when the node set changes
+  const isSettled = useRef(false)
+  useEffect(() => { isSettled.current = false }, [nodeIdsKey])
+
+  // Sync positions when nodes are moved externally (load / manual edit)
   useEffect(() => {
     nodes.forEach(node => {
-      const state = nodeStates.get(node.id);
-      if (state) {
-        const currentPos = new THREE.Vector3(...node.position);
-        // Only sync if the difference is significant to avoid fighting the simulation
-        if (state.pos.distanceTo(currentPos) > 0.1) {
-          state.pos.copy(currentPos);
-          state.vel.set(0, 0, 0); // Reset velocity on manual move
-        }
+      const state = nodeStates.get(node.id)
+      if (!state) return
+      _syncTemp.set(...node.position)
+      if (state.pos.distanceTo(_syncTemp) > 0.1) {
+        state.pos.copy(_syncTemp)
+        state.vel.set(0, 0, 0)
+        isSettled.current = false
       }
-    });
-  }, [nodes, nodeStates]);
-
-  // Physics constants
-  const REPULSION = 25.0;     // Push nodes apart
-  const SPRING_LENGTH = 3.0;   // Desired distance between connected nodes
-  const SPRING_STRENGTH = 0.8; // Pull/push strength for connections
-  const GRAVITY = 0.4;         // Pull towards center (0,0,0)
-  const DAMPING = 0.92;        // Friction to eventually stop movement
-  const MAX_VELOCITY = 0.5;    // Prevent explosive movement
-
-  // Reusable vectors for calculations to avoid GC pressure
-  const _diff = useMemo(() => new THREE.Vector3(), []);
-  const _forceVec = useMemo(() => new THREE.Vector3(), []);
+    })
+  }, [nodes, nodeStates])
 
   useFrame((_, delta) => {
-    if (!enabled || nodes.length === 0) return;
+    if (!enabled || nodes.length === 0 || isSettled.current) return
 
-    // Limit delta to prevent physics glitches on low frame rates
-    const dt = Math.min(delta, 0.05);
+    const dt = Math.min(delta, 0.05)
 
-    // 1. Repulsion Forces (Node-Node collision avoidance)
+    // 1. Repulsion (O(n²) — acceptable for small protocol graphs)
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        const idA = nodes[i].id;
-        const idB = nodes[j].id;
-        const stateA = nodeStates.get(idA)!;
-        const stateB = nodeStates.get(idB)!;
-        
-        _diff.subVectors(stateA.pos, stateB.pos);
-        const distSq = _diff.lengthSq();
-        
-        // Add a small offset if they are exactly overlapping
+        const stateA = nodeStates.get(nodes[i].id)!
+        const stateB = nodeStates.get(nodes[j].id)!
+
+        _diff.subVectors(stateA.pos, stateB.pos)
+        const distSq = _diff.lengthSq()
+
         if (distSq < 0.01) {
-          _diff.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+          _diff.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
         }
-        
-        const force = REPULSION / (distSq + 1.0);
-        _forceVec.copy(_diff).normalize().multiplyScalar(force * dt);
-        
-        stateA.vel.add(_forceVec);
-        stateB.vel.sub(_forceVec);
+
+        const force = REPULSION / (distSq + 1.0)
+        _forceVec.copy(_diff).normalize().multiplyScalar(force * dt)
+
+        stateA.vel.add(_forceVec)
+        stateB.vel.sub(_forceVec)
       }
     }
 
-    // 2. Spring Forces (Attraction between connected nodes)
+    // 2. Spring forces along edges
     edges.forEach(edge => {
-      const stateA = nodeStates.get(edge.source);
-      const stateB = nodeStates.get(edge.target);
-      if (!stateA || !stateB) return;
+      const stateA = nodeStates.get(edge.source)
+      const stateB = nodeStates.get(edge.target)
+      if (!stateA || !stateB) return
 
-      _diff.subVectors(stateB.pos, stateA.pos);
-      const dist = _diff.length();
-      if (dist < 0.01) return;
-      
-      const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH;
-      _forceVec.copy(_diff).normalize().multiplyScalar(force * dt);
-      
-      stateA.vel.add(_forceVec);
-      stateB.vel.sub(_forceVec);
-    });
+      _diff.subVectors(stateB.pos, stateA.pos)
+      const dist = _diff.length()
+      if (dist < 0.01) return
 
-    // 3. Central Gravity (Keep the whole graph centered)
-    nodeStates.forEach((state) => {
-      _forceVec.copy(state.pos).multiplyScalar(-GRAVITY * dt);
-      state.vel.add(_forceVec);
-    });
+      const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH
+      _forceVec.copy(_diff).normalize().multiplyScalar(force * dt)
 
-    // 4. Update positions and check for significant movement
-    let totalMovement = 0;
-    const nextNodes: ProtocolNode[] = [];
+      stateA.vel.add(_forceVec)
+      stateB.vel.sub(_forceVec)
+    })
 
+    // 3. Gravity toward origin
+    nodeStates.forEach(state => {
+      _forceVec.copy(state.pos).multiplyScalar(-GRAVITY * dt)
+      state.vel.add(_forceVec)
+    })
+
+    // 4. Integrate — only build nextNodes array when movement is meaningful
+    let totalMovement = 0
     nodes.forEach(node => {
-      const state = nodeStates.get(node.id)!;
-      
-      // Apply damping (friction)
-      state.vel.multiplyScalar(DAMPING);
-      
-      // Cap velocity for stability
-      if (state.vel.length() > MAX_VELOCITY) {
-        state.vel.normalize().multiplyScalar(MAX_VELOCITY);
+      const state = nodeStates.get(node.id)!
+      state.vel.multiplyScalar(DAMPING)
+      if (state.vel.length() > MAX_VELOCITY) state.vel.normalize().multiplyScalar(MAX_VELOCITY)
+      if (state.vel.length() > MOVE_THRESHOLD) {
+        state.pos.add(state.vel)
+        totalMovement += state.vel.length()
       }
+    })
 
-      // Update position
-      if (state.vel.length() > 0.005) {
-        state.pos.add(state.vel);
-        totalMovement += state.vel.length();
-      }
-
-      nextNodes.push({
-        ...node,
-        position: [state.pos.x, state.pos.y, state.pos.z]
-      });
-    });
-
-    // Only update React state if there was meaningful movement
-    if (totalMovement > 0.01) {
-      updateNodes(nextNodes);
+    if (totalMovement < SETTLE_THRESHOLD) {
+      isSettled.current = true
+      return
     }
-  });
 
-  return null;
+    const nextNodes: ProtocolNode[] = nodes.map(node => {
+      const { pos } = nodeStates.get(node.id)!
+      return { ...node, position: [pos.x, pos.y, pos.z] as [number, number, number] }
+    })
+    updateNodes(nextNodes)
+  })
+
+  return null
 }

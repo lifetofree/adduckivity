@@ -1,6 +1,6 @@
 # System Spec: Emergency Recovery (/momentum)
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/app/momentum/page.tsx`, `src/components/FlywheelScene.tsx`, `src/components/EmergencyProtocol.tsx`
 
 ---
@@ -52,6 +52,12 @@ Features:
 | `EmergencyProtocol.tsx` | 5-step fail-safe UI |
 | `EnergyCheck.tsx` | Energy level check component |
 | `SystemGate.tsx` | Energy/sensory gate for tool access |
+
+---
+
+## Post-Recovery Flow
+
+On protocol completion, the CTA redirects to `/start?reset=true` — forces a full re-check in the Daily Protocol to capture updated biological state after recovery. This ensures the routing engine re-diagnoses energy/lock rather than using the stale pre-crash state.
 
 ---
 

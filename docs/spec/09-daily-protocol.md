@@ -1,7 +1,7 @@
 # System Spec: Daily Protocol (/start)
 
-**Last updated:** 2026-05-11  
-**File:** `src/app/start/page.tsx`
+**Last updated:** 2026-05-15  
+**Files:** `src/app/start/page.tsx`, `src/lib/protocol-router.ts`
 
 ---
 
@@ -32,26 +32,37 @@ Entry point for the Duck OS system. A 3-question biological check-in that diagno
 
 ---
 
-## State Diagnosis
+## State Diagnosis & Routing
 
-| Energy Range | Label | Color | Recommended Tool |
+Routing logic lives in `src/lib/protocol-router.ts` — pure function `getRecommendation({ energy, isLocked }) → ProtocolRecommendation`. No React, no side effects, fully testable.
+
+| Energy Range | Lock State | Route | Reason |
 |---|---|---|---|
-| 1–3 | Crash State | Red | `/momentum` (Emergency Recovery) |
-| 4–6 | Low Fuel | Amber | `/atomizer` (Task decomposition) |
-| 7–10 | Flight Ready | Green | `/protocol-builder` or `/ignition` |
+| 1–3 | any | `/momentum` | Crash state — Emergency Recovery |
+| 4–6 | unlocked | `/atomizer` | Low fuel — task decomposition |
+| 4–6 | locked | `/momentum` | Sensory override — Emergency Recovery |
+| 7–10 | unlocked | `/ignition` | Flight ready — power-up ritual first |
+| 7–10 | locked | `/atomizer` | Sensory override — skip Ignition, go direct |
 
 ---
+
+## Check-In Gate
+
+- **Returning users (<4h):** Skip questions entirely; jump straight to state diagnosis using cached energy/lock state from localStorage (`duckos:start:last_check`)
+- **`?reset=true` param:** Forces full 3-question re-check regardless of last check time — used after Emergency Recovery completes to capture updated state
 
 ## Features
 
 | Feature | Implementation |
 |---|---|
-| Returning user banner | Shows last check-in date with "Update state?" CTA |
-| Email gate (non-blocking) | Appears after routing decision; subscribe to SendFox |
+| Returning user skip | <4h since last check → skip to diagnosis via `LAST_CHECK_KEY` |
+| `?reset=true` | Forces full re-check; used post-Emergency Recovery |
+| Email gate (non-blocking) | Appears **after** routing decision; once per device (`duckos:start:email_shown`); never blocks navigation; copy = Starter Kit offer |
+| Subscribe source tag | All `/api/subscribe` calls from `/start` pass `source: 'daily-checkin'` |
 | State persistence | `duckos:start:last_check` in localStorage |
-| Mobile optimization | `pointer-events-none` on 3D Canvas for clickable UI |
+| Mobile optimization | `pointer-events-none` on 3D Canvas wrapper div in `start/page.tsx` — `StateCheckScene` has no internal guard; relies on caller to apply this class |
+| Subscribe source optional | `/api/subscribe` accepts but does not require `source`; call sites always supply it but the route won't reject a missing field |
 | Static generation compat | `useSearchParams()` wrapped in `<Suspense>` boundary |
-| `duckos:start:email_shown` | Prevents email gate from re-appearing on same session |
 
 ---
 

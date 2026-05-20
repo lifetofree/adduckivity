@@ -5,7 +5,7 @@
 | Metric | Status |
 |--------|--------|
 | TypeScript | 0 errors |
-| Tests | 94 passing |
+| Tests | 118 passing (12 files) |
 | Lint Errors | 0 (warnings only) |
 
 ---
@@ -153,7 +153,8 @@ isProtected: boolean    // true when energy <= 3
 | `src/__tests__/system.test.tsx` | 6 |
 | `src/lib/atomizer.test.ts` | 4 |
 | `src/lib/markdown.test.ts` | 10 |
-| **Total** | **92** |
+| `src/__tests__/protocol-router.test.ts` | 24 |
+| **Total** | **118** |
 
 ---
 

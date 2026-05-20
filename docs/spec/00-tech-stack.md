@@ -1,6 +1,6 @@
 # Duck OS — Tech Stack
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Status:** Production Live
 
 ---
@@ -22,7 +22,7 @@ Browser → Cloudflare CDN → Next.js App (Edge Runtime) → Cloudflare KV + R2
                               MiniMax + Gemini AI
 ```
 
-**Deployment:** Cloudflare Pages with `--no-bundle` flag (bypasses 3 MiB bundler limit; Workers Paid plan required for ~9.8 MiB bundle)
+**Deployment:** Cloudflare Pages via `@cloudflare/next-on-pages`. Bundle ~9.8 MiB — requires Workers Paid plan (free limit is 3 MiB). Uses `--commit-dirty=true` flag on deploy.
 
 **Edge constraint:** All API routes MUST use `export const runtime = 'edge'`. No Node.js built-ins (`fs`, `path`, `crypto`) allowed.
 
@@ -111,6 +111,7 @@ ASSETS_BUCKET  — R2 bucket: immersive-assets
 | `src/lib/ignition-store.ts` | Ignition phase/timer state (Zustand) |
 | `src/lib/ignition-audio.ts` | Audio manager for ignition phases |
 | `src/lib/markdown.ts` | Markdown → HTML renderer |
+| `src/lib/protocol-router.ts` | Pure routing function: energy + lock → ProtocolRecommendation |
 | `src/lib/timer-audio.ts` | Web Audio API synthesis for timer sounds |
 
 ---
@@ -121,7 +122,7 @@ ASSETS_BUCKET  — R2 bucket: immersive-assets
 - **Largest worker:** `index.func.js` (1.4 MiB) — homepage with Three.js
 - **Free tier limit:** 3 MiB — **requires Workers Paid plan** ($5/mo)
 - **Build command:** `npm run build:cf` (`npx @cloudflare/next-on-pages`)
-- **Deploy command:** `wrangler pages deploy .vercel/output/static --project-name immersive-adduckivity --no-bundle`
+- **Deploy command:** `wrangler pages deploy .vercel/output/static --project-name immersive-adduckivity --commit-dirty=true`
 
 ---
 
@@ -131,3 +132,14 @@ ASSETS_BUCKET  — R2 bucket: immersive-assets
 - **Test files:** 12 files, 118 tests
 - **Run:** `npm test` from `apps/immersive/momentum-3d`
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`) — typecheck + tests on push/PR to main
+
+---
+
+## Known Technical Debt
+
+| Item | Location | Severity | Notes |
+|---|---|---|---|
+| `Buffer.from` in edge route | `api/upload/route.ts:40` | High | Node.js-only API inside `NODE_ENV=development` branch; fix with `btoa(String.fromCharCode(...new Uint8Array(bytes)))` before deploy |
+| Auth helpers duplicated | `api/posts`, `api/posts/save`, `api/posts/maintenance`, `api/track`, `api/stats` | Medium | `timingSafeEqual`, `requireAdmin`, `getKV`, `getEnv` copied verbatim — extract to `src/lib/api-auth.ts` + `src/lib/cf-bindings.ts` |
+| `NodeJS.Timeout` type | `src/lib/ignition-audio.ts:4` | Low | Browser file uses Node.js type; change to `ReturnType<typeof setInterval>` |
+| Unescaped link text in markdown | `src/lib/markdown.ts:126` | Low | `[text](url)` label not run through `escapeAttr` — low risk while CMS is admin-only |

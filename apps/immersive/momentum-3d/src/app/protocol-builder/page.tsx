@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { SceneLoader } from '@/components/shared/SceneLoader'
@@ -21,6 +21,12 @@ import { playTimerComplete, getTimerSound, setTimerSound, TimerSound } from '@/l
 const EXECUTION_STORAGE_KEY = 'duckos:protocol:execution'
 const PROTOCOL_VISITED_KEY  = 'duckos:protocol:visited'
 const IGNITION_DONE_KEY = () => `duckos:ignition:done:${new Date().toDateString()}`
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+}
 
 export default function ProtocolBuilderPage() {
   const router = useRouter()
@@ -56,12 +62,6 @@ export default function ProtocolBuilderPage() {
 
   // -- Helpers & Callbacks --
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-
   const updateNodes = useCallback((nodes: ProtocolNode[]) => {
     setGraph(prev => ({ ...prev, nodes }))
   }, [])
@@ -73,8 +73,14 @@ export default function ProtocolBuilderPage() {
     timerProcessedRef.current = null
   }, [stopIgnitionState])
 
-  const activeNode = graph.nodes.find(n => n.id === activeNodeId) || null
-  const outgoingEdges = graph.edges.filter(e => e.source === activeNodeId)
+  const activeNode = useMemo(
+    () => graph.nodes.find(n => n.id === activeNodeId) ?? null,
+    [graph.nodes, activeNodeId]
+  )
+  const outgoingEdges = useMemo(
+    () => graph.edges.filter(e => e.source === activeNodeId),
+    [graph.edges, activeNodeId]
+  )
   const isActuallyLast = activeNodeId !== null && outgoingEdges.length === 0
 
   const nextNode = useCallback(() => {
@@ -95,7 +101,7 @@ export default function ProtocolBuilderPage() {
     // If no outgoing edges, user can continue clicking or stop manually
   }, [graph.nodes, graph.edges, outgoingEdges, activeNodeId, isIgnitionActive, startIgnition])
 
-  const addNode = (type: NodeType, toolId?: 'atomizer' | 'emergency') => {
+  const addNode = useCallback((type: NodeType, toolId?: 'atomizer' | 'emergency') => {
     const newNode: ProtocolNode = {
       id: Math.random().toString(36).slice(2, 11),
       type,
@@ -103,48 +109,39 @@ export default function ProtocolBuilderPage() {
       position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
       data: toolId ? { toolId } : (type === 'timer' ? { duration: 25 } : {})
     }
-    setGraph(prev => ({
-      ...prev,
-      nodes: [...prev.nodes, newNode]
-    }))
+    setGraph(prev => ({ ...prev, nodes: [...prev.nodes, newNode] }))
     setActiveNodeId(newNode.id)
-  }
+  }, [])
 
-  const updateNode = (id: string, updates: Partial<ProtocolNode>) => {
+  const updateNode = useCallback((id: string, updates: Partial<ProtocolNode>) => {
     setGraph(prev => ({
       ...prev,
       nodes: prev.nodes.map(n => n.id === id ? { ...n, ...updates } : n)
     }))
-  }
+  }, [])
 
-  const deleteNode = (id: string) => {
+  const deleteNode = useCallback((id: string) => {
     setGraph(prev => ({
       nodes: prev.nodes.filter(n => n.id !== id),
       edges: prev.edges.filter(e => e.source !== id && e.target !== id)
     }))
-    if (activeNodeId === id) setActiveNodeId(null)
-  }
+    setActiveNodeId(prev => prev === id ? null : prev)
+  }, [])
 
-  const addEdge = (source: string, target: string) => {
+  const addEdge = useCallback((source: string, target: string) => {
     const newEdge = { id: `e-${source}-${target}-${Date.now()}`, source, target }
-    setGraph(prev => ({
-      ...prev,
-      edges: [...prev.edges, newEdge]
-    }))
-  }
+    setGraph(prev => ({ ...prev, edges: [...prev.edges, newEdge] }))
+  }, [])
 
-  const deleteEdge = (id: string) => {
-    setGraph(prev => ({
-      ...prev,
-      edges: prev.edges.filter(e => e.id !== id)
-    }))
-  }
+  const deleteEdge = useCallback((id: string) => {
+    setGraph(prev => ({ ...prev, edges: prev.edges.filter(e => e.id !== id) }))
+  }, [])
 
-  const startFresh = () => {
+  const startFresh = useCallback(() => {
     setGraph({ nodes: [], edges: [] })
     setActiveNodeId(null)
     setMode('build')
-  }
+  }, [])
 
   // -- Effects --
 
@@ -327,8 +324,8 @@ export default function ProtocolBuilderPage() {
 
   // Countdown Effect
   useEffect(() => {
-    let interval: NodeJS.Timeout
-    let advanceTimeout: NodeJS.Timeout
+    let interval: ReturnType<typeof setInterval>
+    let advanceTimeout: ReturnType<typeof setTimeout>
 
     // Only auto-advance if it's actually a timer node and the timer finished
     if (isTimerRunning && timeLeft !== null && timeLeft > 0) {
@@ -347,7 +344,7 @@ export default function ProtocolBuilderPage() {
       clearInterval(interval)
       if (advanceTimeout) clearTimeout(advanceTimeout)
     }
-  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, graph.nodes, activeNodeId, isProtected])
+  }, [isTimerRunning, timeLeft, nextNode, activeNode?.type, outgoingEdges.length, activeNodeId, isProtected])
 
   return (
     <main className="relative w-full h-screen overflow-hidden">

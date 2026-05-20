@@ -1,6 +1,6 @@
 # System Spec: WordPress Blog Integration
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/lib/wordpress.ts`, `src/app/blog/page.tsx`, `src/app/blog/[slug]/page.tsx`
 
 ---

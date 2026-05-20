@@ -1,6 +1,6 @@
 # System Spec: Theme System
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **File:** `src/lib/theme.ts`
 
 ---
@@ -36,7 +36,7 @@ export const ET = {
 }
 ```
 
-Plus derived helpers: `ET.accentL` (10% opacity accent background), `ET.accentD` (20% opacity).
+Plus derived helper: `ET.accentL` (`rgba(0,229,255,0.12)` — accent tint for backgrounds). Note: `accentD` does **not** exist in the codebase; do not reference it.
 
 ---
 
@@ -60,13 +60,15 @@ import { inputCss } from '@/lib/theme'
 
 ## Input CSS Helper
 
-`inputCss(ET)` returns a consistent Tailwind class string for form elements:
+`inputCss(ET)` returns a **CSS string** (not Tailwind classes) that defines `.et-input` and `.et-select` class rules. It is injected via a `<style>` tag:
 
 ```typescript
-'px-4 py-3 rounded-lg text-sm focus:outline-none'
+// Generates:
+// .et-input { width: 100%; font-size: 0.75rem; border-radius: 0.5rem; border: 1px solid <border>; ... }
+// .et-select { ... }
 ```
 
-Combined with inline style for `border` and `backgroundColor` per ET palette.
+Usage: inject the returned string into a `<style>` element, then apply `className="et-input"` to inputs.
 
 ---
 
@@ -79,6 +81,14 @@ Combined with inline style for `border` and `backgroundColor` per ET palette.
 - **Muted/meta text:** `color: ET.sub`
 - **Accent/CTAs:** `color: ET.accent` with `backgroundColor: ET.accent` for solid fills
 - **Error states:** Red (`#ef4444`) or amber (`#ca8a04`)
+
+---
+
+## Additional Helpers
+
+`energyBars(energy: number): number` — maps 1–10 energy to 1–5 bar count (`Math.ceil(energy / 2)`). Used by SystemBar and ControlCenter to stay in sync.
+
+`statusColorClass(isLocked, isProtected): string` — returns `'red'` / `'amber'` / `'stable'` for SystemBar dot color class.
 
 ---
 

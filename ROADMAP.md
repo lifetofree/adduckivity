@@ -1,7 +1,7 @@
 # Duck OS Project Roadmap
 
-**Last Updated:** 2026-05-08  
-**Current Status:** All Core Tools LIVE - https://immersive.adduckivity.com  
+**Last Updated:** 2026-05-15  
+**Current Status:** Phase 3 Complete — All Core Tools + Daily Protocol LIVE - https://immersive.adduckivity.com  
 
 ---
 
@@ -21,12 +21,14 @@
 **Status:** LIVE & FULLY FUNCTIONAL
 
 **What Was Built:**
+- **Daily Protocol (`/start`)**: 3-question biological check-in → state diagnosis → energy-aware routing (Phase 3, LIVE)
 - **Interactive 3D Protocols**: Momentum Flywheel (ACT-04) and Emergency Recovery (FAIL-SAFE)
-- **The Atomizer (EXEC-01)**: AI-powered task decomposition with Multi-provider AI system
-- **Protocol Builder (SYS-02)**: 3D momentum constellation tool with Architect/Pilot modes and IntroSlides onboarding
-- **Ignition Sequence**: 600-second power-up ritual with audio crossfade, phase transitions (spark/target/launch), and guide pages
+- **The Atomizer (EXEC-01)**: AI-powered task decomposition with multi-provider AI; auto-clears on completion
+- **Protocol Builder (SYS-02)**: 3D momentum constellation tool with Architect/Pilot modes, IntroSlides onboarding, timer audio (Web Audio API), Start Fresh button
+- **Ignition Sequence**: 600-second power-up ritual with audio crossfade, phase transitions (spark/target/launch); auto-redirects to `/protocol-builder` on complete
 - **OS Launchpad (`/os`)**: 3D biological shield web, tool nodes, and roadmap visualization (localhost only)
 - **Gradient Lock Model**: Energy-aware sensory requirement system — adjusts tool access based on biological state
+- **Protocol Router**: Pure function (`protocol-router.ts`) — energy + lock state → route recommendation; 24 tests
 - **Dynamic CMS Dashboard**: Custom-built Next.js admin UI for managing posts (`/content`)
 - **WordPress Blog Integration**: Blog (`/blog`) fetches from `wp.adduckivity.com` via REST API with Yoast/Jetpack SEO
 - **AI Writing Assistant**: Multi-provider AI (MiniMax primary, Gemini fallback)
@@ -34,41 +36,44 @@
 - **Social Integration**: Automated Facebook Page sharing with duplicate prevention
 - **Asset Pipeline**: Unsplash integration and R2-backed image uploads
 - **Privacy Analytics**: Minimal tracking for engagement without compromising user data
-- **Lead Gen**: SendFox email integration on the Momentum page
+- **Lead Gen**: SendFox email integration — `/start` is now the primary warm email capture point; source-tagged (`daily-checkin` | `emergency-protocol` | `starter-kit-homepage`)
 - **Comprehensive Testing**: 118 tests passing across 12 test files
 
 **Live URL:** https://immersive.adduckivity.com  
 
 ---
 
-## CURRENT FOCUS (Phase 2.5: System Optimization)
+## CURRENT FOCUS (Phase 4: Lead Generation & First Product)
 
-### Objective: Polish and Refine Existing Tools
+### Objective: Deliver on the Starter Kit promise + revenue activation
 
 **Timeline:** Current  
-**Complexity:** Low-Medium  
-**Energy Required:** 5-7/10
+**Complexity:** Medium  
+**Energy Required:** 6-8/10
 
-#### Active Improvements:
-- [x] **Documentation Updates**: Ensure all technical docs are current and accurate
-- [x] **Performance Optimization**: Analyze and optimize 3D scene performance
-- [ ] **Mobile Enhancement**: Improve touch interactions and mobile layout
-- [ ] **Analytics Enhancement**: Track user behavior patterns for insights
-- [ ] **Content Expansion**: Add more protocols and use cases
+#### Active Items:
+- [ ] **Starter Kit delivery** (HIGH): Email gate promises "5 protocols + Notion template" — nothing sent yet; SendFox integration is ready, content needs building
+- [ ] **Mobile Protocol Builder** (MEDIUM): PO-approved concept — Pilot mode only on mobile (skip graph, go straight to card flow)
+- [ ] **Analytics Enhancement**: Track check-in funnel conversion (start → ignition → protocol-builder)
+- [ ] **Content Expansion**: Add more protocols and use cases to blog
+
+---
+
+## COMPLETED (Phase 3: Daily Protocol)
+
+### Goal: Primary entry point + warm email capture
+**Status:** ✅ LIVE
+
+- **Daily Protocol (`/start`)**: 3-question check-in (energy, water, light) → state diagnosis → energy-aware routing
+- **Protocol Router** (`src/lib/protocol-router.ts`): 5-path pure routing function with lock state awareness (24 tests)
+- **Email Gate**: Non-blocking, post-routing, once-per-device; source tag = `daily-checkin`
+- **Homepage CTA**: "Start Your Day →" links to `/start` (replaced "Enter the Launchpad")
+- **Ignition → Protocol Builder flow**: Completion auto-redirects to `/protocol-builder` after 2s
+- **Protocol Builder improvements**: Start Fresh, timer audio (Web Audio API), pre-flight nudge
 
 ---
 
 ## NEXT PHASES
-
-### Phase 3: Sensory & Energy Management (Month 3)
-**Goal:** Prevent stealth burnout by checking in with the biological system.
-- **Sensory Sync**: Pre-flight checklist for light, water, and noise (partially implemented in gradient lock model)
-- **Energy-Match Selector**: Dashboard to match tasks to current energy levels
-
-### Phase 4: Lead Generation & First Product (Month 4)
-**Goal:** 500-1,000 email subscribers + Launch paid product ($29-49)
-- Duck OS Starter Kit (PDF + Notion template)
-- Duck OS Recovery Protocol (Paid Pre-Order fulfillment)
 
 ### Phase 5: Community Layer (Month 6+)
 **Goal:** Recurring revenue via membership
@@ -112,7 +117,7 @@
 
 ### Development Metrics:
 - **Monorepo Structure:** Complete
-- **Core Tools:** 4 production-ready (Momentum, Atomizer, Protocol Builder, Ignition)
+- **Core Tools:** 5 production-ready (Daily Protocol, Momentum, Atomizer, Protocol Builder, Ignition)
 - **Dev Tools:** 1 local-only (OS Launchpad)
 - **API Routes:** 12 routes fully functional (all edge runtime)
 - **Test Coverage:** 118 tests passing across 12 test files
@@ -227,17 +232,17 @@
 
 ---
 
-**Last Updated:** 2026-05-08  
-**Next Review:** After Phase 3 planning  
-**Overall Status:** ON TRACK - ALL CORE TOOLS PRODUCTION LIVE
+**Last Updated:** 2026-05-15  
+**Next Review:** After Starter Kit delivery  
+**Overall Status:** ON TRACK - PHASE 3 COMPLETE, PHASE 4 IN PROGRESS
 
-**Recent Major Achievement:** 
-- Ignition sequence — 600s power-up ritual with audio
-- OS Launchpad — 3D shield web with tool nodes (localhost only)
-- Gradient lock model — energy-aware sensory requirement system
-- WordPress blog integration — SEO-optimized content from wp.adduckivity.com
-- Protocol Builder IntroSlides — onboarding for new users
-- Documentation audit — ROADMAP.md, AGENTS.md, DEPLOYMENT.md updated to current state
+**Recent Major Achievements:** 
+- Daily Protocol (`/start`) — biological check-in → energy-aware routing (Phase 3 complete)
+- Protocol Router — pure function, 5 routing paths, 24 tests
+- Timer audio — Web Audio API synthesis (no external files)
+- Ignition → Protocol Builder auto-redirect on completion
+- Start Fresh button — Architect sidebar with confirm dialog
+- Email capture with source tagging (daily-checkin | emergency-protocol | starter-kit-homepage)
 
 ---
 

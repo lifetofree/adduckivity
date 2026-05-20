@@ -116,16 +116,37 @@ Subsequent visits do NOT re-seed — preserves user modifications.
 | Type | Architect Config | Pilot Display |
 |---|---|---|
 | `action` | Label only | "Awaiting manual completion of physical action." |
-| `tool` | Label + Tool ID selector (default: atomizer) | Launch Atomizer button, or fallback message if toolId missing |
+| `tool` | Label + Tool ID selector (UI: `atomizer` only) | Launch Atomizer button, or fallback message if toolId missing |
 | `timer` | Label + Duration (1-120 min, default 25) | Countdown timer with sound selector, auto-advance on completion |
 | `ignition` | Label only | Auto-triggers Ignition Sequence, transitions to target node on completion |
+
+**UI Limitations (known gaps vs. data model):**
+- The type selector in ArchitectSidebar only exposes `action`, `tool`, `timer` — **`ignition` cannot be set via the sidebar type switcher**. Ignition nodes can only come from default seeds or future tooling.
+- The toolId selector only shows `atomizer` — **`emergency` toolId is defined in the type but not available in the UI**.
+
+---
+
+## Start Fresh
+
+- **Location:** Architect sidebar only (build mode) — not available in Pilot mode
+- **Behavior:** Requires `window.confirm` before clearing; clears graph to blank canvas
+- **Important:** Does NOT route to Ignition after clearing — user explicitly chose to skip
+
+## Known Issues
+
+| Issue | Location | Impact | Fix |
+|---|---|---|---|
+| "Ignite Momentum" button has no `isLocked` guard | `ArchitectSidebar.tsx:57` | Locked users can start 600s Ignition from sidebar, bypassing the page-level lock check in `protocol-builder/page.tsx:170` | Pass `isLocked` from `useSystem()` as a prop and disable the button when locked |
+| `ignition` node type not selectable in sidebar | `ArchitectSidebar.tsx:170-174` | Cannot set a node to `ignition` type via the type selector | Add `<option value="ignition">Ignition</option>` to the type select |
+| `emergency` toolId not available in UI | `ArchitectSidebar.tsx:198-205` | `emergency` toolId is in the data model but the Tool ID selector only shows `atomizer` | Add `<option value="emergency">Emergency Recovery</option>` to the tool select |
 
 ---
 
 ## Integration
 
 - **Atomizer launch:** Tool nodes with `toolId: 'atomizer'` link to `/atomizer?returnTo=/protocol-builder`; on task completion, returns to Protocol Builder
-- **Ignition flow:** Ignition nodes auto-trigger the Ignition Sequence; completion transitions to the next connected node. Soft pre-flight nudge overlay shown if Ignition not run today.
+- **Pre-flight nudge:** If no Ignition completed today (`duckos:ignition:done:<date>` absent), shows a soft interstitial on entry with two options: "Run Ignition (10 min)" or "Go straight to Builder". Never a hard gate — user can always skip.
+- **Ignition flow:** Ignition nodes auto-trigger the Ignition Sequence; completion transitions to the next connected node.
 
 ---
 

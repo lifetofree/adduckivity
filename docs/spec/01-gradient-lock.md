@@ -1,6 +1,6 @@
 # System Spec: Gradient Lock Model
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **File:** `src/lib/system-context.tsx`
 
 ---
@@ -52,7 +52,7 @@ Energy-aware tool access control. Duck OS adjusts how many sensory checks (water
 
 ## Fail-Safe Design
 
-**Critical energy (≤2):** Triggers biological crash recovery — resets all sensory checks to `true` and applies hard lock regardless of sensory state. This prevents users from being locked out when they need tools most.
+**Critical energy (≤2):** Triggers biological crash recovery — resets all sensory checks to `false` and applies hard lock regardless of sensory state. The hard lock is always applied via `if (energy <= 2) return true` in `isLocked`, so the sensory reset prevents a confusing "all checked but still locked" state from persisting after recovery.
 
 **Warning glow:** `lockProximity` value drives UI warning (glow intensity) as user approaches lock threshold.
 

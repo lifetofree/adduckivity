@@ -1,6 +1,6 @@
 # System Spec: The Atomizer
 
-**Last updated:** 2026-05-11  
+**Last updated:** 2026-05-15  
 **Files:** `src/lib/atomizer.ts`, `src/app/atomizer/page.tsx`, `src/components/AtomizerList.tsx`, `src/components/AtomizerScene.tsx`
 
 ---
@@ -50,7 +50,7 @@ AI-powered task decomposition tool. Breaks any "scary task" into 12–15 atomic 
 |---|---|---|
 | `duckos:atomizer:active_task` | localStorage | Active task + steps across sessions |
 
-On page load, checks localStorage. If all steps already completed, does NOT restore stale state (initial load guard).
+Task is **cleared from localStorage immediately on last step completion** — returning visits always show a fresh input. No reset button needed. On page load, if all steps are already completed, does not restore stale state.
 
 ---
 
