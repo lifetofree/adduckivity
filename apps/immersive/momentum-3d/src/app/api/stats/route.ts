@@ -39,6 +39,24 @@ export async function GET(req: NextRequest) {
   }
   try {
     const kv = getKV()
+    const cacheKey = 'stats:aggregated'
+    const now = Math.floor(Date.now() / 1000)
+    
+    // Try to get cached stats
+    const cached = await kv.get(cacheKey, 'text')
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        if (parsed.expiry && parsed.expiry > now) {
+          return NextResponse.json(parsed.value)
+        }
+      } catch (e) {
+        // If cache is corrupted, continue to regenerate
+        console.warn('[Stats] Cache parse error:', e)
+      }
+    }
+
+    // Cache miss or expired - compute fresh stats
     const counts: Record<string, number> = {}
     let total = 0
 
@@ -65,11 +83,22 @@ export async function GET(req: NextRequest) {
       return obj
     }, {} as Record<string, number>)
 
-    return NextResponse.json({
+    const responseBody = {
       summary: result,
       total_hits: total,
       note: 'These are aggregate counts of all recorded events.'
-    })
+    }
+
+    // Cache for 5 minutes (300 seconds)
+    await kv.put(
+      cacheKey,
+      JSON.stringify({
+        value: responseBody,
+        expiry: now + 300
+      })
+    )
+
+    return NextResponse.json(responseBody)
   } catch (err) {
     console.error('[Stats] Error:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
