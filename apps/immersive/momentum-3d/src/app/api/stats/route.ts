@@ -8,7 +8,7 @@ import { getMockKV } from '@/lib/dev-kv'
 
 /** Max KV.list pages to scan on a cache miss — safety cap to prevent
  *  unbounded cold-start scans when millions of keys exist. */
-const MAX_PAGES = 30
+const MAX_PAGES = 10
 
 /** Number of historical seconds to keep in scope. Events older than this
  *  are excluded by prefixing the KV.list call rather than client-side
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   }
   try {
     const kv = getKV()
-    const cacheKey = 'stats:aggregated'
+    const cacheKey = 'stats:aggregated:v1'
     const now = Math.floor(Date.now() / 1000)
     
     // Try to get cached stats
@@ -70,6 +70,7 @@ export async function GET(req: NextRequest) {
       try {
         const parsed = JSON.parse(cached)
         if (parsed.expiry && parsed.expiry > now) {
+          // Cache hit
           return NextResponse.json(parsed.value)
         }
       } catch (e) {
@@ -77,8 +78,7 @@ export async function GET(req: NextRequest) {
         console.warn('[Stats] Cache parse error:', e)
       }
     }
-
-    // Cache miss or expired - compute fresh stats
+     // Cache miss or expired - compute fresh stats
     const counts: Record<string, number> = {}
     let total = 0
 
