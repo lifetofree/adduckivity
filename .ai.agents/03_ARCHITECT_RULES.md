@@ -30,6 +30,8 @@ Design Patterns:
 - WordPress REST API integration (src/lib/wordpress.ts) for blog content
 - Markdown rendering (src/lib/markdown.ts) for post content
 - NodeType: 'action' | 'tool' | 'timer' | 'ignition' — type change auto-initializes defaults (timer→duration, tool→toolId)
+- Sidebar node color mapping by NodeType: Action → cyan-500, Timer → amber-500/orange-500, Tool → purple-500. Applied to ArchitectSidebar node border classes. Matches 3D canvas node colors for visual parity.
+- Default node label convention: "New {Type} Node" where Type is Title Case. Tool nodes use Title Case toolId — e.g. toolId "atomizer" → "New Atomizer Node". Defined in protocol-store.ts or at node creation point in ArchitectSidebar.
 - Daily check-in step state is local (useState) — transient, resets on every page visit by design
 - 3D decoration pattern: StateCheckScene receives energy as prop, never owns state; its Canvas wrapper MUST have `pointer-events-none` — it is purely decorative and must not capture user taps
 - Absolute-positioned overlays inside page containers must clear the fixed SystemBar (h-14 = 56px). Use `top-[72px]` minimum for any `absolute top-*` element in page content areas

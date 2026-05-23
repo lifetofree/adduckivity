@@ -105,7 +105,7 @@ export default function ProtocolBuilderPage() {
     const newNode: ProtocolNode = {
       id: Math.random().toString(36).slice(2, 11),
       type,
-      label: type === 'tool' ? `New ${toolId} Node` : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
+      label: type === 'tool' ? `New ${toolId ? toolId.charAt(0).toUpperCase() + toolId.slice(1) : 'Tool'} Node` : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
       position: [Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5],
       data: toolId ? { toolId } : (type === 'timer' ? { duration: 25 } : {})
     }

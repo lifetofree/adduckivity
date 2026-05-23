@@ -21,6 +21,11 @@ Clean Code:
 - Small functional components
 - Follow existing patterns in shared components (src/components/shared/): SystemBar, SystemFooter, ControlCenter, SceneLoader
 
+ArchitectSidebar Implementation Notes:
+- Node border colors by type: Action → border-cyan-500/50, Timer → border-amber-500/50, Tool → border-purple-500/50 (unselected state). Selected state stays cyan for all types.
+- Default node labels: "New Action Node", "New Timer Node", "New Atomizer Node" — Title Case the type and toolId. Apply at node creation in onAddNode callback.
+- Sidebar text readability: labels/headers use text-white/60 minimum, node text uses text-white/80, empty states use text-white/40.
+
 Test Suite (118 tests across 12 files):
 - src/lib/posts.test.ts — toSlug, readingTime
 - src/__tests__/posts.pure.test.ts — readingTime (5), toSlug (7)

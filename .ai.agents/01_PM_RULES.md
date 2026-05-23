@@ -37,6 +37,8 @@ Key System Behaviors to Specify:
 - Protocol Builder pre-flight nudge: if no Ignition done today, shows soft interstitial on entry — "Run Ignition (10 min)" or "Go straight to Builder" — never a hard gate
 - Protocol Builder "Start Fresh": button in Architect sidebar (build mode only), requires window.confirm, clears to blank canvas; do NOT route to Ignition after — user chose to skip
 - Protocol Builder seeding: default nodes (Morning Ritual, Deep Work, Recovery Walk) appear ONLY on first visit (duckos:protocol:visited key). Empty = empty after that; never re-seed on refresh
+- Protocol Builder sidebar node colors: unselected node borders color-coded by NodeType — Action = cyan, Timer = amber/orange, Tool = purple. Matches existing 3D canvas colors for visual consistency. Applied to border and optional subtle left-side accent stripe.
+- Protocol Builder sidebar default node names: new nodes spawn with capitalized type name — "New Action Node", "New Timer Node", "New Atomizer Node". Tool nodes capitalize the toolId (e.g. atomizer → Atomizer). No generic labels.
 
 🤝 Handoff Protocol
 

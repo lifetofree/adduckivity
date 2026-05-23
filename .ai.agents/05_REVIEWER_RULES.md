@@ -27,6 +27,9 @@ UX Quality:
 - Verify Atomizer clears localStorage on last step completion (not on next visit)
 - Verify Protocol Builder "Start Fresh" is in Architect sidebar only (build mode) and triggers window.confirm
 - Verify Protocol Builder default nodes seed only when duckos:protocol:visited is absent
+- Verify Protocol Builder sidebar node borders are color-coded by type: Action = cyan, Timer = amber/orange, Tool = purple (unselected state). Selected state may stay cyan for all.
+- Verify Protocol Builder default node names use capitalized type: "New Action Node", "New Timer Node", "New Atomizer Node" (not generic or lowercase)
+- Verify Protocol Builder sidebar text readability: labels/headers ≥ text-white/60, node text ≥ text-white/80, empty states ≥ text-white/40
 
 Integration Checks:
 - WordPress blog fetch (wp.adduckivity.com) renders correctly

@@ -35,6 +35,22 @@ export default function ArchitectSidebar({
   const [targetNodeId, setTargetNodeId] = useState<string>('')
   const { start: startIgnition } = useIgnitionStore()
 
+  const nodeBorderClass = (type: NodeType, isActive: boolean) => {
+    const active = 'text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]'
+    const inactive = 'text-white/80'
+    switch (type) {
+      case 'timer': return isActive
+        ? `bg-amber-500/10 border-amber-500/60 ${active}`
+        : `bg-white/5 border-amber-500/40 ${inactive} hover:border-amber-500/60`
+      case 'tool': return isActive
+        ? `bg-purple-500/10 border-purple-500/60 ${active}`
+        : `bg-white/5 border-purple-500/40 ${inactive} hover:border-purple-500/60`
+      default: return isActive
+        ? `bg-cyan-500/10 border-cyan-500/50 ${active}`
+        : `bg-white/5 border-cyan-500/30 ${inactive} hover:border-cyan-500/50`
+    }
+  }
+
   return (
     <motion.div
       initial={{ x: '100%' }}
@@ -60,7 +76,7 @@ export default function ArchitectSidebar({
             <Flame className="w-5 h-5" />
             Ignite Momentum
           </button>
-          <p className="text-[9px] text-white/40 text-center mt-2 font-mono uppercase tracking-wider">
+          <p className="text-[9px] text-white/60 text-center mt-2 font-mono uppercase tracking-wider">
             600s Quick Launch Protocol
           </p>
         </section>
@@ -68,7 +84,7 @@ export default function ArchitectSidebar({
         {/* Node List */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[10px] font-mono text-white/40 uppercase tracking-widest">System Nodes</h3>
+            <h3 className="text-[10px] font-mono text-white/60 uppercase tracking-widest">System Nodes</h3>
             <div className="flex gap-1">
               <button 
                 onClick={() => onAddNode('action')}
@@ -96,21 +112,17 @@ export default function ArchitectSidebar({
           
           <div className="space-y-2">
             {nodes.length === 0 && (
-              <p className="text-[10px] text-white/20 italic text-center py-4 border border-dashed border-white/5 rounded">No nodes in constellation</p>
+              <p className="text-[10px] text-white/40 italic text-center py-4 border border-dashed border-white/5 rounded">No nodes in constellation</p>
             )}
             {nodes.map(node => (
               <button
                 key={node.id}
                 onClick={() => setActiveNodeId(activeNodeId === node.id ? null : node.id)}
-                className={`w-full text-left p-3 rounded border transition-all cursor-pointer ${
-                  activeNodeId === node.id 
-                    ? 'bg-cyan-500/10 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]'
-                    : 'bg-white/5 border-white/5 text-white/60 hover:border-white/20'
-                }`}
+                className={`w-full text-left p-3 rounded border transition-all cursor-pointer ${nodeBorderClass(node.type, activeNodeId === node.id)}`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium truncate">{node.label}</span>
-                  <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/50 opacity-30">
+                  <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/50 opacity-50">
                     {node.type}
                   </span>
                 </div>
@@ -146,7 +158,7 @@ export default function ArchitectSidebar({
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-white/40 uppercase font-mono">Label</label>
+                  <label className="text-[10px] text-white/60 uppercase font-mono">Label</label>
                   <input 
                     type="text"
                     value={activeNode.label}
@@ -156,7 +168,7 @@ export default function ArchitectSidebar({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-white/40 uppercase font-mono">Type</label>
+                  <label className="text-[10px] text-white/60 uppercase font-mono">Type</label>
                   <select 
                     value={activeNode.type}
                     onChange={(e) => {
@@ -176,7 +188,7 @@ export default function ArchitectSidebar({
 
                 {activeNode.type === 'timer' && (
                   <div className="space-y-1.5">
-                    <label className="text-[10px] text-white/40 uppercase font-mono">Duration (Minutes)</label>
+                    <label className="text-[10px] text-white/60 uppercase font-mono">Duration (Minutes)</label>
                     <input 
                       type="number"
                       min="1"
@@ -192,7 +204,7 @@ export default function ArchitectSidebar({
 
                 {activeNode.type === 'tool' && (
                   <div className="space-y-1.5">
-                    <label className="text-[10px] text-white/40 uppercase font-mono">Tool ID</label>
+                    <label className="text-[10px] text-white/60 uppercase font-mono">Tool ID</label>
                     <select 
                       value={activeNode.data?.toolId || 'atomizer'}
                       onChange={(e) => onUpdateNode(activeNode.id, { 
@@ -206,7 +218,7 @@ export default function ArchitectSidebar({
                 )}
 
                 <div className="pt-4 border-t border-white/5">
-                  <h4 className="text-[10px] text-white/40 uppercase font-mono mb-3 flex items-center gap-2">
+                  <h4 className="text-[10px] text-white/60 uppercase font-mono mb-3 flex items-center gap-2">
                     <LinkIcon className="w-3 h-3" />
                     Momentum Path
                   </h4>
@@ -214,11 +226,11 @@ export default function ArchitectSidebar({
                   {/* Current Edges */}
                   <div className="space-y-1 mb-4">
                     {edges.filter(e => e.source === activeNode.id).length === 0 && (
-                      <p className="text-[10px] text-white/20 italic">No outgoing connections</p>
+                      <p className="text-[10px] text-white/40 italic">No outgoing connections</p>
                     )}
                     {edges.filter(e => e.source === activeNode.id).map(edge => (
                       <div key={edge.id} className="flex items-center justify-between bg-white/5 rounded px-2 py-1.5 group">
-                        <span className="text-[10px] text-white/70">
+                        <span className="text-[10px] text-white/80">
                           → {nodes.find(n => n.id === edge.target)?.label || 'Unknown'}
                         </span>
                         <button 

@@ -33,6 +33,11 @@ Homepage CTA: "Start Your Day →" links to /start (replaced "Enter the Launchpa
 
 Intended daily flow: /start → Ignition (energy 7-10) → Protocol Builder → Atomizer.
 
+Protocol Builder Sidebar Improvements (Approved):
+- Color-coded node borders by type in right pane: Action → cyan, Timer → amber/orange, Tool → purple. Reduces scan-time from read-to-identify to see-to-identify.
+- Default node names with capitalized type: "New Action Node", "New Timer Node", "New Atomizer Node" (not generic labels). Gives immediate context without clicking into edit.
+- Sidebar readability: font opacity increased from /40 to /60 for labels/headers, /60 to /80 for node text — compounding improvement for daily-return users.
+
 Revenue Funnel Update: Daily Protocol (/start) is now the primary warm email capture point.
 Subscribe source tags: daily-checkin | emergency-protocol | starter-kit-homepage
 
