@@ -25,13 +25,17 @@ describe('Analytics API', () => {
       put: vi.fn(async (key: string, value: string) => {
         store.set(key, value)
       }),
+      get: vi.fn(async (key: string) => {
+        const entry = store.get(key)
+        return entry ? entry.value : null
+      }),
       list: vi.fn(async (options: any) => {
         let keys = Array.from(store.keys())
         if (options?.prefix) {
           keys = keys.filter(k => k.startsWith(options.prefix))
         }
         return { keys: keys.map(name => ({ name })), list_complete: true }
-      })
+      }),
     }
     ;(getMockKV as any).mockReturnValue(mockKV)
     process.env.NODE_ENV = 'development'
@@ -77,10 +81,11 @@ describe('Analytics API', () => {
   })
 
   it('retrieves stats correctly', async () => {
-    // Manually seed KV
-    await mockKV.put('stats:hit:step1:123', '1')
-    await mockKV.put('stats:hit:step1:456', '1')
-    await mockKV.put('stats:hit:step2:789', '1')
+    const now = Date.now()
+    // Manually seed KV with recent timestamps so they survive the time-window filter.
+    await mockKV.put(`stats:hit:step1:${now}-abc123`, '1')
+    await mockKV.put(`stats:hit:step1:${now}-def456`, '1')
+    await mockKV.put(`stats:hit:step2:${now}-ghi789`, '1')
 
     const req = new Request('http://localhost/api/stats', {
       headers: { 'x-admin-key': 'dev-key' },
