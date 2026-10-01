@@ -57,6 +57,37 @@ isProtected: boolean    // true when energy <= 3
 
 ---
 
+## Newly Identified Issues (Open)
+
+These issues were identified during the codebase audit on 2026-06-18 and are currently unresolved:
+
+### Critical/High Priority
+
+| # | File | Issue | Recommended Fix | Status |
+|---|------|-------|-----------------|--------|
+| H17 | `apps/immersive/momentum-3d/src/app/api/stats/route.ts` | Stats API Key Verification Confusion: `x-admin-key` header is checked against `MAINTENANCE_KEY` instead of `ADMIN_KEY` | Validate against `ADMIN_KEY` using standard edge environment extraction. | `[ ]` |
+| H18 | `apps/immersive/momentum-3d/src/lib/posts.ts` | Unreachable logging in `promoteScheduledPosts`: inner condition check is a logic contradiction | Flatten conditional structure so schedule logs are reachable. | `[ ]` |
+
+### Medium Priority
+
+| # | File | Issue | Recommended Fix | Status |
+|---|------|-------|-----------------|--------|
+| M37 | `apps/immersive/momentum-3d/src/app/api/posts/maintenance/route.ts` | Maintenance Auth Mismatch: checks `x-maintenance-key` header but docs state it uses `?key=` query parameter | Fallback to checking the `key` query parameter if the header is missing. | `[ ]` |
+| M38 | `apps/immersive/momentum-3d/src/app/api/track/route.ts` | Analytics allowlist blocks standard events (`hero_reset_click`, `protocol_card_click`, etc.) specified in docs | Append missing event types to the `ALLOWED_EVENTS` allowlist set. | `[ ]` |
+| M39 | `apps/immersive/momentum-3d/src/lib/posts.ts` | Google Drive matching strictly regexed to `/file/d/` instead of `/open?id=` or `/uc?` | Expand `driveImageRegex` to capture alternate Google Drive link sharing structures. | `[ ]` |
+| M40 | `apps/immersive/momentum-3d/src/lib/wordpress.ts` | SEO meta tag regex checks double-quotes only, failing on single quotes | Relax meta quotes matching in `getPostSeoFromHtml` to capture `content='...'`. | `[ ]` |
+
+### Low Priority / UX
+
+| # | File | Issue | Recommended Fix | Status |
+|---|------|-------|-----------------|--------|
+| L46 | `apps/immersive/momentum-3d/src/components/AtomizerList.tsx` | Misleading pointer cursor on inactive steps | Dynamically toggle `cursor-pointer` vs `cursor-default` based on active step index. | `[ ]` |
+| L47 | `apps/immersive/momentum-3d/src/lib/protocol-store.ts` | Weak graph validation on load (only checks array type) | Validate nested properties (`id`, `label`, `position`) on loaded graph nodes. | `[ ]` |
+| L48 | `apps/immersive/momentum-3d/src/lib/system-context.tsx` | Loose local storage hydration for sensory state | Add shape validation for loaded sensory context keys. | `[ ]` |
+| L49 | `apps/immersive/momentum-3d/src/lib/markdown.ts` | Custom compiler does not support nested lists, and hard breaks all single newlines | Refine lists regex parsing and check single-newline formatting standard. | `[ ]` |
+
+---
+
 ## Fixed Issues
 
 ### Critical (All Resolved)
