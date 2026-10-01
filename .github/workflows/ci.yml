@@ -21,6 +21,7 @@ jobs:
 
     - name: Install dependencies
       run: npm install
+      working-directory: apps/immersive/momentum-3d
 
     - name: Typecheck
       run: npm run typecheck
